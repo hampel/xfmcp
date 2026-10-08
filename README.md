@@ -71,8 +71,9 @@ key, then asks for the scope, then for an admin permission held by the key's own
    permissions for the endpoints the key should reach.
 2. Under *Setup > API keys*, create a key of type **User** for that administrator with only
    the `hampel_admin_api:read` scope. That is `key`. Add `hampel_admin_api:values` to it if
-   the options and configuration tools should show values; for options the administrator
-   also needs XenForo's own *option* permission.
+   the options and configuration tools should show values. The administrator then also needs
+   the add-on's own permission for values and, for options, XenForo's *option* permission.
+   Without them the forum answers as though the scope were absent, and `app:validate` says so.
 3. If error messages should be readable, create a second User key with only
    `hampel_admin_api:error_detail`, for an administrator who also holds XenForo's own
    *View logs* permission. That is `detail_key`.

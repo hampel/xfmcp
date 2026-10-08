@@ -138,7 +138,10 @@ Changing one of these changes what an agent concludes. Add a test with the chang
 
 **The values scope on a read key is a choice, not an excess.** `hampel_admin_api:values`
 widens what the read key's own two endpoints show, so `app:validate` reports it and does not
-warn. Any other extra scope still warns.
+warn. Any other extra scope still warns. The scope is not sufficient, though: the key's user also needs
+admin permissions, and lacking one the forum answers 200 with shape only. So the command asks
+both endpoints and reads `mode`, warning with the forum's own `mode_reason`. That reason is
+quoted, never matched on - the add-on has already added one.
 
 **A key with too much is the failure worth catching, and it is silent otherwise.** For each
 forum the command asks `index` what the key is, then confirms each key is *refused* by the

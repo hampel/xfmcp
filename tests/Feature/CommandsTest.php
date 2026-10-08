@@ -102,6 +102,8 @@ it('treats the values scope on a read key as a choice, not an excess', function 
     fakeHealthyForum([READ_KEY => [
         'index' => ['index-read-values-key', 200],
         'admin-api/add-ons' => ['add-ons', 200],
+        'admin-api/options' => ['options-values', 200],
+        'admin-api/config' => ['config-values', 200],
         'admin-api/error-entries' => ['refused-missing-scope', 403],
     ]]);
 
@@ -110,6 +112,24 @@ it('treats the values scope on a read key as a choice, not an excess', function 
     expect($exit)->toBe(0)
         ->and($output)->not->toContain('[warn]')
         ->toContain('a user key holding hampel_admin_api:read and hampel_admin_api:values');
+});
+
+it('proves a key with the values scope is given values, and warns with the forum\'s reason when it is not', function () {
+    $refused = ['mode' => 'shape', 'mode_reason' => "the key's user does not hold the hampelAdminApiValues admin permission"] + captured('config-changed');
+
+    fakeHealthyForum([READ_KEY => [
+        'index' => ['index-read-values-key', 200],
+        'admin-api/add-ons' => ['add-ons', 200],
+        'admin-api/options' => ['options-values', 200],
+        'admin-api/config' => [$refused, 200],
+        'admin-api/error-entries' => ['refused-missing-scope', 403],
+    ]]);
+
+    [$exit, $output] = runCommand('app:validate');
+
+    expect($exit)->toBe(0)
+        ->and($output)->toContain('shown, with secrets removed')
+        ->toContain('not shown, although the key holds the scope: the key\'s user does not hold the hampelAdminApiValues admin permission');
 });
 
 it('says a read key without the values scope will show no values', function () {

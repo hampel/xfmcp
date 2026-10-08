@@ -156,6 +156,8 @@ class Validate extends Command
             $this->checkFail('Summaries', $gateway->explain($forum, 'key', $e));
         }
 
+        $this->checkValues($gateway, $forum, $api);
+
         // The read key must NOT reach the content endpoint. No entry is named, so the only
         // possible outcomes are the three refusals below; nothing is ever returned.
         try {
@@ -215,6 +217,44 @@ class Validate extends Command
     }
 
     /**
+     * Whether a key that holds the values scope is actually given values.
+     *
+     * The scope is not enough: the key's user needs an admin permission for values, and
+     * core's own for options. Lacking one, the forum answers as though the scope were not
+     * there - a 200, with shape only - so nothing but the answer's own `mode` shows it.
+     */
+    protected function checkValues(ForumGateway $gateway, Forum $forum, AdminApi $api): void
+    {
+        if (! $this->holdsValues) {
+            $this->checkSkip('Values', 'the read key does not hold '.ForumGateway::SCOPE_VALUES);
+
+            return;
+        }
+
+        $calls = [
+            'options' => static fn (): array => $api->options(null, true),
+            'configuration' => static fn (): array => $api->config(true),
+        ];
+
+        foreach ($calls as $name => $call) {
+            try {
+                $answer = $call();
+            } catch (XenForoException $e) {
+                $this->checkFail('Values: '.$name, $gateway->explain($forum, 'key', $e));
+
+                continue;
+            }
+
+            ($answer['mode'] ?? null) === 'values'
+                ? $this->checkOk('Values: '.$name, 'shown, with secrets removed')
+                : $this->checkWarn('Values: '.$name, 'not shown, although the key holds the scope: '.($answer['mode_reason'] ?? 'the forum did not say why'));
+        }
+    }
+
+    /** whether the read key last checked by checkKeyKind() holds the values scope */
+    protected bool $holdsValues = false;
+
+    /**
      * What the forum itself says about a key: its type, and the scopes it holds.
      *
      * A super user key passes XenForo's own checks and is refused by every endpoint of the
@@ -254,6 +294,10 @@ class Validate extends Command
         $expected = $which === 'key' ? [$scope, ForumGateway::SCOPE_VALUES] : [$scope];
         $extra = array_values(array_diff($info->scopes, $expected));
         $values = $which === 'key' && in_array(ForumGateway::SCOPE_VALUES, $info->scopes, true);
+
+        if ($which === 'key') {
+            $this->holdsValues = $values || $info->allowAllScopes;
+        }
 
         if ($info->allowAllScopes) {
             $this->checkWarn($label, 'a user key allowed ALL scopes; give it '.$scope.' and nothing else');
