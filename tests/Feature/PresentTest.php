@@ -80,6 +80,14 @@ it('tells a withheld value from a real null, in either mode', function (array $e
         ['disclosed' => false, 'value' => ['a' => 1], 'redactions' => [['path' => 'b.c', 'segments' => ['b', 'c'], 'reason' => 'name']]],
         ['disclosure' => 'partly_withheld', 'value' => ['a' => 1], 'redactions' => [['path' => 'b.c', 'segments' => ['b', 'c'], 'reason' => 'name', 'because' => 'its name reads like a credential']]],
     ],
+    'a secret that holds nothing is withheld all the same, and says so' => [
+        ['disclosed' => false, 'value' => ['password' => null], 'redactions' => [['path' => 'password', 'segments' => ['password'], 'reason' => 'name', 'set' => false]]],
+        [
+            'disclosure' => 'partly_withheld',
+            'value' => ['password' => '[withheld: not set]'],
+            'redactions' => [['path' => 'password', 'segments' => ['password'], 'reason' => 'name', 'set' => false, 'because' => 'its name reads like a credential']],
+        ],
+    ],
     'values mode, a reason this tool has not heard of' => [
         ['disclosed' => false, 'value' => null, 'redactions' => [['path' => '', 'reason' => 'novel']]],
         ['disclosure' => 'withheld', 'redactions' => [['path' => '', 'reason' => 'novel', 'because' => 'the forum gave a reason this tool does not know']]],

@@ -230,21 +230,33 @@ it('shows option values with each withheld part marked and explained', function 
     $content = structured(ForumOptions::class, ['forum' => 'acme']);
     $options = collect($content['options'])->keyBy('option_id');
 
-    expect($content['headline'])->toBe('Values are shown, with secrets removed: 3 of the 7 options listed have something withheld, each with its reason.')
+    expect($content['headline'])->toBe(
+        'Values are shown, with secrets removed: 4 of the 7 options listed have something withheld, each with its reason. '
+        .'For 1 of those it is only that the add-on has not declared its secrets, so its text is hidden as a precaution.'
+    )
         ->and($content['mode'])->toBe('values')
-        // shown whole: the answer to "where does this forum's mail go?"
-        ->and($options['emailTransport']['disclosure'])->toBe('shown')
-        ->and($options['emailTransport']['value'])->toMatchArray(['emailTransport' => 'smtp', 'smtpHost' => '127.0.0.1', 'smtpPort' => 1025])
-        ->and($options['boardTitle']['value'])->toBe('Example Forum')
-        // withheld in part: the marker stands where the add-on put a null
-        ->and($options['emailDkim']['disclosure'])->toBe('partly_withheld')
+        ->and($options['boardTitle'])->toMatchArray(['disclosure' => 'shown', 'value' => 'Example Forum'])
+        // where the mail goes is shown; the login is a secret whether or not there is one,
+        // and "there is none" is said, not left to look like a hidden password
+        ->and($options['emailTransport']['disclosure'])->toBe('partly_withheld')
+        ->and($options['emailTransport']['value'])->toBe([
+            'emailTransport' => 'smtp', 'smtpHost' => '127.0.0.1', 'smtpPort' => 1025, 'smtpAuth' => 'none',
+            'smtpLoginUsername' => '[withheld: not set]', 'smtpLoginPassword' => '[withheld: not set]', 'smtpSsl' => false,
+        ])
+        // a secret that IS set gets the plain marker
         ->and($options['emailDkim']['value'])->toMatchArray(['enabled' => false, 'privateKey' => '[withheld]'])
-        ->and($options['emailDkim']['redactions'][0])->toBe(['path' => 'privateKey', 'segments' => ['privateKey'], 'reason' => 'known_secret', 'because' => 'it is on the list of known secrets'])
+        ->and($options['emailDkim']['redactions'][0])->toBe([
+            'path' => 'privateKey', 'segments' => ['privateKey'], 'reason' => 'known_secret', 'set' => true,
+            'because' => 'it is on the list of known secrets',
+        ])
         // withheld whole: no value key to misread
         ->and($options['extraCaptchaKeys']['disclosure'])->toBe('withheld')
         ->and($options['extraCaptchaKeys'])->not->toHaveKey('value')
         ->and($options['extraCaptchaKeys'])->toMatchArray(['set' => true, 'count' => 2])
-        ->and($options['acmeWebhookUrl'])->not->toHaveKey('value');
+        // an add-on that has not declared its secrets: its text is hidden, its switches are not
+        ->and($options['acmeEndpoint'])->not->toHaveKey('value')
+        ->and($options['acmeEndpoint']['redactions'][0]['because'])->toContain('has not declared which of its settings are secrets')
+        ->and($options['acmeExampleFlag'])->toMatchArray(['disclosure' => 'shown', 'value' => true]);
 });
 
 it('leaves a number inside an option value alone', function () {
@@ -261,7 +273,7 @@ it('says a real null is a null, and why an undeclared add-on\'s text is hidden',
     $content = structured(ForumConfiguration::class, ['forum' => 'acme']);
     $settings = collect($content['settings'])->keyBy('key');
 
-    expect($content['headline'])->toStartWith('Values are shown, with secrets removed: 3 of the 10 settings listed')
+    expect($content['headline'])->toStartWith('Values are shown, with secrets removed: 4 of the 11 settings listed have something withheld, each with its reason. For 2 of those')
         ->and($settings['db.host'])->toMatchArray(['disclosure' => 'shown', 'value' => 'localhost'])
         ->and($settings['db.socket'])->toMatchArray(['disclosure' => 'shown', 'value' => null])
         ->and($settings['db.password'])->toMatchArray(['disclosure' => 'withheld', 'set' => true])

@@ -51,6 +51,7 @@
                     "path": "",
                     "segments": [],
                     "reason": "known_secret",
+                    "set": true,
                     "inherited_from": null
                 }
             ]
@@ -91,6 +92,7 @@
                     "path": "",
                     "segments": [],
                     "reason": "known_secret",
+                    "set": true,
                     "inherited_from": null
                 }
             ]
@@ -131,6 +133,26 @@
                     "path": "",
                     "segments": [],
                     "reason": "untrusted_add_on",
+                    "set": true,
+                    "inherited_from": null
+                }
+            ]
+        },
+        {
+            "key": "acmeLog.file.path",
+            "has_default": false,
+            "is_default": false,
+            "type": "string",
+            "set": true,
+            "disclosed": false,
+            "value": null,
+            "count": null,
+            "redactions": [
+                {
+                    "path": "",
+                    "segments": [],
+                    "reason": "untrusted_add_on",
+                    "set": true,
                     "inherited_from": null
                 }
             ]

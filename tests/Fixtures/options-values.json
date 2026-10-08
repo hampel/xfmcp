@@ -33,19 +33,36 @@
             "overridden": false,
             "type": "array",
             "set": true,
-            "disclosed": true,
+            "disclosed": false,
             "value": {
                 "emailTransport": "smtp",
                 "smtpHost": "127.0.0.1",
                 "smtpPort": 1025,
                 "smtpAuth": "none",
-                "smtpLoginUsername": "",
-                "smtpLoginPassword": "",
+                "smtpLoginUsername": null,
+                "smtpLoginPassword": null,
                 "smtpSsl": false
             },
             "count": 7,
             "members": null,
-            "redactions": []
+            "redactions": [
+                {
+                    "path": "smtpLoginUsername",
+                    "segments": [
+                        "smtpLoginUsername"
+                    ],
+                    "reason": "known_secret",
+                    "set": false
+                },
+                {
+                    "path": "smtpLoginPassword",
+                    "segments": [
+                        "smtpLoginPassword"
+                    ],
+                    "reason": "known_secret",
+                    "set": false
+                }
+            ]
         },
         {
             "option_id": "emailDkim",
@@ -71,7 +88,8 @@
                     "segments": [
                         "privateKey"
                     ],
-                    "reason": "known_secret"
+                    "reason": "known_secret",
+                    "set": true
                 }
             ]
         },
@@ -91,12 +109,13 @@
                 {
                     "path": "",
                     "segments": [],
-                    "reason": "known_secret"
+                    "reason": "known_secret",
+                    "set": true
                 }
             ]
         },
         {
-            "option_id": "acmeWebhookUrl",
+            "option_id": "acmeEndpoint",
             "add_on_id": "Acme/AddOnA",
             "data_type": "string",
             "is_default": false,
@@ -111,7 +130,8 @@
                 {
                     "path": "",
                     "segments": [],
-                    "reason": "known_secret"
+                    "reason": "untrusted_add_on",
+                    "set": true
                 }
             ]
         },

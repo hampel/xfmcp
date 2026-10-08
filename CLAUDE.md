@@ -114,6 +114,12 @@ response got something wrong, in trials run against the add-on before this tool 
   one only by `redactions` naming its path. So a value withheld whole loses its `value` key,
   a part withheld from inside one becomes `[withheld]`, and each redaction gains `because`.
   `Present::disclosure()` handles both modes; a null that survives it is a null.
+- **A secret that holds nothing reads `[withheld: not set]`.** The add-on withholds a secret
+  whether or not it is set, and each redaction says which. A blank SMTP password is an
+  answer - there is no login - and must not look like a hidden one, or like an empty string.
+- **The values headline counts the entries hidden only because their add-on has not declared
+  its secrets.** Until add-ons declare, that is most of what is withheld, and without the
+  count a forum full of undeclared add-ons reads as a forum full of secrets.
 - **A redaction is placed by its `segments`, never by splitting its `path`.** A key can
   contain a dot - a hostname, a template name - so the dotted path cannot be taken apart
   again. `Present::mark()` only ever replaces a place that exists, and creates nothing.

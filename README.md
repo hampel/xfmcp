@@ -172,8 +172,8 @@ answer's `headline` says which, and why.
 | an entry's `disclosure` | means |
 |---|---|
 | `shown` | the value is all there. A null is a null |
-| `partly_withheld` | the value is there with parts removed. A removed part reads `[withheld]` |
-| `withheld` | there is no `value` key. The setting is not empty; read `set` |
+| `partly_withheld` | the value is there with parts removed. A removed part reads `[withheld]`, or `[withheld: not set]` when the secret held nothing |
+| `withheld` | there is no `value` key. Read `set` for whether it holds anything |
 
 Each removal is listed under `redactions` with its path and the reason. One reason deserves
 knowing in advance: the text settings of an add-on that has not declared its secrets to

@@ -88,6 +88,9 @@ class Present
     /** what stands in for a part of a value the add-on removed */
     public const WITHHELD = '[withheld]';
 
+    /** the same, for a secret that turned out to hold nothing: withheld all the same */
+    public const WITHHELD_EMPTY = '[withheld: not set]';
+
     /** the add-on's closed list of reasons, as a clause that finishes "withheld because ..." */
     private const REASONS = [
         'override' => 'this forum\'s config.php says to withhold it',
@@ -123,8 +126,8 @@ class Present
      *
      * Here an entry gains `disclosure` - `shown`, `partly_withheld` or `withheld` - in
      * place of `disclosed`. A value withheld whole loses its `value` key; a part withheld
-     * from inside a value becomes the WITHHELD marker; and each redaction gains `because`.
-     * So a null that survives is a null.
+     * from inside a value becomes a marker, which also says when the secret held nothing;
+     * and each redaction gains `because`. So a null that survives is a null.
      *
      * @param  array<mixed>  $entry
      * @return array<mixed>
@@ -162,7 +165,13 @@ class Present
                 $state = $state === 'withheld' ? $state : 'partly_withheld';
 
                 if ($reason !== 'url' && is_array($entry['value'])) {
-                    self::mark($entry['value'], $segments);
+                    // the add-on withholds a secret whether or not it holds anything, and
+                    // says which; "no password" is an answer and must not read as one hidden
+                    self::mark(
+                        $entry['value'],
+                        $segments,
+                        ($redaction['set'] ?? true) === false ? self::WITHHELD_EMPTY : self::WITHHELD,
+                    );
                 }
             }
         } elseif (($entry['disclosed'] ?? true) === false) {
@@ -215,13 +224,13 @@ class Present
     }
 
     /**
-     * Put the WITHHELD marker at a place in a value, if that place exists. Never creates
+     * Put a marker at a place in a value, if that place exists. Never creates
      * one: a path this tool cannot follow is left to `redactions` to describe.
      *
      * @param  array<mixed>  $value
      * @param  list<string>  $segments
      */
-    private static function mark(array &$value, array $segments): void
+    private static function mark(array &$value, array $segments, string $marker): void
     {
         $at = &$value;
 
@@ -231,7 +240,7 @@ class Present
             }
 
             if ($position === count($segments) - 1) {
-                $at[$segment] = self::WITHHELD;
+                $at[$segment] = $marker;
 
                 return;
             }
@@ -252,12 +261,24 @@ class Present
         $incomplete = count(array_filter($entries, static fn (array $entry): bool => ($entry['disclosure'] ?? 'shown') !== 'shown'));
 
         if (($data['mode'] ?? 'shape') === 'values') {
+            // usually most of them, and not because anything is secret: say so, or the
+            // reader takes a forum full of undeclared add-ons for a forum full of secrets
+            $undeclared = count(array_filter($entries, static fn (array $entry): bool => in_array(
+                'untrusted_add_on',
+                array_column((array) ($entry['redactions'] ?? []), 'reason'),
+                true,
+            )));
+
             return sprintf(
-                'Values are shown, with secrets removed: %d of the %d %s listed %s something withheld, each with its reason.',
+                'Values are shown, with secrets removed: %d of the %d %s listed %s something withheld, each with its reason.%s',
                 $incomplete,
                 $listed,
                 $noun,
                 $incomplete === 1 ? 'has' : 'have',
+                $undeclared === 0 ? '' : sprintf(
+                    ' For %d of those it is only that the add-on has not declared its secrets, so its text is hidden as a precaution.',
+                    $undeclared,
+                ),
             );
         }
 

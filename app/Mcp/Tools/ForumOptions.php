@@ -26,7 +26,8 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 
     Reading an entry, in either mode:
     - `disclosure` is `shown`, `partly_withheld` or `withheld`. A withheld option has no `value` key at all; it
-      is not empty - read `set`. Inside a value, a removed part reads `[withheld]`. So a null you see is a null.
+      is not empty unless `set` is false. Inside a value, a removed part reads `[withheld]`, or
+      `[withheld: not set]` when the secret held nothing - a secret is hidden either way. A null you see is a null.
     - `redactions` lists each removed part with its `path` and `because`. A `url` redaction keeps the scheme
       and host. "Its add-on has not declared its secrets" means the text of that add-on's settings is hidden
       as a precaution, not that the setting is a secret or is empty.
