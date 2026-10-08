@@ -8,7 +8,9 @@
 name = "Example Forum"                   # optional; shown by list-forums
 url  = "https://forum.example.com"       # the board URL or its /api URL
 
-# A USER key belonging to one administrator, holding only the hampel_admin_api:read scope.
+# A USER key belonging to one administrator, holding the hampel_admin_api:read scope. Add
+# hampel_admin_api:values to the same key if the options and configuration tools should
+# show values, with secrets removed, and not only whether each setting is set.
 # Not a super user key: the add-on refuses one, and every tool would answer with a 403.
 key  = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 

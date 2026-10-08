@@ -1,0 +1,142 @@
+{
+    "mode": "values",
+    "mode_reason": null,
+    "total": 387,
+    "changed": 44,
+    "by_add_on": [
+        {
+            "add_on_id": "XF",
+            "total": 220,
+            "changed": 15
+        }
+    ],
+    "options": [
+        {
+            "option_id": "boardTitle",
+            "add_on_id": "XF",
+            "data_type": "string",
+            "is_default": false,
+            "overridden": false,
+            "type": "string",
+            "set": true,
+            "disclosed": true,
+            "value": "Example Forum",
+            "count": null,
+            "members": null,
+            "redactions": []
+        },
+        {
+            "option_id": "emailTransport",
+            "add_on_id": "XF",
+            "data_type": "array",
+            "is_default": false,
+            "overridden": false,
+            "type": "array",
+            "set": true,
+            "disclosed": true,
+            "value": {
+                "emailTransport": "smtp",
+                "smtpHost": "127.0.0.1",
+                "smtpPort": 1025,
+                "smtpAuth": "none",
+                "smtpLoginUsername": "",
+                "smtpLoginPassword": "",
+                "smtpSsl": false
+            },
+            "count": 7,
+            "members": null,
+            "redactions": []
+        },
+        {
+            "option_id": "emailDkim",
+            "add_on_id": "XF",
+            "data_type": "array",
+            "is_default": false,
+            "overridden": false,
+            "type": "array",
+            "set": true,
+            "disclosed": false,
+            "value": {
+                "enabled": false,
+                "verified": false,
+                "failed": false,
+                "domain": false,
+                "privateKey": null
+            },
+            "count": 5,
+            "members": null,
+            "redactions": [
+                {
+                    "path": "privateKey",
+                    "reason": "known_secret"
+                }
+            ]
+        },
+        {
+            "option_id": "extraCaptchaKeys",
+            "add_on_id": "XF",
+            "data_type": "array",
+            "is_default": false,
+            "overridden": false,
+            "type": "array",
+            "set": true,
+            "disclosed": false,
+            "value": null,
+            "count": 2,
+            "members": null,
+            "redactions": [
+                {
+                    "path": "",
+                    "reason": "known_secret"
+                }
+            ]
+        },
+        {
+            "option_id": "acmeWebhookUrl",
+            "add_on_id": "Acme/AddOnA",
+            "data_type": "string",
+            "is_default": false,
+            "overridden": false,
+            "type": "string",
+            "set": true,
+            "disclosed": false,
+            "value": null,
+            "count": null,
+            "members": null,
+            "redactions": [
+                {
+                    "path": "",
+                    "reason": "known_secret"
+                }
+            ]
+        },
+        {
+            "option_id": "acmeExampleFlag",
+            "add_on_id": "Acme/AddOnA",
+            "data_type": "boolean",
+            "is_default": false,
+            "overridden": false,
+            "type": "boolean",
+            "set": true,
+            "disclosed": true,
+            "value": true,
+            "count": null,
+            "members": null,
+            "redactions": []
+        },
+        {
+            "option_id": "currentVersionId",
+            "add_on_id": "XF",
+            "data_type": "positive_integer",
+            "is_default": false,
+            "overridden": false,
+            "type": "integer",
+            "set": true,
+            "disclosed": true,
+            "value": 2031270,
+            "count": null,
+            "members": null,
+            "redactions": []
+        }
+    ]
+}

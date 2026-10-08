@@ -1,0 +1,28 @@
+{
+    "now": 1791454001,
+    "window_minutes": 15,
+    "total": 0,
+    "members": 0,
+    "guests": 0,
+    "robots": 0,
+    "errors": 0,
+    "newest_date": null,
+    "guest_networks": {
+        "sessions": 0,
+        "ipv4": 0,
+        "largest_24": 0,
+        "distinct_24": 0,
+        "largest_16": 0,
+        "distinct_16": 0
+    },
+    "robot_networks": {
+        "sessions": 0,
+        "ipv4": 0,
+        "largest_24": 0,
+        "distinct_24": 0,
+        "largest_16": 0,
+        "distinct_16": 0
+    },
+    "by_robot": [],
+    "by_action": []
+}

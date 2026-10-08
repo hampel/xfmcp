@@ -37,6 +37,9 @@ class ForumGateway
 
     public const SCOPE_DETAIL = 'hampel_admin_api:error_detail';
 
+    /** adds values to the options and configuration answers; never held alone */
+    public const SCOPE_VALUES = 'hampel_admin_api:values';
+
     public const CODE_KEY_TYPE = 'hampel_adminapi_user_api_key_required';
 
     public const CODE_ERROR_ID_REQUIRED = 'hampel_adminapi_error_id_required';

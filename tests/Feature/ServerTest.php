@@ -9,13 +9,14 @@ use App\Mcp\Tools\ForumConfiguration;
 use App\Mcp\Tools\ForumOptions;
 use App\Mcp\Tools\JobQueue;
 use App\Mcp\Tools\ListForums;
+use App\Mcp\Tools\WhoIsOnline;
 use App\Support\ForumInventoryException;
 use Laravel\Mcp\Facades\Mcp;
 use Laravel\Mcp\Server\Tool;
 
 const TOOLS = [
     ListForums::class, ErrorLogSummary::class, ErrorLogEntries::class, AddOns::class,
-    CronEntries::class, JobQueue::class, ForumOptions::class, ForumConfiguration::class,
+    CronEntries::class, JobQueue::class, WhoIsOnline::class, ForumOptions::class, ForumConfiguration::class,
 ];
 
 it('registers every tool', function () {
@@ -27,13 +28,22 @@ it('is registered as a local server and as nothing else', function () {
         ->and(array_keys(Mcp::servers()))->toBe(['xenforo']);
 });
 
-it('marks every tool read-only and idempotent', function (string $class) {
+it('marks every tool read-only, and never destructive', function (string $class) {
     /** @var Tool $tool */
     $tool = app($class);
 
     expect($tool->toArray()['annotations'])
-        ->toMatchArray(['readOnlyHint' => true, 'idempotentHint' => true])
+        ->toMatchArray(['readOnlyHint' => true])
         ->not->toHaveKey('destructiveHint');
+})->with(TOOLS);
+
+it('marks every tool idempotent except the one that is a snapshot', function (string $class) {
+    $annotations = (array) app($class)->toArray()['annotations'];
+
+    // who is online changes from one call to the next, so calling it twice is not calling it once
+    $class === WhoIsOnline::class
+        ? expect($annotations)->not->toHaveKey('idempotentHint')
+        : expect($annotations)->toMatchArray(['idempotentHint' => true]);
 })->with(TOOLS);
 
 it('hides the error entries tool when no forum has a detail key', function () {

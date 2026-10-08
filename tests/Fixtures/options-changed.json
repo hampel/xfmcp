@@ -1,4 +1,6 @@
 {
+    "mode": "shape",
+    "mode_reason": "the key does not hold the hampel_admin_api:values scope",
     "total": 384,
     "changed": 45,
     "by_add_on": [
@@ -19,7 +21,9 @@
             "disclosed": false,
             "value": null,
             "count": null,
-            "members": null
+            "members": null,
+            "overridden": false,
+            "redactions": null
         },
         {
             "option_id": "boardUrl",
@@ -31,7 +35,9 @@
             "disclosed": false,
             "value": null,
             "count": null,
-            "members": null
+            "members": null,
+            "overridden": false,
+            "redactions": null
         },
         {
             "option_id": "collectServerStats",
@@ -72,7 +78,9 @@
                     "value": false,
                     "count": null
                 }
-            }
+            },
+            "overridden": false,
+            "redactions": null
         },
         {
             "option_id": "emailTransport",
@@ -92,7 +100,9 @@
                     "value": "smtp",
                     "count": null
                 }
-            }
+            },
+            "overridden": false,
+            "redactions": null
         },
         {
             "option_id": "acmeExampleFlag",
@@ -104,7 +114,9 @@
             "disclosed": true,
             "value": true,
             "count": null,
-            "members": null
+            "members": null,
+            "overridden": false,
+            "redactions": null
         }
     ]
 }

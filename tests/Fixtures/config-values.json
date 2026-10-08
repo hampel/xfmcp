@@ -1,0 +1,133 @@
+{
+    "mode": "values",
+    "mode_reason": null,
+    "total": 88,
+    "changed": 19,
+    "settings": [
+        {
+            "key": "chmodWritableValue",
+            "has_default": true,
+            "is_default": false,
+            "type": "integer",
+            "set": true,
+            "disclosed": true,
+            "value": 436,
+            "count": null,
+            "redactions": []
+        },
+        {
+            "key": "db.dbname",
+            "has_default": false,
+            "is_default": false,
+            "type": "string",
+            "set": true,
+            "disclosed": true,
+            "value": "forum",
+            "count": null,
+            "redactions": []
+        },
+        {
+            "key": "db.host",
+            "has_default": false,
+            "is_default": false,
+            "type": "string",
+            "set": true,
+            "disclosed": true,
+            "value": "localhost",
+            "count": null,
+            "redactions": []
+        },
+        {
+            "key": "db.password",
+            "has_default": false,
+            "is_default": false,
+            "type": "string",
+            "set": true,
+            "disclosed": false,
+            "value": null,
+            "count": null,
+            "redactions": [
+                {
+                    "path": "",
+                    "reason": "known_secret"
+                }
+            ]
+        },
+        {
+            "key": "db.port",
+            "has_default": false,
+            "is_default": false,
+            "type": "integer",
+            "set": true,
+            "disclosed": true,
+            "value": 3306,
+            "count": null,
+            "redactions": []
+        },
+        {
+            "key": "db.socket",
+            "has_default": false,
+            "is_default": false,
+            "type": "null",
+            "set": false,
+            "disclosed": true,
+            "value": null,
+            "count": null,
+            "redactions": []
+        },
+        {
+            "key": "db.username",
+            "has_default": false,
+            "is_default": false,
+            "type": "string",
+            "set": true,
+            "disclosed": false,
+            "value": null,
+            "count": null,
+            "redactions": [
+                {
+                    "path": "",
+                    "reason": "known_secret"
+                }
+            ]
+        },
+        {
+            "key": "debug",
+            "has_default": true,
+            "is_default": false,
+            "type": "boolean",
+            "set": true,
+            "disclosed": true,
+            "value": true,
+            "count": null,
+            "redactions": []
+        },
+        {
+            "key": "development.enabled",
+            "has_default": true,
+            "is_default": false,
+            "type": "boolean",
+            "set": true,
+            "disclosed": true,
+            "value": true,
+            "count": null,
+            "redactions": []
+        },
+        {
+            "key": "acmeService.endpoint",
+            "has_default": false,
+            "is_default": false,
+            "type": "string",
+            "set": true,
+            "disclosed": false,
+            "value": null,
+            "count": null,
+            "redactions": [
+                {
+                    "path": "",
+                    "reason": "untrusted_add_on"
+                }
+            ]
+        }
+    ]
+}

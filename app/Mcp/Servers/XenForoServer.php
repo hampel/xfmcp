@@ -10,6 +10,7 @@ use App\Mcp\Tools\ForumConfiguration;
 use App\Mcp\Tools\ForumOptions;
 use App\Mcp\Tools\JobQueue;
 use App\Mcp\Tools\ListForums;
+use App\Mcp\Tools\WhoIsOnline;
 use Laravel\Mcp\Server;
 use Laravel\Mcp\Server\Attributes\Instructions;
 use Laravel\Mcp\Server\Attributes\Name;
@@ -17,16 +18,19 @@ use Laravel\Mcp\Server\Attributes\Name;
 /**
  * Read-only operational state of XenForo forums, over stdio.
  *
- * Every tool here is read-only and idempotent, and the class deliberately has no way to be
+ * Every tool here is read-only, and the class deliberately has no way to be
  * anything else: a write would be a new scope on the forum and a new tool marked
  * destructive, not a flag on one of these.
  */
 #[Name('XenForo forum operations')]
 #[Instructions(<<<'TEXT'
     Read-only operational state of XenForo forums: the server error log, installed add-ons, cron, the job queue,
-    and which options and config.php settings are set. Nothing here changes a forum.
+    who is online, and the forum's options and config.php settings. Nothing here changes a forum.
 
     Start with list-forums; every other tool takes a forum id from it.
+
+    For "how is this forum configured?", ask forum-options and forum-configuration; they show values with
+    secrets removed where the forum's key allows it, and say so when it does not.
 
     For "is anything wrong with this forum?", ask error-log-summary, cron-entries, job-queue and add-ons. Each
     reports what the forum recorded, so a clean answer means nothing was recorded, which is weaker than nothing
@@ -47,6 +51,7 @@ class XenForoServer extends Server
         AddOns::class,
         CronEntries::class,
         JobQueue::class,
+        WhoIsOnline::class,
         ForumOptions::class,
         ForumConfiguration::class,
     ];

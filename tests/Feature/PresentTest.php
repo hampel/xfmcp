@@ -28,12 +28,34 @@ it('adds a local time with its offset when a zone is set, and ignores a zone PHP
         ->and(Present::timestamps(['now' => 1791422596], 'Mars/Olympus'))->not->toHaveKey('now_local');
 });
 
-it('tells a withheld value from a real null', function () {
-    expect(Present::withheld(['disclosed' => false, 'value' => null, 'set' => true]))
-        ->toBe(['disclosed' => false, 'set' => true, 'withheld' => true])
-        ->and(Present::withheld(['disclosed' => true, 'value' => null, 'set' => false]))
-        ->toBe(['disclosed' => true, 'value' => null, 'set' => false, 'withheld' => false]);
-});
+it('tells a withheld value from a real null, in either mode', function (array $entry, array $expected) {
+    expect(Present::disclosure($entry))->toBe($expected);
+})->with([
+    'shape mode, withheld' => [
+        ['disclosed' => false, 'value' => null, 'set' => true],
+        ['disclosure' => 'withheld', 'set' => true],
+    ],
+    'shape mode, a real null' => [
+        ['disclosed' => true, 'value' => null, 'set' => false],
+        ['disclosure' => 'shown', 'value' => null, 'set' => false],
+    ],
+    'values mode, a real null' => [
+        ['disclosed' => true, 'value' => null, 'redactions' => []],
+        ['disclosure' => 'shown', 'value' => null, 'redactions' => []],
+    ],
+    'values mode, a nested part withheld beside a real null' => [
+        ['disclosed' => false, 'value' => ['a' => ['key' => null], 'b' => null], 'redactions' => [['path' => 'a.key', 'reason' => 'name']]],
+        [
+            'disclosure' => 'partly_withheld',
+            'value' => ['a' => ['key' => '[withheld]'], 'b' => null],
+            'redactions' => [['path' => 'a.key', 'reason' => 'name', 'because' => 'its name reads like a credential']],
+        ],
+    ],
+    'values mode, a reason this tool has not heard of' => [
+        ['disclosed' => false, 'value' => null, 'redactions' => [['path' => '', 'reason' => 'novel']]],
+        ['disclosure' => 'withheld', 'redactions' => [['path' => '', 'reason' => 'novel', 'because' => 'the forum gave a reason this tool does not know']]],
+    ],
+]);
 
 it('measures a distance in one unit, in either direction', function (int $from, int $to, string $expected) {
     expect(Present::distance($from, $to))->toBe($expected);

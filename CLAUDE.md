@@ -108,14 +108,28 @@ response got something wrong, in trials run against the add-on before this tool 
   looked like an empty log.
 - **`by_origin_add_on` and `by_location` come before `by_add_on`**, which is last. Where an
   error surfaced is not whose error it is.
-- **A withheld value loses its `value` key and gains `withheld: true`.** `value: null` meant
-  both withheld and null.
+- **Every option and setting gains `disclosure`: `shown`, `partly_withheld` or `withheld`.**
+  A null was ambiguous twice over. Without the values scope, `value: null` meant both
+  withheld and null; with it, a withheld part is a null *inside* the value, told from a real
+  one only by `redactions` naming its path. So a value withheld whole loses its `value` key,
+  a part withheld from inside one becomes `[withheld]`, and each redaction gains `because`.
+  `Present::disclosure()` handles both modes; a null that survives it is a null.
+- **Options and configuration lead with which mode the forum answered in**, using the
+  add-on's own `mode_reason`. A missing scope and a missing admin permission are different
+  fixes, and "the tool could only say smtp" is what prompted values in the first place.
 - **`notes` says what an empty answer is worth**, because absence is not health and a
   description alone did not stop an agent overclaiming it.
+
+- **`who-is-online` is the one tool not marked idempotent.** It is a snapshot; two calls are
+  two answers.
 
 Changing one of these changes what an agent concludes. Add a test with the change.
 
 ## `app:validate` proves the kind of each key
+
+**The values scope on a read key is a choice, not an excess.** `hampel_admin_api:values`
+widens what the read key's own two endpoints show, so `app:validate` reports it and does not
+warn. Any other extra scope still warns.
 
 **A key with too much is the failure worth catching, and it is silent otherwise.** For each
 forum the command asks `index` what the key is, then confirms each key is *refused* by the

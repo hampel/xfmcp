@@ -218,7 +218,7 @@ class Validate extends Command
      * What the forum itself says about a key: its type, and the scopes it holds.
      *
      * A super user key passes XenForo's own checks and is refused by every endpoint of the
-     * add-on, so it is caught here by name instead of as seven identical 403s.
+     * add-on, so it is caught here by name instead of as an identical 403 from every endpoint.
      *
      * @return bool whether the key is one the add-on will accept
      */
@@ -249,14 +249,22 @@ class Validate extends Command
             return false;
         }
 
-        $extra = array_values(array_diff($info->scopes, [$scope]));
+        // the values scope widens what the read key's own endpoints show; it is a choice
+        // made per forum, not a key holding more than it should
+        $expected = $which === 'key' ? [$scope, ForumGateway::SCOPE_VALUES] : [$scope];
+        $extra = array_values(array_diff($info->scopes, $expected));
+        $values = $which === 'key' && in_array(ForumGateway::SCOPE_VALUES, $info->scopes, true);
 
         if ($info->allowAllScopes) {
             $this->checkWarn($label, 'a user key allowed ALL scopes; give it '.$scope.' and nothing else');
         } elseif ($extra !== []) {
-            $this->checkWarn($label, sprintf('a user key holding %d scope(s) beyond %s: %s', count($extra), $scope, implode(', ', $extra)));
+            $this->checkWarn($label, sprintf('a user key holding %d scope(s) it does not need: %s', count($extra), implode(', ', $extra)));
         } else {
-            $this->checkOk($label, 'a user key holding '.$scope.' only');
+            $this->checkOk($label, match (true) {
+                $values => 'a user key holding '.$scope.' and '.ForumGateway::SCOPE_VALUES,
+                $which === 'key' => 'a user key holding '.$scope.' only; options and configuration show no values',
+                default => 'a user key holding '.$scope.' only',
+            });
         }
 
         return true;

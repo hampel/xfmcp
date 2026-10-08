@@ -15,22 +15,27 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 
 #[Name('forum-options')]
 #[Description(<<<'TEXT'
-    Show which of a forum's options are set and which have been changed from their defaults. Mostly not what they
-    hold: an option can be an API key or an email address, so only a boolean, a null, a number up to 999999, and a
-    string that is one of the option's own declared choices are returned.
+    Show a forum's options: which are set, which were changed from their defaults and, where the forum's key
+    allows it, what they hold. Use it for "how is this forum configured?" - where mail goes, what is switched on.
 
-    Reading an entry:
-    - `withheld: true` means the option has a value this tool will not show. It is not empty: read `set`.
-    - `set` means the option holds something, not that it is switched on - a boolean `false` is `set: true`.
-      Read `value` for whether a flag is on.
+    Read `headline` first: it says which of two modes the forum answered in.
+    - Values mode: each option carries its real `value`, with secrets removed. The value is the one in force;
+      `overridden: true` means config.php replaces what is stored.
+    - Shape mode (the key lacks the values scope): only a boolean, a null, a small number or a declared choice
+      is shown. Everything else says whether it is `set`, and `members` opens an array option one level.
+
+    Reading an entry, in either mode:
+    - `disclosure` is `shown`, `partly_withheld` or `withheld`. A withheld option has no `value` key at all; it
+      is not empty - read `set`. Inside a value, a removed part reads `[withheld]`. So a null you see is a null.
+    - `redactions` lists each removed part with its `path` and `because`. A `url` redaction keeps the scheme
+      and host. "Its add-on has not declared its secrets" means the text of that add-on's settings is hidden
+      as a precaution, not that the setting is a secret or is empty.
+    - `set` means the option holds something, not that it is switched on: a boolean `false` is `set: true`.
     - `is_default: true` means the option still holds what XenForo or the add-on shipped.
-    - `members` opens an array option one level, for the members its definition names. The mail transport is
-      `emailTransport.members.emailTransport`.
     - Numbers are decimal: a file mode of `436` is octal 0664.
 
-    Options are reported as stored. A forum whose config.php overrides an option in code runs with a value this
-    does not show. `changed` also counts a few values XenForo keeps for itself (`currentVersionId`,
-    `jsLastUpdate`), which differ from their defaults on every forum.
+    The mail transport is the `emailTransport` option. `changed` also counts a few values XenForo keeps for
+    itself (`currentVersionId`, `jsLastUpdate`), which differ from their defaults on every forum.
 
     By default only changed options are listed, which is the short and useful list; `total`, `changed` and
     `by_add_on` always count every option.
@@ -50,6 +55,13 @@ class ForumOptions extends ForumTool
         ];
     }
 
+    public function outputSchema(JsonSchema $schema): array
+    {
+        return parent::outputSchema($schema) + [
+            'headline' => $schema->string()->description('Whether values were given, and how many entries have something withheld.')->required(),
+        ];
+    }
+
     protected function answer(Request $request, ForumGateway $gateway, Forum $forum): array
     {
         $addOnId = $request->get('add_on_id');
@@ -58,6 +70,11 @@ class ForumOptions extends ForumTool
 
         $data = $gateway->read($forum, static fn (AdminApi $api): array => $api->options($addOnId, $changedOnly));
 
-        return ['listed' => $changedOnly ? 'changed options only' : 'every option'] + Present::withheld($data);
+        $data['options'] = Present::disclosures((array) ($data['options'] ?? []));
+
+        return [
+            'headline' => Present::modeHeadline($data, $data['options'], 'options'),
+            'listed' => $changedOnly ? 'changed options only' : 'every option',
+        ] + $data;
     }
 }

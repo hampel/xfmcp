@@ -58,7 +58,7 @@ detail_key = "…"
 |---|---|
 | table name | the id every tool takes. Lowercase |
 | `url` | the board URL, or its `/api` URL |
-| `key` | a User key holding only the `hampel_admin_api:read` scope |
+| `key` | a User key holding `hampel_admin_api:read`, and `hampel_admin_api:values` if values should be shown |
 | `detail_key` | optional: a second User key holding only `hampel_admin_api:error_detail` |
 | `name` | optional: a label shown by `list-forums` |
 
@@ -70,7 +70,9 @@ key, then asks for the scope, then for an admin permission held by the key's own
 1. Under *Groups & permissions > Administrators*, give an administrator the add-on's
    permissions for the endpoints the key should reach.
 2. Under *Setup > API keys*, create a key of type **User** for that administrator with only
-   the `hampel_admin_api:read` scope. That is `key`.
+   the `hampel_admin_api:read` scope. That is `key`. Add `hampel_admin_api:values` to it if
+   the options and configuration tools should show values; for options the administrator
+   also needs XenForo's own *option* permission.
 3. If error messages should be readable, create a second User key with only
    `hampel_admin_api:error_detail`, for an administrator who also holds XenForo's own
    *View logs* permission. That is `detail_key`.
@@ -154,10 +156,28 @@ Every tool but the first takes `forum`, an id from `list-forums`.
 | `add-ons` | what is installed at which version, and any install or upgrade left unfinished |
 | `cron-entries` | every cron entry, and whether cron is running at all |
 | `job-queue` | the queue by job class, and where failed jobs failed |
-| `forum-options` | which options are set and changed, with values only where they are safe to show |
-| `forum-configuration` | which `config.php` settings are in force; never a string |
+| `who-is-online` | how many members, guests and robots are online, and how concentrated the guests are |
+| `forum-options` | the forum's options: what is set, what was changed, and their values with secrets removed |
+| `forum-configuration` | the `config.php` settings in force, and their values with secrets removed |
 
-All of them are marked read-only and idempotent.
+All of them are marked read-only.
+
+### Values, and what is withheld
+
+**Whether the last two show values is decided on the forum, by the key.** With the
+`hampel_admin_api:values` scope each entry carries its value, and the add-on removes what it
+judges to be a secret; without it each entry says only whether it is set. Either way the
+answer's `headline` says which, and why.
+
+| an entry's `disclosure` | means |
+|---|---|
+| `shown` | the value is all there. A null is a null |
+| `partly_withheld` | the value is there with parts removed. A removed part reads `[withheld]` |
+| `withheld` | there is no `value` key. The setting is not empty; read `set` |
+
+Each removal is listed under `redactions` with its path and the reason. One reason deserves
+knowing in advance: the text settings of an add-on that has not declared its secrets to
+Hampel/AdminApi are hidden as a precaution, whatever they hold.
 
 ### What the tools add to the forum's answer
 
@@ -166,8 +186,8 @@ All of them are marked read-only and idempotent.
 - **A `headline`** on the error log and cron answers, and `notes` where an answer is easy to
   misread — an empty window on a log that is not empty, a forum that does not record failed
   jobs.
-- **`withheld: true`** on an option or setting whose value the add-on will not disclose, in
-  place of a `value: null` that reads as empty.
+- **`disclosure`** on every option and setting, in place of nulls that could mean withheld or
+  empty.
 - **Errors as sentences.** A forum that is unreachable, a forum without the add-on and a key
   the forum refused are three different problems, and each is reported as what it is.
 
@@ -175,13 +195,13 @@ All of them are marked read-only and idempotent.
 
 **A clean answer means nothing was recorded, which is weaker than nothing being wrong.** A
 fault that logs no error does not appear in the error log, and a forum that is down cannot
-answer at all. Three further limits come from XenForo itself:
+answer at all. Further limits:
 
+- `who-is-online` is a snapshot. Whether a count is too high depends on what is normal for
+  that forum, which the tool does not know.
 - A production forum records failed jobs only in debug mode, so `job-queue` says when an empty
   list means nothing.
 - XenForo 2.3.0 does not log errors raised from the command line.
-- Options are reported as stored. A `config.php` that overrides an option in code is not
-  reflected.
 
 ## Commands
 

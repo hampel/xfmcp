@@ -1,4 +1,6 @@
 {
+    "mode": "shape",
+    "mode_reason": "the key does not hold the hampel_admin_api:values scope",
     "total": 88,
     "changed": 19,
     "settings": [
@@ -10,7 +12,8 @@
             "set": true,
             "disclosed": false,
             "value": null,
-            "count": null
+            "count": null,
+            "redactions": null
         },
         {
             "key": "db.host",
@@ -20,7 +23,8 @@
             "set": true,
             "disclosed": false,
             "value": null,
-            "count": null
+            "count": null,
+            "redactions": null
         },
         {
             "key": "db.password",
@@ -30,7 +34,8 @@
             "set": true,
             "disclosed": false,
             "value": null,
-            "count": null
+            "count": null,
+            "redactions": null
         },
         {
             "key": "db.port",
@@ -40,7 +45,8 @@
             "set": true,
             "disclosed": true,
             "value": 3306,
-            "count": null
+            "count": null,
+            "redactions": null
         },
         {
             "key": "db.socket",
@@ -50,7 +56,8 @@
             "set": false,
             "disclosed": true,
             "value": null,
-            "count": null
+            "count": null,
+            "redactions": null
         },
         {
             "key": "db.username",
@@ -60,7 +67,8 @@
             "set": true,
             "disclosed": false,
             "value": null,
-            "count": null
+            "count": null,
+            "redactions": null
         },
         {
             "key": "debug",
@@ -70,7 +78,8 @@
             "set": true,
             "disclosed": true,
             "value": true,
-            "count": null
+            "count": null,
+            "redactions": null
         },
         {
             "key": "development.enabled",
@@ -80,7 +89,8 @@
             "set": true,
             "disclosed": true,
             "value": true,
-            "count": null
+            "count": null,
+            "redactions": null
         }
     ]
 }

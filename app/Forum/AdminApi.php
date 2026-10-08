@@ -7,7 +7,7 @@ use Hampel\XenForo\Api\Endpoint\Endpoint;
 /**
  * The read-only endpoints the Hampel/AdminApi add-on adds to a forum.
  *
- * One class for all seven, because they are one add-on's surface and share nothing but a
+ * One class for all eight, because they are one add-on's surface and share nothing but a
  * prefix. Each method returns the decoded body untouched: shaping an answer for a reader is
  * App\Support\Present's job, and keeping it out of here keeps this a description of the
  * add-on's contract and nothing else.
@@ -54,6 +54,16 @@ final class AdminApi extends Endpoint
     public function addOns(): array
     {
         return $this->apiGet('admin-api/add-ons/')->data;
+    }
+
+    /**
+     * Counts of who is online. Never a member and never an address.
+     *
+     * @return array<mixed>
+     */
+    public function online(): array
+    {
+        return $this->apiGet('admin-api/online/')->data;
     }
 
     /** @return array<mixed> */

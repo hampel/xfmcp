@@ -9,6 +9,7 @@ use App\Mcp\Tools\ForumConfiguration;
 use App\Mcp\Tools\ForumOptions;
 use App\Mcp\Tools\JobQueue;
 use App\Mcp\Tools\ListForums;
+use App\Mcp\Tools\WhoIsOnline;
 use App\Support\ForumInventoryException;
 
 /**
@@ -173,6 +174,7 @@ it('sends every summary with the read key and never as a super user', function (
     [AddOns::class, 'admin-api/add-ons/', 'add-ons'],
     [CronEntries::class, 'admin-api/cron/', 'cron'],
     [JobQueue::class, 'admin-api/jobs/', 'jobs'],
+    [WhoIsOnline::class, 'admin-api/online/', 'online'],
     [ForumOptions::class, 'admin-api/options/', 'options-changed'],
     [ForumConfiguration::class, 'admin-api/config/', 'config-changed'],
 ]);
@@ -222,15 +224,78 @@ it('names the add-ons that need a look', function () {
         ->and($content['xf']['version_string'])->toBe('2.3.12');
 });
 
-it('renders a withheld option as withheld, at every depth', function () {
-    fakeForum(['admin-api/options/' => 'options-changed']);
+it('shows option values with each withheld part marked and explained', function () {
+    fakeForum(['admin-api/options/' => 'options-values']);
+
+    $content = structured(ForumOptions::class, ['forum' => 'acme']);
+    $options = collect($content['options'])->keyBy('option_id');
+
+    expect($content['headline'])->toBe('Values are shown, with secrets removed: 3 of the 7 options listed have something withheld, each with its reason.')
+        ->and($content['mode'])->toBe('values')
+        // shown whole: the answer to "where does this forum's mail go?"
+        ->and($options['emailTransport']['disclosure'])->toBe('shown')
+        ->and($options['emailTransport']['value'])->toMatchArray(['emailTransport' => 'smtp', 'smtpHost' => '127.0.0.1', 'smtpPort' => 1025])
+        ->and($options['boardTitle']['value'])->toBe('Example Forum')
+        // withheld in part: the marker stands where the add-on put a null
+        ->and($options['emailDkim']['disclosure'])->toBe('partly_withheld')
+        ->and($options['emailDkim']['value'])->toMatchArray(['enabled' => false, 'privateKey' => '[withheld]'])
+        ->and($options['emailDkim']['redactions'][0])->toBe(['path' => 'privateKey', 'reason' => 'known_secret', 'because' => 'it is on the list of known secrets'])
+        // withheld whole: no value key to misread
+        ->and($options['extraCaptchaKeys']['disclosure'])->toBe('withheld')
+        ->and($options['extraCaptchaKeys'])->not->toHaveKey('value')
+        ->and($options['extraCaptchaKeys'])->toMatchArray(['set' => true, 'count' => 2])
+        ->and($options['acmeWebhookUrl'])->not->toHaveKey('value');
+});
+
+it('leaves a number inside an option value alone', function () {
+    fakeForum(['admin-api/options/' => 'options-values']);
 
     $options = collect(structured(ForumOptions::class, ['forum' => 'acme'])['options'])->keyBy('option_id');
 
-    expect($options['boardTitle'])->toMatchArray(['withheld' => true, 'set' => true])
-        ->and($options['boardTitle'])->not->toHaveKey('value')
-        ->and($options['acmeExampleFlag'])->toMatchArray(['withheld' => false, 'value' => true])
-        ->and($options['emailTransport']['members']['emailTransport'])->toMatchArray(['withheld' => false, 'value' => 'smtp']);
+    expect($options['currentVersionId'])->not->toHaveKey('value_iso');
+});
+
+it('says a real null is a null, and why an undeclared add-on\'s text is hidden', function () {
+    fakeForum(['admin-api/config/' => 'config-values']);
+
+    $content = structured(ForumConfiguration::class, ['forum' => 'acme']);
+    $settings = collect($content['settings'])->keyBy('key');
+
+    expect($content['headline'])->toStartWith('Values are shown, with secrets removed: 3 of the 10 settings listed')
+        ->and($settings['db.host'])->toMatchArray(['disclosure' => 'shown', 'value' => 'localhost'])
+        ->and($settings['db.socket'])->toMatchArray(['disclosure' => 'shown', 'value' => null])
+        ->and($settings['db.password'])->toMatchArray(['disclosure' => 'withheld', 'set' => true])
+        ->and($settings['db.password'])->not->toHaveKey('value')
+        ->and($settings['acmeService.endpoint']['disclosure'])->toBe('withheld')
+        ->and($settings['acmeService.endpoint']['redactions'][0]['because'])->toContain('has not declared which of its settings are secrets');
+});
+
+it('keeps what is left of a URL, and says the rest was cut', function () {
+    // not captured: the forum the fixtures came from had no option redacted this way
+    $options = captured('options-values');
+    $options['options'] = [[
+        'value' => 'https://hooks.example.test', 'redactions' => [['path' => '', 'reason' => 'url']],
+    ] + $options['options'][0]];
+
+    fakeForum(['admin-api/options/' => Http::response($options)]);
+
+    $option = structured(ForumOptions::class, ['forum' => 'acme'])['options'][0];
+
+    expect($option)->toMatchArray(['disclosure' => 'partly_withheld', 'value' => 'https://hooks.example.test'])
+        ->and($option['redactions'][0]['because'])->toContain('only its scheme and host are shown');
+});
+
+it('says so when the key is given no values, with the forum\'s own reason', function () {
+    fakeForum(['admin-api/options/' => 'options-changed']);
+
+    $content = structured(ForumOptions::class, ['forum' => 'acme']);
+    $options = collect($content['options'])->keyBy('option_id');
+
+    expect($content['headline'])->toStartWith('Values are not shown, only whether each is set, because the key does not hold the hampel_admin_api:values scope')
+        ->and($options['boardTitle'])->toMatchArray(['disclosure' => 'withheld', 'set' => true])
+        ->and($options['boardTitle'])->not->toHaveKey('value')->not->toHaveKey('redactions')
+        ->and($options['acmeExampleFlag'])->toMatchArray(['disclosure' => 'shown', 'value' => true])
+        ->and($options['emailTransport']['members']['emailTransport'])->toMatchArray(['disclosure' => 'shown', 'value' => 'smtp']);
 });
 
 it('lists only changed options unless asked for all of them', function (array $arguments, array $query, string $listed) {
@@ -247,12 +312,50 @@ it('lists only changed options unless asked for all of them', function (array $a
     [['add_on_id' => 'Acme/AddOnA'], ['changed' => '1', 'add_on_id' => 'Acme/AddOnA'], 'changed options only'],
 ]);
 
-it('never shows a string from config.php', function () {
+it('shows no string from config.php to a key without the values scope', function () {
     fakeForum(['admin-api/config/' => 'config-changed']);
 
     $settings = collect(structured(ForumConfiguration::class, ['forum' => 'acme'])['settings'])->keyBy('key');
 
-    expect($settings['db.password'])->toMatchArray(['withheld' => true, 'set' => true, 'type' => 'string'])
+    expect($settings['db.password'])->toMatchArray(['disclosure' => 'withheld', 'set' => true, 'type' => 'string'])
         ->and($settings['db.password'])->not->toHaveKey('value')
-        ->and($settings['debug'])->toMatchArray(['withheld' => false, 'value' => true]);
+        ->and($settings['db.host'])->not->toHaveKey('value')
+        ->and($settings['debug'])->toMatchArray(['disclosure' => 'shown', 'value' => true]);
+});
+
+it('says nobody is online when nobody is', function () {
+    fakeForum(['admin-api/online/' => 'online']);
+
+    $content = structured(WhoIsOnline::class, ['forum' => 'acme']);
+
+    expect($content['headline'])->toBe('Nobody is online: no session in the last 15 minutes.')
+        ->and($content['now_iso'])->toEndWith('Z')
+        ->and(array_slice(array_keys($content), 0, 4))->toBe(['forum', 'times', 'headline', 'now']);
+});
+
+it('says how concentrated the guests are once there are enough to say', function () {
+    // the captured forum was idle, so the figures are set here; the shape is the captured one
+    $online = [
+        'total' => 1840, 'members' => 37, 'guests' => 1512, 'robots' => 291, 'newest_date' => 1791453579,
+        'guest_networks' => ['sessions' => 1512, 'ipv4' => 1490, 'largest_24' => 640, 'distinct_24' => 212, 'largest_16' => 911, 'distinct_16' => 87],
+    ] + captured('online');
+
+    fakeForum(['admin-api/online/' => Http::response($online)]);
+
+    $content = structured(WhoIsOnline::class, ['forum' => 'acme']);
+
+    expect($content['headline'])->toBe(
+        '1840 online in the last 15 minutes: 37 members, 1512 guests, 291 recognised robots. '
+        .'The busiest /24 network holds 640 of the 1490 IPv4 guests (43%), across 212 networks.'
+    )->and($content['newest_date_iso'])->toBe('2026-10-08T09:59:39Z');
+});
+
+it('does not call one guest a swarm', function () {
+    $online = ['total' => 3, 'guests' => 3, 'guest_networks' => ['sessions' => 3, 'ipv4' => 3, 'largest_24' => 1, 'distinct_24' => 3, 'largest_16' => 1, 'distinct_16' => 3]]
+        + captured('online');
+
+    fakeForum(['admin-api/online/' => Http::response($online)]);
+
+    expect(structured(WhoIsOnline::class, ['forum' => 'acme'])['headline'])
+        ->toBe('3 online in the last 15 minutes: 0 members, 3 guests, 0 recognised robots.');
 });

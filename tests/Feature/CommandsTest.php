@@ -95,7 +95,27 @@ it('warns about a key holding more scopes than it needs', function () {
 
     [$exit, $output] = runCommand('app:validate');
 
-    expect($exit)->toBe(0)->and($output)->toContain('holding 1 scope(s) beyond hampel_admin_api:read: user:read');
+    expect($exit)->toBe(0)->and($output)->toContain('holding 1 scope(s) it does not need: user:read');
+});
+
+it('treats the values scope on a read key as a choice, not an excess', function () {
+    fakeHealthyForum([READ_KEY => [
+        'index' => ['index-read-values-key', 200],
+        'admin-api/add-ons' => ['add-ons', 200],
+        'admin-api/error-entries' => ['refused-missing-scope', 403],
+    ]]);
+
+    [$exit, $output] = runCommand('app:validate');
+
+    expect($exit)->toBe(0)
+        ->and($output)->not->toContain('[warn]')
+        ->toContain('a user key holding hampel_admin_api:read and hampel_admin_api:values');
+});
+
+it('says a read key without the values scope will show no values', function () {
+    fakeHealthyForum();
+
+    expect(runCommand('app:validate')[1])->toContain('options and configuration show no values');
 });
 
 it('warns about a detail key that also reads summaries', function () {
