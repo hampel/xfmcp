@@ -1,0 +1,263 @@
+{
+    "window": {
+        "since": 1791336196,
+        "until": 1791422596,
+        "precedes_log": false
+    },
+    "total": 37,
+    "oldest_date": 1791336343,
+    "newest_date": 1791422200,
+    "members": 0,
+    "member_errors": 0,
+    "by_day": [
+        {
+            "day": "2026-10-07",
+            "count": 32
+        },
+        {
+            "day": "2026-10-08",
+            "count": 5
+        }
+    ],
+    "by_type": [
+        {
+            "exception_type": "Acme\\AddOnA\\Exception\\ServerException",
+            "count": 33,
+            "newest_date": 1791422200
+        },
+        {
+            "exception_type": "ErrorException",
+            "count": 3,
+            "newest_date": 1791376201
+        },
+        {
+            "exception_type": "XF\\PrintableException",
+            "count": 1,
+            "newest_date": 1791377938
+        }
+    ],
+    "by_severity": [
+        {
+            "severity": null,
+            "count": 35,
+            "newest_date": 1791422200
+        },
+        {
+            "severity": "fatal",
+            "count": 2,
+            "newest_date": 1791374858
+        }
+    ],
+    "by_origin": {
+        "web": 0,
+        "cli": 36,
+        "job": 1,
+        "unknown": 0
+    },
+    "by_location": {
+        "core": 3,
+        "add_on": 0,
+        "add_on_vendor": 0,
+        "add_on_tests": 33,
+        "vendor": 0,
+        "other": 0,
+        "outside": 1
+    },
+    "by_add_on": [
+        {
+            "add_on_id": "Acme/AddOnB",
+            "count": 33,
+            "newest_date": 1791422200
+        },
+        {
+            "add_on_id": "XF",
+            "count": 3,
+            "newest_date": 1791377938
+        },
+        {
+            "add_on_id": null,
+            "count": 1,
+            "newest_date": 1791336343
+        }
+    ],
+    "by_origin_add_on": [
+        {
+            "add_on_id": "Acme/AddOnB",
+            "count": 33,
+            "newest_date": 1791422200
+        },
+        {
+            "add_on_id": null,
+            "count": 2,
+            "newest_date": 1791374858
+        },
+        {
+            "add_on_id": "Acme/AddOnC",
+            "count": 1,
+            "newest_date": 1791377938
+        },
+        {
+            "add_on_id": "Acme/AddOnD",
+            "count": 1,
+            "newest_date": 1791376201
+        }
+    ],
+    "by_template": [],
+    "examined": {
+        "rows": 37,
+        "complete": true
+    },
+    "signatures": [
+        {
+            "exception_type": "Acme\\AddOnA\\Exception\\ServerException",
+            "filename": "src/addons/Acme/AddOnB/tests/Unit/JobRetryPolicyTest.php",
+            "line": 48,
+            "in_install": true,
+            "location": "add_on_tests",
+            "add_on_id": "Acme/AddOnB",
+            "count": 33,
+            "first_date": 1791370506,
+            "last_date": 1791422200,
+            "last_error_id": 15853,
+            "members": 0,
+            "member_errors": 0,
+            "severity": null,
+            "origins": {
+                "web": 0,
+                "cli": 33,
+                "job": 0,
+                "unknown": 0
+            },
+            "origin_add_ons": [
+                {
+                    "add_on_id": "Acme/AddOnB",
+                    "count": 33,
+                    "newest_date": 1791422200
+                }
+            ],
+            "templates": []
+        },
+        {
+            "exception_type": "XF\\PrintableException",
+            "filename": "src/XF/Mvc/Entity/Entity.php",
+            "line": 1276,
+            "in_install": true,
+            "location": "core",
+            "add_on_id": "XF",
+            "count": 1,
+            "first_date": 1791377938,
+            "last_date": 1791377938,
+            "last_error_id": 14681,
+            "members": 0,
+            "member_errors": 0,
+            "severity": null,
+            "origins": {
+                "web": 0,
+                "cli": 1,
+                "job": 0,
+                "unknown": 0
+            },
+            "origin_add_ons": [
+                {
+                    "add_on_id": "Acme/AddOnC",
+                    "count": 1,
+                    "newest_date": 1791377938
+                }
+            ],
+            "templates": []
+        },
+        {
+            "exception_type": "ErrorException",
+            "filename": "src/XF/Error.php",
+            "line": 81,
+            "in_install": true,
+            "location": "core",
+            "add_on_id": "XF",
+            "count": 1,
+            "first_date": 1791376201,
+            "last_date": 1791376201,
+            "last_error_id": 11714,
+            "members": 0,
+            "member_errors": 0,
+            "severity": null,
+            "origins": {
+                "web": 0,
+                "cli": 0,
+                "job": 1,
+                "unknown": 0
+            },
+            "origin_add_ons": [
+                {
+                    "add_on_id": "Acme/AddOnD",
+                    "count": 1,
+                    "newest_date": 1791376201
+                }
+            ],
+            "templates": []
+        },
+        {
+            "exception_type": "ErrorException",
+            "filename": "src/XF/Db/AbstractStatement.php",
+            "line": 225,
+            "in_install": true,
+            "location": "core",
+            "add_on_id": "XF",
+            "count": 1,
+            "first_date": 1791374858,
+            "last_date": 1791374858,
+            "last_error_id": 11387,
+            "members": 0,
+            "member_errors": 0,
+            "severity": "fatal",
+            "origins": {
+                "web": 0,
+                "cli": 1,
+                "job": 0,
+                "unknown": 0
+            },
+            "origin_add_ons": [
+                {
+                    "add_on_id": null,
+                    "count": 1,
+                    "newest_date": 1791374858
+                }
+            ],
+            "templates": []
+        },
+        {
+            "exception_type": "ErrorException",
+            "filename": "Command line code",
+            "line": 1,
+            "in_install": false,
+            "location": "outside",
+            "add_on_id": null,
+            "count": 1,
+            "first_date": 1791336343,
+            "last_date": 1791336343,
+            "last_error_id": 5877,
+            "members": 0,
+            "member_errors": 0,
+            "severity": "fatal",
+            "origins": {
+                "web": 0,
+                "cli": 1,
+                "job": 0,
+                "unknown": 0
+            },
+            "origin_add_ons": [
+                {
+                    "add_on_id": null,
+                    "count": 1,
+                    "newest_date": 1791336343
+                }
+            ],
+            "templates": []
+        }
+    ],
+    "signature_count": 5,
+    "log": {
+        "total": 61,
+        "oldest_date": 1790305832,
+        "newest_date": 1791422200
+    }
+}

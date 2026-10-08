@@ -1,0 +1,15 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    level: 6
+
+    paths:
+        - app
+        - config
+
+    # One PHP version, not a range: the floor is the oldest machine the tool is installed
+    # on. Keep in step with the `php` constraint in composer.json.
+    phpVersion:
+        min: 80300
+        max: 80300

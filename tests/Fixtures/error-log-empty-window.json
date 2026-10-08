@@ -1,0 +1,44 @@
+{
+    "window": {
+        "since": 1,
+        "until": 1000,
+        "precedes_log": true
+    },
+    "total": 0,
+    "oldest_date": null,
+    "newest_date": null,
+    "members": 0,
+    "member_errors": 0,
+    "by_day": [],
+    "by_type": [],
+    "by_severity": [],
+    "by_origin": {
+        "web": 0,
+        "cli": 0,
+        "job": 0,
+        "unknown": 0
+    },
+    "by_location": {
+        "core": 0,
+        "add_on": 0,
+        "add_on_vendor": 0,
+        "add_on_tests": 0,
+        "vendor": 0,
+        "other": 0,
+        "outside": 0
+    },
+    "by_add_on": [],
+    "by_origin_add_on": [],
+    "by_template": [],
+    "examined": {
+        "rows": 0,
+        "complete": true
+    },
+    "signatures": [],
+    "signature_count": 0,
+    "log": {
+        "total": 61,
+        "oldest_date": 1790305832,
+        "newest_date": 1791422200
+    }
+}

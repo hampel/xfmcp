@@ -1,0 +1,110 @@
+{
+    "total": 384,
+    "changed": 45,
+    "by_add_on": [
+        {
+            "add_on_id": "XF",
+            "total": 220,
+            "changed": 15
+        }
+    ],
+    "options": [
+        {
+            "option_id": "boardTitle",
+            "add_on_id": "XF",
+            "data_type": "string",
+            "is_default": false,
+            "type": "string",
+            "set": true,
+            "disclosed": false,
+            "value": null,
+            "count": null,
+            "members": null
+        },
+        {
+            "option_id": "boardUrl",
+            "add_on_id": "XF",
+            "data_type": "string",
+            "is_default": false,
+            "type": "string",
+            "set": true,
+            "disclosed": false,
+            "value": null,
+            "count": null,
+            "members": null
+        },
+        {
+            "option_id": "collectServerStats",
+            "add_on_id": "XF",
+            "data_type": "array",
+            "is_default": false,
+            "type": "array",
+            "set": true,
+            "disclosed": false,
+            "value": null,
+            "count": 4,
+            "members": {
+                "configured": {
+                    "type": "string",
+                    "set": true,
+                    "disclosed": false,
+                    "value": null,
+                    "count": null
+                },
+                "enabled": {
+                    "type": "boolean",
+                    "set": true,
+                    "disclosed": true,
+                    "value": false,
+                    "count": null
+                },
+                "installation_id": {
+                    "type": "boolean",
+                    "set": true,
+                    "disclosed": true,
+                    "value": false,
+                    "count": null
+                },
+                "last_sent": {
+                    "type": "boolean",
+                    "set": true,
+                    "disclosed": true,
+                    "value": false,
+                    "count": null
+                }
+            }
+        },
+        {
+            "option_id": "emailTransport",
+            "add_on_id": "XF",
+            "data_type": "array",
+            "is_default": false,
+            "type": "array",
+            "set": true,
+            "disclosed": false,
+            "value": null,
+            "count": 7,
+            "members": {
+                "emailTransport": {
+                    "type": "string",
+                    "set": true,
+                    "disclosed": true,
+                    "value": "smtp",
+                    "count": null
+                }
+            }
+        },
+        {
+            "option_id": "acmeExampleFlag",
+            "add_on_id": "Acme/AddOnA",
+            "data_type": "boolean",
+            "is_default": false,
+            "type": "boolean",
+            "set": true,
+            "disclosed": true,
+            "value": true,
+            "count": null,
+            "members": null
+        }
+    ]
+}

@@ -1,0 +1,14 @@
+{
+    "version_id": 2031270,
+    "site_title": "Example Forum",
+    "base_url": "https://forum.example.test",
+    "api_url": "https://forum.example.test/index.php?api/",
+    "key": {
+        "type": "user",
+        "user_id": 2541,
+        "allow_all_scopes": false,
+        "scopes": {
+            "hampel_admin_api:error_detail": true
+        }
+    }
+}

@@ -1,0 +1,86 @@
+{
+    "total": 88,
+    "changed": 19,
+    "settings": [
+        {
+            "key": "db.dbname",
+            "has_default": false,
+            "is_default": false,
+            "type": "string",
+            "set": true,
+            "disclosed": false,
+            "value": null,
+            "count": null
+        },
+        {
+            "key": "db.host",
+            "has_default": false,
+            "is_default": false,
+            "type": "string",
+            "set": true,
+            "disclosed": false,
+            "value": null,
+            "count": null
+        },
+        {
+            "key": "db.password",
+            "has_default": false,
+            "is_default": false,
+            "type": "string",
+            "set": true,
+            "disclosed": false,
+            "value": null,
+            "count": null
+        },
+        {
+            "key": "db.port",
+            "has_default": false,
+            "is_default": false,
+            "type": "integer",
+            "set": true,
+            "disclosed": true,
+            "value": 3306,
+            "count": null
+        },
+        {
+            "key": "db.socket",
+            "has_default": false,
+            "is_default": false,
+            "type": "null",
+            "set": false,
+            "disclosed": true,
+            "value": null,
+            "count": null
+        },
+        {
+            "key": "db.username",
+            "has_default": false,
+            "is_default": false,
+            "type": "string",
+            "set": true,
+            "disclosed": false,
+            "value": null,
+            "count": null
+        },
+        {
+            "key": "debug",
+            "has_default": true,
+            "is_default": false,
+            "type": "boolean",
+            "set": true,
+            "disclosed": true,
+            "value": true,
+            "count": null
+        },
+        {
+            "key": "development.enabled",
+            "has_default": true,
+            "is_default": false,
+            "type": "boolean",
+            "set": true,
+            "disclosed": true,
+            "value": true,
+            "count": null
+        }
+    ]
+}

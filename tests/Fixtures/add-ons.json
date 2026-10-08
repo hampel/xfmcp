@@ -1,0 +1,41 @@
+{
+    "xf": {
+        "version_id": 2031270,
+        "version_string": "2.3.12"
+    },
+    "php_version": "8.3.32",
+    "add_ons": [
+        {
+            "addon_id": "Acme/AddOnL",
+            "title": "Example add-on",
+            "is_installed": true,
+            "active": true,
+            "is_legacy": false,
+            "version_id": 1000270,
+            "version_string": "1.0.2",
+            "files_available": true,
+            "files_version_id": 1000270,
+            "files_version_string": "1.0.2",
+            "can_upgrade": false,
+            "has_pending_changes": false,
+            "is_processing": false,
+            "pending_action": null
+        },
+        {
+            "addon_id": "Acme/AddOnM",
+            "title": "Example add-on",
+            "is_installed": true,
+            "active": true,
+            "is_legacy": false,
+            "version_id": 1000011,
+            "version_string": "1.0.0a1",
+            "files_available": true,
+            "files_version_id": 1000011,
+            "files_version_string": "1.0.0a1",
+            "can_upgrade": false,
+            "has_pending_changes": false,
+            "is_processing": false,
+            "pending_action": null
+        }
+    ]
+}

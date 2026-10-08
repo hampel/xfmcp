@@ -1,0 +1,14 @@
+{
+    "errors": [
+        {
+            "code": "endpoint_not_found",
+            "message": "Requested endpoint cannot be found.",
+            "params": {
+                "reason": "invalid_route",
+                "debug_reason": "invalid_route",
+                "debug_controller": null,
+                "debug_action": null
+            }
+        }
+    ]
+}

@@ -1,0 +1,9 @@
+{
+    "errors": [
+        {
+            "code": "api_key_not_found",
+            "message": "API key provided in request was not found.",
+            "params": []
+        }
+    ]
+}

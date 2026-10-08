@@ -1,0 +1,9 @@
+{
+    "errors": [
+        {
+            "code": "requested_log_entry_not_found",
+            "message": "The requested log entry could not be found.",
+            "params": []
+        }
+    ]
+}

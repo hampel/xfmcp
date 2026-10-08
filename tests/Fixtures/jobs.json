@@ -1,0 +1,96 @@
+{
+    "now": 1791422596,
+    "total": 2,
+    "manual": 0,
+    "due": 0,
+    "stalled": 0,
+    "retrying": 0,
+    "oldest_due_date": null,
+    "by_class": [
+        {
+            "execute_class": "XF\\Job\\Cron",
+            "total": 1,
+            "manual": 0,
+            "due": 0,
+            "stalled": 0,
+            "retrying": 0,
+            "max_attempts": 0,
+            "oldest_trigger_date": 1791422642
+        },
+        {
+            "execute_class": "XF\\Job\\UpgradeCheck",
+            "total": 1,
+            "manual": 0,
+            "due": 0,
+            "stalled": 0,
+            "retrying": 0,
+            "max_attempts": 0,
+            "oldest_trigger_date": 1791427985
+        }
+    ],
+    "failed": {
+        "recorded": true,
+        "total": 19,
+        "oldest_date": 1788796281,
+        "newest_date": 1790151723,
+        "by_class": [
+            {
+                "execute_class": "Acme\\AddOnE\\Job\\FetchMessageEventsJob",
+                "count": 18,
+                "oldest_date": 1788796281,
+                "newest_date": 1789977063
+            },
+            {
+                "execute_class": "XF\\Job\\IconUsage",
+                "count": 1,
+                "oldest_date": 1790151723,
+                "newest_date": 1790151723
+            }
+        ],
+        "signatures": [
+            {
+                "execute_class": "Acme\\AddOnE\\Job\\FetchMessageEventsJob",
+                "exception_type": "Acme\\AddOnK\\Exception\\ClientException",
+                "filename": "src/addons/Acme/AddOnE/vendor/acme/library/src/Exception/ApiException.php",
+                "line": 58,
+                "in_install": true,
+                "location": "add_on_vendor",
+                "add_on_id": "Acme/AddOnE",
+                "origin_add_on_id": "Acme/AddOnE",
+                "count": 14,
+                "oldest_date": 1789345263,
+                "newest_date": 1789977063
+            },
+            {
+                "execute_class": "Acme\\AddOnE\\Job\\FetchMessageEventsJob",
+                "exception_type": "Acme\\AddOnE\\Http\\NetworkException",
+                "filename": "src/addons/Acme/AddOnE/Http/ReaderClient.php",
+                "line": 62,
+                "in_install": true,
+                "location": "add_on",
+                "add_on_id": "Acme/AddOnE",
+                "origin_add_on_id": "Acme/AddOnE",
+                "count": 4,
+                "oldest_date": 1788796281,
+                "newest_date": 1788801682
+            },
+            {
+                "execute_class": "XF\\Job\\IconUsage",
+                "exception_type": "InvalidArgumentException",
+                "filename": "src/XF/Service/Icon/UsageAnalyzerService.php",
+                "line": 98,
+                "in_install": true,
+                "location": "core",
+                "add_on_id": "XF",
+                "origin_add_on_id": "Acme/AddOnH",
+                "count": 1,
+                "oldest_date": 1790151723,
+                "newest_date": 1790151723
+            }
+        ],
+        "examined": {
+            "rows": 19,
+            "complete": true
+        }
+    }
+}

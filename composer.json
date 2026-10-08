@@ -1,0 +1,84 @@
+{
+    "name": "hampel/xfmcp",
+    "description": "MCP server for the read-only operational state of XenForo forums: error log, add-ons, cron, job queue, options and configuration, over stdio.",
+    "keywords": [
+        "xenforo",
+        "mcp",
+        "model context protocol",
+        "console",
+        "cli"
+    ],
+    "homepage": "https://github.com/hampel/xfmcp",
+    "type": "project",
+    "license": "MIT",
+    "support": {
+        "issues": "https://github.com/hampel/xfmcp/issues",
+        "source": "https://github.com/hampel/xfmcp"
+    },
+    "authors": [
+        {
+            "name": "Simon Hampel",
+            "email": "simon@hampelgroup.com"
+        }
+    ],
+    "require": {
+        "php": "^8.3.0",
+        "hampel/console-report": "^2.1",
+        "hampel/xenforo-api": "^1.2",
+        "hampel/xenforo-api-laravel": "^1.1",
+        "illuminate/http": "^13.0",
+        "laravel-zero/foundation": "^13.23",
+        "laravel-zero/framework": "^13.0",
+        "laravel/mcp": "^1.0",
+        "yosymfony/toml": "^1.0"
+    },
+    "require-dev": {
+        "larastan/larastan": "^3.0",
+        "laravel/pint": "^1.30.4",
+        "mockery/mockery": "^1.6.12",
+        "pestphp/pest": "^4.7.8",
+        "phpstan/phpstan": "^2.1.22"
+    },
+    "scripts": {
+        "test": "pest",
+        "analyse": "phpstan analyse",
+        "check": [
+            "@analyse",
+            "@test"
+        ],
+        "build": [
+            "@composer install --no-dev --no-interaction",
+            "@php xfmcp app:build xfmcp",
+            "@composer install --no-interaction",
+            "if grep -aq 'laravel/pint' builds/xfmcp; then echo 'ERROR: the build contains dev dependencies - do not release it'; exit 1; fi"
+        ]
+    },
+    "scripts-descriptions": {
+        "build": "Compile the phar without dev dependencies, then restore them",
+        "analyse": "Static analysis at the level phpstan.neon records",
+        "check": "Everything a change should pass before it is committed"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "app/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "preferred-install": "dist",
+        "sort-packages": true,
+        "optimize-autoloader": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "bin": [
+        "xfmcp"
+    ]
+}

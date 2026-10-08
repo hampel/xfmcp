@@ -1,0 +1,258 @@
+<?php
+
+use App\Mcp\Servers\XenForoServer;
+use App\Mcp\Tools\AddOns;
+use App\Mcp\Tools\CronEntries;
+use App\Mcp\Tools\ErrorLogEntries;
+use App\Mcp\Tools\ErrorLogSummary;
+use App\Mcp\Tools\ForumConfiguration;
+use App\Mcp\Tools\ForumOptions;
+use App\Mcp\Tools\JobQueue;
+use App\Mcp\Tools\ListForums;
+use App\Support\ForumInventoryException;
+
+/**
+ * The structured content of a tool call, for the assertions assertStructuredContent()
+ * cannot make - key order, and the absence of a key.
+ *
+ * @return array<mixed>
+ */
+function structured(string $tool, array $arguments): array
+{
+    $content = [];
+
+    XenForoServer::tool($tool, $arguments)
+        ->assertOk()
+        ->assertHasNoErrors()
+        ->assertStructuredContent(function ($json) use (&$content) {
+            $content = $json->toArray();
+            $json->etc();
+        });
+
+    return $content;
+}
+
+it('lists the configured forums without contacting any', function () {
+    $content = structured(ListForums::class, []);
+
+    expect($content['count'])->toBe(2)
+        ->and($content['forums'][0])->toBe([
+            'id' => 'acme', 'name' => 'Acme Forum', 'url' => 'https://forum.example.test', 'error_detail' => true,
+        ])
+        ->and($content['forums'][1]['error_detail'])->toBeFalse()
+        ->and(sentRequests())->toBe([]);
+});
+
+it('reports an unreadable inventory as an error, not as no forums', function () {
+    useForums(new ForumInventoryException('file not found'));
+
+    XenForoServer::tool(ListForums::class)->assertHasErrors(['file not found']);
+});
+
+it('summarises the error log with a headline and an ISO time beside every timestamp', function () {
+    fakeForum(['admin-api/error-log/' => 'error-log-all']);
+
+    $content = structured(ErrorLogSummary::class, ['forum' => 'acme', 'since' => 'all', 'limit' => 3]);
+
+    expect($content['forum'])->toBe(['id' => 'acme', 'name' => 'Acme Forum'])
+        ->and($content['headline'])->toStartWith('61 errors in this window across 18 signatures; the newest is from 2026-10-08T01:16:40Z')
+        ->and($content['headline'])->toContain('None came from a web request.')
+        ->and($content['log']['newest_date'])->toBe(1791422200)
+        ->and($content['log']['newest_date_iso'])->toBe('2026-10-08T01:16:40Z')
+        ->and($content['signatures'][0]['last_date_iso'])->toBe('2026-10-08T01:16:40Z')
+        ->and($content['by_origin_add_on'][0]['newest_date_iso'])->toBe('2026-10-08T01:16:40Z');
+});
+
+it('puts whose-fault before where-it-surfaced', function () {
+    fakeForum(['admin-api/error-log/' => 'error-log-all']);
+
+    $keys = array_keys(structured(ErrorLogSummary::class, ['forum' => 'acme']));
+
+    expect(array_slice($keys, 0, 4))->toBe(['forum', 'times', 'headline', 'notes'])
+        ->and(array_search('by_origin_add_on', $keys))->toBeLessThan(array_search('by_location', $keys))
+        ->and(end($keys))->toBe('by_add_on');
+});
+
+it('says an empty window is not an empty log', function () {
+    fakeForum(['admin-api/error-log/' => 'error-log-empty-window']);
+
+    $content = structured(ErrorLogSummary::class, ['forum' => 'acme']);
+
+    expect($content['headline'])
+        ->toStartWith('Nothing in this window, but the log holds 61 entries; the newest is from 2026-10-08T01:16:40Z')
+        ->toContain('since "all"')
+        ->and($content['notes'])->toContain('No logged error is not the same as nothing being wrong.');
+});
+
+it('notes a window that starts before the log does, and signatures left out', function () {
+    fakeForum(['admin-api/error-log/' => 'error-log-all']);
+
+    $notes = implode(' ', structured(ErrorLogSummary::class, ['forum' => 'acme'])['notes']);
+
+    expect($notes)->toContain('starts before the oldest entry')->toContain('more signatures than are listed');
+});
+
+it('sends the window the agent asked for', function (array $arguments, array $query) {
+    fakeForum(['admin-api/error-log/' => 'error-log-24h']);
+
+    structured(ErrorLogSummary::class, ['forum' => 'acme'] + $arguments);
+
+    parse_str((string) parse_url(sentRequests()[0]->url(), PHP_URL_QUERY), $sent);
+
+    expect($sent)->toEqual($query);
+})->with([
+    'nothing: the add-on defaults apply' => [[], []],
+    'all is the whole log' => [['since' => 'all'], ['since' => '0']],
+    'ISO 8601' => [['since' => '2026-10-01T00:00:00Z'], ['since' => '1790812800']],
+    'a time with no zone is UTC' => [['since' => '2026-10-01 00:00:00'], ['since' => '1790812800']],
+    'unix seconds' => [['since' => '1790812800', 'until' => '1790899200'], ['since' => '1790812800', 'until' => '1790899200']],
+    'limit is clamped' => [['limit' => 500], ['limit' => '100']],
+]);
+
+it('refuses a time it cannot read without contacting the forum', function () {
+    XenForoServer::tool(ErrorLogSummary::class, ['forum' => 'acme', 'since' => 'the day before the thing'])
+        ->assertHasErrors(['`since` is not a time this tool can read']);
+
+    expect(sentRequests())->toBe([]);
+});
+
+it('adds a local time beside each timestamp when a display zone is set', function () {
+    config(['xfmcp.timezone' => 'Australia/Sydney']);
+    fakeForum(['admin-api/cron/' => 'cron']);
+
+    $content = structured(CronEntries::class, ['forum' => 'acme']);
+
+    expect($content['now_local'])->toEndWith('+11:00')
+        ->and($content['times'])->toHaveKey('local');
+});
+
+it('reads individual entries with the detail key, and without the request by default', function () {
+    fakeForum(['admin-api/error-entries/' => 'error-entries']);
+
+    $content = structured(ErrorLogEntries::class, ['forum' => 'acme', 'error_id' => 15853]);
+
+    $request = sentRequests()[0];
+    parse_str((string) parse_url($request->url(), PHP_URL_QUERY), $sent);
+
+    expect($content['signature_total'])->toBe(33)
+        ->and($content['entries'][0]['exception_date_iso'])->toBe('2026-10-08T01:16:40Z')
+        ->and($request->header('XF-Api-Key'))->toBe([DETAIL_KEY])
+        ->and($request->hasHeader('XF-Api-User'))->toBeFalse()
+        ->and($sent)->toEqual(['error_id' => '15853']);
+});
+
+it('asks for the request only when told to', function () {
+    fakeForum(['admin-api/error-entries/' => 'error-entries']);
+
+    structured(ErrorLogEntries::class, ['forum' => 'acme', 'error_id' => 15853, 'include_request' => true, 'limit' => 99]);
+
+    parse_str((string) parse_url(sentRequests()[0]->url(), PHP_URL_QUERY), $sent);
+
+    expect($sent)->toEqual(['error_id' => '15853', 'limit' => '20', 'request' => '1']);
+});
+
+it('will not read entries from a forum with no detail key, and does not try the read key', function () {
+    XenForoServer::tool(ErrorLogEntries::class, ['forum' => 'plain', 'error_id' => 1])
+        ->assertHasErrors(['has no detail key configured']);
+
+    expect(sentRequests())->toBe([]);
+});
+
+it('sends every summary with the read key and never as a super user', function (string $tool, string $path, string $fixture) {
+    fakeForum([$path => $fixture]);
+
+    structured($tool, ['forum' => 'acme']);
+
+    $request = sentRequests()[0];
+
+    expect($request->method())->toBe('GET')
+        ->and($request->header('XF-Api-Key'))->toBe([READ_KEY])
+        ->and($request->hasHeader('XF-Api-User'))->toBeFalse();
+})->with([
+    [ErrorLogSummary::class, 'admin-api/error-log/', 'error-log-24h'],
+    [AddOns::class, 'admin-api/add-ons/', 'add-ons'],
+    [CronEntries::class, 'admin-api/cron/', 'cron'],
+    [JobQueue::class, 'admin-api/jobs/', 'jobs'],
+    [ForumOptions::class, 'admin-api/options/', 'options-changed'],
+    [ForumConfiguration::class, 'admin-api/config/', 'config-changed'],
+]);
+
+it('says whether cron is running', function () {
+    fakeForum(['admin-api/cron/' => 'cron']);
+
+    $content = structured(CronEntries::class, ['forum' => 'acme']);
+
+    expect($content['headline'])->toMatch('/^The cron runner last ran \d+ seconds? ago; no entry is overdue\.$/')
+        ->and($content['runner']['last_run_date_iso'])->toEndWith('Z')
+        ->and($content['entries'][0]['next_run_iso'])->toEndWith('Z');
+});
+
+it('says so loudly when the cron runner is not queued', function () {
+    $cron = captured('cron');
+    $cron['runner']['queued'] = false;
+
+    fakeForum(['admin-api/cron/' => Http::response($cron)]);
+
+    expect(structured(CronEntries::class, ['forum' => 'acme'])['headline'])->toContain('NOT queued');
+});
+
+it('says what an empty failed-jobs list is worth', function (bool $recorded, string $expected) {
+    $jobs = captured('jobs');
+    $jobs['failed']['recorded'] = $recorded;
+
+    fakeForum(['admin-api/jobs/' => Http::response($jobs)]);
+
+    expect(implode(' ', structured(JobQueue::class, ['forum' => 'acme'])['notes']))->toContain($expected);
+})->with([
+    'recorded' => [true, 'records failed jobs now'],
+    'not recorded, as on production' => [false, '`failed` being empty says nothing'],
+]);
+
+it('names the add-ons that need a look', function () {
+    $addOns = captured('add-ons');
+    $addOns['add_ons'][0] = ['pending_action' => 'upgrade', 'is_processing' => false] + $addOns['add_ons'][0];
+    $addOns['add_ons'][1] = ['can_upgrade' => true] + $addOns['add_ons'][1];
+
+    fakeForum(['admin-api/add-ons/' => Http::response($addOns)]);
+
+    $content = structured(AddOns::class, ['forum' => 'acme']);
+
+    expect($content['attention']['unfinished_action'])->toBe([$addOns['add_ons'][0]['addon_id']])
+        ->and($content['attention']['upgrade_not_run'])->toBe([$addOns['add_ons'][1]['addon_id']])
+        ->and($content['xf']['version_string'])->toBe('2.3.12');
+});
+
+it('renders a withheld option as withheld, at every depth', function () {
+    fakeForum(['admin-api/options/' => 'options-changed']);
+
+    $options = collect(structured(ForumOptions::class, ['forum' => 'acme'])['options'])->keyBy('option_id');
+
+    expect($options['boardTitle'])->toMatchArray(['withheld' => true, 'set' => true])
+        ->and($options['boardTitle'])->not->toHaveKey('value')
+        ->and($options['acmeExampleFlag'])->toMatchArray(['withheld' => false, 'value' => true])
+        ->and($options['emailTransport']['members']['emailTransport'])->toMatchArray(['withheld' => false, 'value' => 'smtp']);
+});
+
+it('lists only changed options unless asked for all of them', function (array $arguments, array $query, string $listed) {
+    fakeForum(['admin-api/options/' => 'options-changed']);
+
+    $content = structured(ForumOptions::class, ['forum' => 'acme'] + $arguments);
+
+    parse_str((string) parse_url(sentRequests()[0]->url(), PHP_URL_QUERY), $sent);
+
+    expect($sent)->toEqual($query)->and($content['listed'])->toBe($listed);
+})->with([
+    [[], ['changed' => '1'], 'changed options only'],
+    [['include_unchanged' => true], [], 'every option'],
+    [['add_on_id' => 'Acme/AddOnA'], ['changed' => '1', 'add_on_id' => 'Acme/AddOnA'], 'changed options only'],
+]);
+
+it('never shows a string from config.php', function () {
+    fakeForum(['admin-api/config/' => 'config-changed']);
+
+    $settings = collect(structured(ForumConfiguration::class, ['forum' => 'acme'])['settings'])->keyBy('key');
+
+    expect($settings['db.password'])->toMatchArray(['withheld' => true, 'set' => true, 'type' => 'string'])
+        ->and($settings['db.password'])->not->toHaveKey('value')
+        ->and($settings['debug'])->toMatchArray(['withheld' => false, 'value' => true]);
+});

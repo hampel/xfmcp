@@ -1,0 +1,91 @@
+{
+    "now": 1791422596,
+    "total": 47,
+    "active": 47,
+    "overdue": 0,
+    "oldest_overdue_date": null,
+    "runner": {
+        "queued": true,
+        "next_run": 1791422642,
+        "last_run_date": 1791422582
+    },
+    "entries": [
+        {
+            "entry_id": "memberStatsCache",
+            "add_on_id": "XF",
+            "cron_class": "XF\\Cron\\MemberStats",
+            "cron_method": "rebuildMemberStatsCache",
+            "run_rules": {
+                "day_type": "dom",
+                "dom": [
+                    -1
+                ],
+                "hours": [
+                    -1
+                ],
+                "minutes": [
+                    0,
+                    10,
+                    20,
+                    30,
+                    40,
+                    50
+                ]
+            },
+            "active": true,
+            "add_on_active": true,
+            "next_run": 1791423001,
+            "overdue": false
+        },
+        {
+            "entry_id": "rebuildSearchForumCache",
+            "add_on_id": "XF",
+            "cron_class": "XF\\Cron\\SearchForum",
+            "cron_method": "triggerSearchForumCacheRebuild",
+            "run_rules": {
+                "day_type": "dom",
+                "dom": [
+                    -1
+                ],
+                "hours": [
+                    -1
+                ],
+                "minutes": [
+                    0,
+                    15,
+                    30,
+                    45
+                ]
+            },
+            "active": true,
+            "add_on_active": true,
+            "next_run": 1791423002,
+            "overdue": false
+        },
+        {
+            "entry_id": "views",
+            "add_on_id": "XF",
+            "cron_class": "XF\\Cron\\Views",
+            "cron_method": "runViewUpdate",
+            "run_rules": {
+                "day_type": "dom",
+                "dom": [
+                    -1
+                ],
+                "hours": [
+                    -1
+                ],
+                "minutes": [
+                    0,
+                    15,
+                    30,
+                    45
+                ]
+            },
+            "active": true,
+            "add_on_active": true,
+            "next_run": 1791423002,
+            "overdue": false
+        }
+    ]
+}

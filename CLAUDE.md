@@ -1,0 +1,167 @@
+# CLAUDE.md
+
+Guidance for a session working in this repository.
+
+## What this is
+
+`xfmcp` is a Laravel Zero 13 CLI (PHP 8.3+) that runs an MCP server over stdio. Its tools are
+the read-only endpoints of the Hampel/AdminApi XenForo add-on, reached through
+`hampel/xenforo-api`, so an agent can ask a forum about its error log, add-ons, cron, job
+queue, options and configuration.
+
+**The add-on's `README.md` is the contract**: every endpoint, parameter and field. This
+repository does not restate it. `README.md` here is the operator's document; this file is why
+the code is the way it is.
+
+**It has not been released.** `CLAUDE.local.md`, gitignored, records where it runs, which
+forum it was proved against and what is still undecided.
+
+## Commands
+
+```bash
+php xfmcp app:config            # resolved configuration, and the .env actually read
+php xfmcp app:validate          # inventory, each forum, each key's kind
+php xfmcp mcp:start xenforo     # the server; speaks JSON-RPC on stdin and stdout
+
+composer check                  # phpstan, then pest
+vendor/bin/pest --filter='headline'
+composer build                  # release phar into builds/, refusing dev dependencies
+```
+
+## The split this tool is one half of
+
+**The add-on is the stable half and this is the half meant to churn.** The add-on returns
+facts and is installed on production forums, so changing it means an upgrade on every one.
+Tool names, descriptions, ordering, headlines and notes are all here, where rewording one
+costs a rebuild on one workstation. When an agent misreads an answer, the fix belongs in
+`app/Mcp/Tools` or `App\Support\Present` — not in a request to change the add-on.
+
+**Authorisation is finished on the forum, and this tool must not add its own.** The add-on
+refuses a super user key, then asks for the scope, then for an admin permission held by the
+key's own user. The only decision made here is which of a forum's two keys a call is sent
+with. A check added on this side would be a second copy of a rule, and the two would drift.
+
+## Stdio only, and stdout is the protocol
+
+**`bootstrap/ai.php` calls `Mcp::local()` and must never call `Mcp::web()`.** Nothing in this
+tool listens on a port; that is the reason it is a Laravel Zero application.
+`tests/Feature/ServerTest.php` asserts the registered servers are exactly `['xenforo']`.
+
+**Under `mcp:start`, anything written to stdout that is not JSON-RPC breaks the client.**
+`App\Exceptions\Handler` sends a rendered exception to stderr, and `bootstrap/app.php`
+catches a malformed `.env` itself, because that fails before the handler exists. Both are
+rebound or written in `bootstrap/app.php`; neither is redundant.
+
+**Nothing is logged, deliberately.** There is no `config/logging.php` and no `Log::` call:
+the tool is driven by an agent that reads every answer, a forum records each key's
+`last_use_date`, and a log here would be a second place for a forum's data to rest.
+`report()` in `ForumGateway` goes to a null logger; measured 2026-10-08, it writes nothing to
+stdout or disk.
+
+## A failure is a tool error with a sentence in it
+
+**Every refusal the add-on makes is a 403, a forum without it is a 404, and a WAF in front of
+a forum can answer either**, so the status says almost nothing. `ForumGateway::explain()`
+reads XenForo's error code and names whose problem it is:
+
+| the forum answered | it means |
+|---|---|
+| `endpoint_not_found` | the add-on is not installed there |
+| `hampel_adminapi_user_api_key_required` | a super user or guest key |
+| `missing_scope` | the key lacks the scope for that endpoint |
+| `do_not_have_permission` | the key's administrator lacks the admin permission |
+| a 4xx with no `errors[]` | something in front of the forum answered, not XenForo |
+
+**A tool returns `Response::error()`, never an exception and never an empty result.** An
+exception becomes a JSON-RPC protocol error that tells the agent nothing; an empty result
+reads as a healthy forum. `tests/Feature/FailureTest.php` holds each case to its sentence.
+
+**An explanation never carries a response body or an arbitrary exception message.** XenForo's
+own error messages are passed on, because they are fixed phrases; a body can be a WAF page
+and a throwable's message can hold a URL.
+
+## The inventory is read on demand
+
+**`config/xfmcp.php` holds the inventory's path and nothing else.** Every table in the file
+carries a live API key, so `App\Support\ForumInventory` parses it when a tool or a check asks
+and never at config load, which would put every key in the config repository for
+`--version`. It is a singleton, so one process parses once.
+
+**`key` alone, never `key` with `user`.** In `hampel/xenforo-api-laravel` that pair builds a
+super user key, which the add-on refuses with a 403 that reads like a broken forum.
+`ForumInventory::problem()` rejects a table that has a `user` line.
+
+**`ErrorLogEntries::shouldRegister()` hides the detail tool when no forum has a
+`detail_key`.** A server that cannot read an error message should not advertise a tool that
+does.
+
+## Presentation rules, and the misreading behind each
+
+All in `App\Support\Present` and the tool classes. Each exists because an agent given the raw
+response got something wrong, in trials run against the add-on before this tool existed.
+
+- **Every timestamp gains `_iso`.** Everything is Unix seconds in UTC; an agent read a cron
+  rule's `"hours": [3]` as local time. Keys are matched by name (`now`, `since`, `until`,
+  `next_run`, anything ending `_date`) and by being a plausible timestamp, so a count is never
+  annotated.
+- **The error log leads with `headline`.** The default window is 24 hours, and a quiet day
+  looked like an empty log.
+- **`by_origin_add_on` and `by_location` come before `by_add_on`**, which is last. Where an
+  error surfaced is not whose error it is.
+- **A withheld value loses its `value` key and gains `withheld: true`.** `value: null` meant
+  both withheld and null.
+- **`notes` says what an empty answer is worth**, because absence is not health and a
+  description alone did not stop an agent overclaiming it.
+
+Changing one of these changes what an agent concludes. Add a test with the change.
+
+## `app:validate` proves the kind of each key
+
+**A key with too much is the failure worth catching, and it is silent otherwise.** For each
+forum the command asks `index` what the key is, then confirms each key is *refused* by the
+other's endpoint. It relies on the add-on checking the scope before the parameter: a read key
+calling `error-entries` with no `error_id` gets `403 missing_scope`, a detail key gets
+`400 hampel_adminapi_error_id_required`. The add-on pins that order with a test of its own.
+No probe names an entry, so nothing is read from a log.
+
+**Scopes are read from the raw `index` response, not from `SiteInfo::hasScope()`.** XenForo
+2.3 sends `scopes` as a map of name to `true`, and `hampel/xenforo-api` 1.2 reads a list, so
+it reports no scopes for any scoped key. `Validate::scopes()` reads both shapes. Remove it
+only after the package is fixed *and* required at that version.
+
+**It is the command to extend when a new dependency on the environment appears.** Four
+markers, the same as the sibling tools: `[ ok ]`, `[warn]`, `[fail]`, and blank for a check
+that did not apply. A skip is not a pass. Warnings exit 0.
+
+## Conventions
+
+- PSR-12 through Pint's defaults; `vendor/bin/pint` before committing.
+- Configuration through `config()`, never `env()` outside `config/`. **Never an `env()` call
+  in `config/app.php`**: `app:build` compiles that file as a literal.
+- `Hampel\XenForo\Api\Laravel\XenForoServiceProvider` is listed by hand in `config/app.php`.
+  Laravel Zero ignores package discovery; without the line `Http::fake()` misses and a test
+  reaches a real forum. `tests/Feature/NoNetworkTest.php` fakes nothing to prove it holds.
+- Assert on command output with `runCommand()` in `tests/Pest.php`, not
+  `expectsOutputToContain()`.
+- No committed file names a real forum, host or path. Fixtures use `forum.example.test` and
+  `Acme/AddOnA`.
+
+## Fixtures are captured, not written
+
+**`tests/Fixtures/*.json` are real responses**, captured from a forum running the add-on on
+2026-10-08, then trimmed and with add-on names replaced. A fixture written from the code that
+consumes it can only agree with that code. To refresh one, capture the endpoint again and
+apply the same replacement; do not edit a shape by hand to make a test pass.
+
+The two `index-*.json` files are the exception: a real `index` response with the site's own
+details replaced by hand.
+
+## Known gaps
+
+- **The MCP component's `make:mcp-*` and `mcp:inspector` commands are still listed**, in the
+  compiled binary too. `remove` in `config/commands.php` cannot reach them: it matches on
+  class and these are registered lazily. Two attempts to filter them in `App\Kernel` did not
+  take. They are harmless and useless there.
+- **A compiled binary run from `/` prints its default inventory path as `//forums.toml`.**
+  Cosmetic; `app:validate` warns about that path regardless.
+- **No release workflow.** CI runs `composer check` and nothing publishes a binary.

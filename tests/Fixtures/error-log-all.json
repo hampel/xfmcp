@@ -1,0 +1,337 @@
+{
+    "window": {
+        "since": 0,
+        "until": 1791422596,
+        "precedes_log": true
+    },
+    "total": 61,
+    "oldest_date": 1790305832,
+    "newest_date": 1791422200,
+    "members": 0,
+    "member_errors": 0,
+    "by_day": [
+        {
+            "day": "2026-09-25",
+            "count": 12
+        },
+        {
+            "day": "2026-09-26",
+            "count": 2
+        },
+        {
+            "day": "2026-09-27",
+            "count": 2
+        },
+        {
+            "day": "2026-09-28",
+            "count": 2
+        },
+        {
+            "day": "2026-09-29",
+            "count": 3
+        },
+        {
+            "day": "2026-09-30",
+            "count": 2
+        },
+        {
+            "day": "2026-10-01",
+            "count": 1
+        },
+        {
+            "day": "2026-10-02",
+            "count": 0
+        },
+        {
+            "day": "2026-10-03",
+            "count": 0
+        },
+        {
+            "day": "2026-10-04",
+            "count": 0
+        },
+        {
+            "day": "2026-10-05",
+            "count": 0
+        },
+        {
+            "day": "2026-10-06",
+            "count": 0
+        },
+        {
+            "day": "2026-10-07",
+            "count": 32
+        },
+        {
+            "day": "2026-10-08",
+            "count": 5
+        }
+    ],
+    "by_type": [
+        {
+            "exception_type": "Acme\\AddOnA\\Exception\\ServerException",
+            "count": 33,
+            "newest_date": 1791422200
+        },
+        {
+            "exception_type": "ErrorException",
+            "count": 18,
+            "newest_date": 1791376201
+        },
+        {
+            "exception_type": "Error",
+            "count": 4,
+            "newest_date": 1790691702
+        },
+        {
+            "exception_type": "XF\\Db\\Exception",
+            "count": 2,
+            "newest_date": 1790682762
+        },
+        {
+            "exception_type": "LogicException",
+            "count": 2,
+            "newest_date": 1790472043
+        },
+        {
+            "exception_type": "XF\\PrintableException",
+            "count": 1,
+            "newest_date": 1791377938
+        },
+        {
+            "exception_type": "TypeError",
+            "count": 1,
+            "newest_date": 1790340960
+        }
+    ],
+    "by_severity": [
+        {
+            "severity": null,
+            "count": 45,
+            "newest_date": 1791422200
+        },
+        {
+            "severity": "fatal",
+            "count": 11,
+            "newest_date": 1791374858
+        },
+        {
+            "severity": "E_USER_WARNING",
+            "count": 5,
+            "newest_date": 1790477239
+        }
+    ],
+    "by_origin": {
+        "web": 0,
+        "cli": 59,
+        "job": 2,
+        "unknown": 0
+    },
+    "by_location": {
+        "core": 15,
+        "add_on": 2,
+        "add_on_vendor": 5,
+        "add_on_tests": 33,
+        "vendor": 0,
+        "other": 0,
+        "outside": 6
+    },
+    "by_add_on": [
+        {
+            "add_on_id": "Acme/AddOnB",
+            "count": 33,
+            "newest_date": 1791422200
+        },
+        {
+            "add_on_id": "XF",
+            "count": 15,
+            "newest_date": 1791377938
+        },
+        {
+            "add_on_id": null,
+            "count": 6,
+            "newest_date": 1791336343
+        },
+        {
+            "add_on_id": "Acme/AddOnE",
+            "count": 5,
+            "newest_date": 1790575390
+        },
+        {
+            "add_on_id": "Acme/AddOnF",
+            "count": 1,
+            "newest_date": 1790857181
+        },
+        {
+            "add_on_id": "Acme/AddOnG",
+            "count": 1,
+            "newest_date": 1790691702
+        }
+    ],
+    "by_origin_add_on": [
+        {
+            "add_on_id": "Acme/AddOnB",
+            "count": 33,
+            "newest_date": 1791422200
+        },
+        {
+            "add_on_id": null,
+            "count": 14,
+            "newest_date": 1791374858
+        },
+        {
+            "add_on_id": "Acme/AddOnE",
+            "count": 5,
+            "newest_date": 1790575390
+        },
+        {
+            "add_on_id": "Acme/AddOnD",
+            "count": 2,
+            "newest_date": 1791376201
+        },
+        {
+            "add_on_id": "Acme/AddOnH",
+            "count": 2,
+            "newest_date": 1790682762
+        },
+        {
+            "add_on_id": "Acme/AddOnC",
+            "count": 1,
+            "newest_date": 1791377938
+        },
+        {
+            "add_on_id": "Acme/AddOnF",
+            "count": 1,
+            "newest_date": 1790857181
+        },
+        {
+            "add_on_id": "Acme/AddOnG",
+            "count": 1,
+            "newest_date": 1790691702
+        },
+        {
+            "add_on_id": "Acme/AddOnI",
+            "count": 1,
+            "newest_date": 1790477239
+        },
+        {
+            "add_on_id": "Acme/AddOnJ",
+            "count": 1,
+            "newest_date": 1790340960
+        }
+    ],
+    "by_template": [
+        {
+            "template": "public:account_wrapper",
+            "add_on_id": "XF",
+            "count": 4,
+            "newest_date": 1790327581
+        }
+    ],
+    "examined": {
+        "rows": 61,
+        "complete": true
+    },
+    "signatures": [
+        {
+            "exception_type": "Acme\\AddOnA\\Exception\\ServerException",
+            "filename": "src/addons/Acme/AddOnB/tests/Unit/JobRetryPolicyTest.php",
+            "line": 48,
+            "in_install": true,
+            "location": "add_on_tests",
+            "add_on_id": "Acme/AddOnB",
+            "count": 33,
+            "first_date": 1791370506,
+            "last_date": 1791422200,
+            "last_error_id": 15853,
+            "members": 0,
+            "member_errors": 0,
+            "severity": null,
+            "origins": {
+                "web": 0,
+                "cli": 33,
+                "job": 0,
+                "unknown": 0
+            },
+            "origin_add_ons": [
+                {
+                    "add_on_id": "Acme/AddOnB",
+                    "count": 33,
+                    "newest_date": 1791422200
+                }
+            ],
+            "templates": []
+        },
+        {
+            "exception_type": "ErrorException",
+            "filename": "src/addons/Acme/AddOnE/vendor/phpunit/phpunit/src/Framework/TestStatus/Known.php",
+            "line": 19,
+            "in_install": true,
+            "location": "add_on_vendor",
+            "add_on_id": "Acme/AddOnE",
+            "count": 5,
+            "first_date": 1790340404,
+            "last_date": 1790575390,
+            "last_error_id": 506,
+            "members": 0,
+            "member_errors": 0,
+            "severity": "fatal",
+            "origins": {
+                "web": 0,
+                "cli": 5,
+                "job": 0,
+                "unknown": 0
+            },
+            "origin_add_ons": [
+                {
+                    "add_on_id": "Acme/AddOnE",
+                    "count": 5,
+                    "newest_date": 1790575390
+                }
+            ],
+            "templates": []
+        },
+        {
+            "exception_type": "ErrorException",
+            "filename": "src/XF/Template/Templater.php",
+            "line": 1285,
+            "in_install": true,
+            "location": "core",
+            "add_on_id": "XF",
+            "count": 4,
+            "first_date": 1790327581,
+            "last_date": 1790327581,
+            "last_error_id": 8,
+            "members": 0,
+            "member_errors": 0,
+            "severity": "E_USER_WARNING",
+            "origins": {
+                "web": 0,
+                "cli": 4,
+                "job": 0,
+                "unknown": 0
+            },
+            "origin_add_ons": [
+                {
+                    "add_on_id": null,
+                    "count": 4,
+                    "newest_date": 1790327581
+                }
+            ],
+            "templates": [
+                {
+                    "template": "public:account_wrapper",
+                    "add_on_id": "XF",
+                    "count": 4,
+                    "newest_date": 1790327581
+                }
+            ]
+        }
+    ],
+    "signature_count": 18,
+    "log": {
+        "total": 61,
+        "oldest_date": 1790305832,
+        "newest_date": 1791422200
+    }
+}

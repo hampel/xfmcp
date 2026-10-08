@@ -1,0 +1,20 @@
+# Template for the forum inventory. The live file is wherever XFMCP_FORUMS_PATH points and
+# is NOT in this repository: it holds a live XenForo API key for every forum. Make it 0600.
+#
+# One table per forum. The table name is the id every tool takes, and must be lowercase.
+# Each forum needs the Hampel/AdminApi add-on installed, which needs XenForo 2.3.0 or later.
+
+[example]
+name = "Example Forum"                   # optional; shown by list-forums
+url  = "https://forum.example.com"       # the board URL or its /api URL
+
+# A USER key belonging to one administrator, holding only the hampel_admin_api:read scope.
+# Not a super user key: the add-on refuses one, and every tool would answer with a 403.
+key  = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+
+# Optional. A SECOND user key holding only hampel_admin_api:error_detail, used by the one
+# tool that returns an error's message and stack trace. Leave the line out and this forum
+# offers summaries only; leave it out of every forum and that tool is not offered at all.
+#detail_key = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+
+# Do not add a `user` line. With `key` it means "a super user key acting as this user".

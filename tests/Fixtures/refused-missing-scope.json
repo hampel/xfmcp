@@ -1,0 +1,11 @@
+{
+    "errors": [
+        {
+            "code": "missing_scope",
+            "message": "This request requires access to the following scope: hampel_admin_api:error_detail",
+            "params": {
+                "scope": "hampel_admin_api:error_detail"
+            }
+        }
+    ]
+}
