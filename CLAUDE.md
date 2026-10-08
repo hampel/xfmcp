@@ -124,10 +124,11 @@ calling `error-entries` with no `error_id` gets `403 missing_scope`, a detail ke
 `400 hampel_adminapi_error_id_required`. The add-on pins that order with a test of its own.
 No probe names an entry, so nothing is read from a log.
 
-**Scopes are read from the raw `index` response, not from `SiteInfo::hasScope()`.** XenForo
-2.3 sends `scopes` as a map of name to `true`, and `hampel/xenforo-api` 1.2 reads a list, so
-it reports no scopes for any scoped key. `Validate::scopes()` reads both shapes. Remove it
-only after the package is fixed *and* required at that version.
+**The scope check needs `hampel/xenforo-api` 1.2.2 or later, which is what `composer.json`
+requires.** XenForo sends a key's `scopes` as a map of name to `true` where its documentation
+promises a list, and before 1.2.2 the package read only the list, so `hasScope()` was false
+for every scoped key and this command failed a correct one. Found here on 2026-10-08 and
+fixed upstream the same day; do not lower the constraint.
 
 **It is the command to extend when a new dependency on the environment appears.** Four
 markers, the same as the sibling tools: `[ ok ]`, `[warn]`, `[fail]`, and blank for a check

@@ -243,15 +243,13 @@ class Validate extends Command
             return false;
         }
 
-        $scopes = $this->scopes($info->raw);
-
-        if (! $info->allowAllScopes && ! in_array($scope, $scopes, true)) {
+        if (! $info->hasScope($scope)) {
             $this->checkFail($label, 'a user key without the '.$scope.' scope');
 
             return false;
         }
 
-        $extra = array_values(array_diff($scopes, [$scope]));
+        $extra = array_values(array_diff($info->scopes, [$scope]));
 
         if ($info->allowAllScopes) {
             $this->checkWarn($label, 'a user key allowed ALL scopes; give it '.$scope.' and nothing else');
@@ -262,31 +260,6 @@ class Validate extends Command
         }
 
         return true;
-    }
-
-    /**
-     * The scopes a key holds, read from the index response itself.
-     *
-     * XenForo 2.3 sends them as a map of scope to true, where SiteInfo expects a list of
-     * names and so reports none; measured against XenForo 2.3.12. Both shapes are read
-     * here so that neither a fixed package nor another XenForo version changes the answer.
-     *
-     * @param  array<mixed>  $index
-     * @return list<string>
-     */
-    protected function scopes(array $index): array
-    {
-        $scopes = [];
-
-        foreach ((array) ($index['key']['scopes'] ?? []) as $name => $value) {
-            if (is_string($name) && $value) {
-                $scopes[] = $name;
-            } elseif (is_string($value)) {
-                $scopes[] = $value;
-            }
-        }
-
-        return $scopes;
     }
 
     /**

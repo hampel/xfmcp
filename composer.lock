@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "a95bc96eb92c541cfdb899714671c80f",
+    "content-hash": "b9d6f1cb148b279f6ad4f6f2af951371",
     "packages": [
         {
             "name": "brick/math",
@@ -1118,16 +1118,16 @@
         },
         {
             "name": "hampel/xenforo-api",
-            "version": "1.2.1",
+            "version": "1.2.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/hampel/xenforo-api.git",
-                "reference": "8b4c6e142dee03d9b4dfc6effbcfc3fd4ec4feb1"
+                "reference": "91d09174fcf1f15981b24710e00d53224bea765c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/hampel/xenforo-api/zipball/8b4c6e142dee03d9b4dfc6effbcfc3fd4ec4feb1",
-                "reference": "8b4c6e142dee03d9b4dfc6effbcfc3fd4ec4feb1",
+                "url": "https://api.github.com/repos/hampel/xenforo-api/zipball/91d09174fcf1f15981b24710e00d53224bea765c",
+                "reference": "91d09174fcf1f15981b24710e00d53224bea765c",
                 "shasum": ""
             },
             "require": {
@@ -1180,7 +1180,7 @@
                 "issues": "https://github.com/hampel/xenforo-api/issues",
                 "source": "https://github.com/hampel/xenforo-api"
             },
-            "time": "2026-09-13T13:36:53+00:00"
+            "time": "2026-10-08T04:17:07+00:00"
         },
         {
             "name": "hampel/xenforo-api-laravel",
