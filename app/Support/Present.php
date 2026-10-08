@@ -140,22 +140,29 @@ class Present
 
         if (is_array($redactions)) {
             foreach ($redactions as $index => $redaction) {
-                $path = (string) ($redaction['path'] ?? '');
                 $reason = (string) ($redaction['reason'] ?? '');
+                $segments = self::segments($redaction);
 
-                $entry['redactions'][$index]['because'] = self::REASONS[$reason] ?? 'the forum gave a reason this tool does not know';
+                $because = self::REASONS[$reason] ?? 'the forum gave a reason this tool does not know';
+
+                // configuration only: the rule was written for a key above this one
+                if (is_string($redaction['inherited_from'] ?? null) && $redaction['inherited_from'] !== '') {
+                    $because .= ', applied to everything under `'.$redaction['inherited_from'].'`';
+                }
+
+                $entry['redactions'][$index]['because'] = $because;
 
                 // a URL is cut down, not removed: what is left is the value to show
-                if ($reason === 'url') {
-                    $state = $state === 'withheld' ? $state : 'partly_withheld';
-                } elseif ($path === '') {
+                if ($reason !== 'url' && $segments === []) {
                     $state = 'withheld';
-                } else {
-                    $state = $state === 'withheld' ? $state : 'partly_withheld';
 
-                    if (is_array($entry['value'])) {
-                        data_set($entry['value'], $path, self::WITHHELD);
-                    }
+                    continue;
+                }
+
+                $state = $state === 'withheld' ? $state : 'partly_withheld';
+
+                if ($reason !== 'url' && is_array($entry['value'])) {
+                    self::mark($entry['value'], $segments);
                 }
             }
         } elseif (($entry['disclosed'] ?? true) === false) {
@@ -183,6 +190,54 @@ class Present
         unset($entry['disclosed']);
 
         return ['disclosure' => $state] + $entry;
+    }
+
+    /**
+     * Where in a value a redaction applies, one key per entry; [] for the whole value.
+     *
+     * From `segments`, never by splitting `path`: a key can itself contain a dot - a
+     * hostname, a template name - so the dotted path cannot be taken apart again. An
+     * add-on too old to send `segments` gets its path treated as one key, which is right
+     * for the only shape that version produced unambiguously.
+     *
+     * @param  array<mixed>  $redaction
+     * @return list<string>
+     */
+    private static function segments(array $redaction): array
+    {
+        if (is_array($redaction['segments'] ?? null)) {
+            return array_values(array_map(strval(...), $redaction['segments']));
+        }
+
+        $path = (string) ($redaction['path'] ?? '');
+
+        return $path === '' ? [] : [$path];
+    }
+
+    /**
+     * Put the WITHHELD marker at a place in a value, if that place exists. Never creates
+     * one: a path this tool cannot follow is left to `redactions` to describe.
+     *
+     * @param  array<mixed>  $value
+     * @param  list<string>  $segments
+     */
+    private static function mark(array &$value, array $segments): void
+    {
+        $at = &$value;
+
+        foreach ($segments as $position => $segment) {
+            if (! is_array($at) || ! array_key_exists($segment, $at)) {
+                return;
+            }
+
+            if ($position === count($segments) - 1) {
+                $at[$segment] = self::WITHHELD;
+
+                return;
+            }
+
+            $at = &$at[$segment];
+        }
     }
 
     /**

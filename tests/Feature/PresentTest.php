@@ -44,12 +44,41 @@ it('tells a withheld value from a real null, in either mode', function (array $e
         ['disclosure' => 'shown', 'value' => null, 'redactions' => []],
     ],
     'values mode, a nested part withheld beside a real null' => [
-        ['disclosed' => false, 'value' => ['a' => ['key' => null], 'b' => null], 'redactions' => [['path' => 'a.key', 'reason' => 'name']]],
+        ['disclosed' => false, 'value' => ['a' => ['key' => null], 'b' => null], 'redactions' => [['path' => 'a.key', 'segments' => ['a', 'key'], 'reason' => 'name']]],
         [
             'disclosure' => 'partly_withheld',
             'value' => ['a' => ['key' => '[withheld]'], 'b' => null],
-            'redactions' => [['path' => 'a.key', 'reason' => 'name', 'because' => 'its name reads like a credential']],
+            'redactions' => [['path' => 'a.key', 'segments' => ['a', 'key'], 'reason' => 'name', 'because' => 'its name reads like a credential']],
         ],
+    ],
+    'values mode, a key with a dot in it and a list index' => [
+        [
+            'disclosed' => false,
+            'value' => ['mail.example.test' => ['password' => null], 'list' => ['a', null]],
+            'redactions' => [
+                ['path' => 'mail.example.test.password', 'segments' => ['mail.example.test', 'password'], 'reason' => 'name'],
+                ['path' => 'list.1', 'segments' => ['list', '1'], 'reason' => 'value'],
+            ],
+        ],
+        [
+            'disclosure' => 'partly_withheld',
+            'value' => ['mail.example.test' => ['password' => '[withheld]'], 'list' => ['a', '[withheld]']],
+            'redactions' => [
+                ['path' => 'mail.example.test.password', 'segments' => ['mail.example.test', 'password'], 'reason' => 'name', 'because' => 'its name reads like a credential'],
+                ['path' => 'list.1', 'segments' => ['list', '1'], 'reason' => 'value', 'because' => 'the value looks like a credential'],
+            ],
+        ],
+    ],
+    'a configuration setting withheld because a key above it was' => [
+        ['disclosed' => false, 'value' => null, 'redactions' => [['path' => '', 'segments' => [], 'inherited_from' => 'acmeService', 'reason' => 'untrusted_add_on']]],
+        ['disclosure' => 'withheld', 'redactions' => [[
+            'path' => '', 'segments' => [], 'inherited_from' => 'acmeService', 'reason' => 'untrusted_add_on',
+            'because' => 'its add-on has not declared which of its settings are secrets, so none of its text is shown, applied to everything under `acmeService`',
+        ]]],
+    ],
+    'a path that is not in the value creates nothing' => [
+        ['disclosed' => false, 'value' => ['a' => 1], 'redactions' => [['path' => 'b.c', 'segments' => ['b', 'c'], 'reason' => 'name']]],
+        ['disclosure' => 'partly_withheld', 'value' => ['a' => 1], 'redactions' => [['path' => 'b.c', 'segments' => ['b', 'c'], 'reason' => 'name', 'because' => 'its name reads like a credential']]],
     ],
     'values mode, a reason this tool has not heard of' => [
         ['disclosed' => false, 'value' => null, 'redactions' => [['path' => '', 'reason' => 'novel']]],

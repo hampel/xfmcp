@@ -68,6 +68,9 @@
             "redactions": [
                 {
                     "path": "privateKey",
+                    "segments": [
+                        "privateKey"
+                    ],
                     "reason": "known_secret"
                 }
             ]
@@ -87,6 +90,7 @@
             "redactions": [
                 {
                     "path": "",
+                    "segments": [],
                     "reason": "known_secret"
                 }
             ]
@@ -106,6 +110,7 @@
             "redactions": [
                 {
                     "path": "",
+                    "segments": [],
                     "reason": "known_secret"
                 }
             ]

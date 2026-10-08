@@ -239,7 +239,7 @@ it('shows option values with each withheld part marked and explained', function 
         // withheld in part: the marker stands where the add-on put a null
         ->and($options['emailDkim']['disclosure'])->toBe('partly_withheld')
         ->and($options['emailDkim']['value'])->toMatchArray(['enabled' => false, 'privateKey' => '[withheld]'])
-        ->and($options['emailDkim']['redactions'][0])->toBe(['path' => 'privateKey', 'reason' => 'known_secret', 'because' => 'it is on the list of known secrets'])
+        ->and($options['emailDkim']['redactions'][0])->toBe(['path' => 'privateKey', 'segments' => ['privateKey'], 'reason' => 'known_secret', 'because' => 'it is on the list of known secrets'])
         // withheld whole: no value key to misread
         ->and($options['extraCaptchaKeys']['disclosure'])->toBe('withheld')
         ->and($options['extraCaptchaKeys'])->not->toHaveKey('value')

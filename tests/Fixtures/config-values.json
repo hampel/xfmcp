@@ -49,7 +49,9 @@
             "redactions": [
                 {
                     "path": "",
-                    "reason": "known_secret"
+                    "segments": [],
+                    "reason": "known_secret",
+                    "inherited_from": null
                 }
             ]
         },
@@ -87,7 +89,9 @@
             "redactions": [
                 {
                     "path": "",
-                    "reason": "known_secret"
+                    "segments": [],
+                    "reason": "known_secret",
+                    "inherited_from": null
                 }
             ]
         },
@@ -125,7 +129,9 @@
             "redactions": [
                 {
                     "path": "",
-                    "reason": "untrusted_add_on"
+                    "segments": [],
+                    "reason": "untrusted_add_on",
+                    "inherited_from": null
                 }
             ]
         }

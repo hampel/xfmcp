@@ -114,6 +114,9 @@ response got something wrong, in trials run against the add-on before this tool 
   one only by `redactions` naming its path. So a value withheld whole loses its `value` key,
   a part withheld from inside one becomes `[withheld]`, and each redaction gains `because`.
   `Present::disclosure()` handles both modes; a null that survives it is a null.
+- **A redaction is placed by its `segments`, never by splitting its `path`.** A key can
+  contain a dot - a hostname, a template name - so the dotted path cannot be taken apart
+  again. `Present::mark()` only ever replaces a place that exists, and creates nothing.
 - **Options and configuration lead with which mode the forum answered in**, using the
   add-on's own `mode_reason`. A missing scope and a missing admin permission are different
   fixes, and "the tool could only say smtp" is what prompted values in the first place.

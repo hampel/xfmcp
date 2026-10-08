@@ -16,13 +16,13 @@
             "add_on_id": "XF",
             "data_type": "string",
             "is_default": false,
+            "overridden": false,
             "type": "string",
             "set": true,
             "disclosed": false,
             "value": null,
             "count": null,
             "members": null,
-            "overridden": false,
             "redactions": null
         },
         {
@@ -30,13 +30,13 @@
             "add_on_id": "XF",
             "data_type": "string",
             "is_default": false,
+            "overridden": false,
             "type": "string",
             "set": true,
             "disclosed": false,
             "value": null,
             "count": null,
             "members": null,
-            "overridden": false,
             "redactions": null
         },
         {
@@ -44,6 +44,7 @@
             "add_on_id": "XF",
             "data_type": "array",
             "is_default": false,
+            "overridden": false,
             "type": "array",
             "set": true,
             "disclosed": false,
@@ -79,7 +80,6 @@
                     "count": null
                 }
             },
-            "overridden": false,
             "redactions": null
         },
         {
@@ -87,6 +87,7 @@
             "add_on_id": "XF",
             "data_type": "array",
             "is_default": false,
+            "overridden": false,
             "type": "array",
             "set": true,
             "disclosed": false,
@@ -101,7 +102,6 @@
                     "count": null
                 }
             },
-            "overridden": false,
             "redactions": null
         },
         {
@@ -109,13 +109,13 @@
             "add_on_id": "Acme/AddOnA",
             "data_type": "boolean",
             "is_default": false,
+            "overridden": false,
             "type": "boolean",
             "set": true,
             "disclosed": true,
             "value": true,
             "count": null,
             "members": null,
-            "overridden": false,
             "redactions": null
         }
     ]
