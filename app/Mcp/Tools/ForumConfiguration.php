@@ -18,17 +18,21 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
     Show the settings in force from a forum's src/config.php, merged over XenForo's defaults, one entry per
     dotted key. Where the forum's key allows it, with their values.
 
-    Read `headline` first: it says which of two modes the forum answered in.
+    Read `headline` first: it says which of two modes the forum answered in. `mode` is `values` or `shape`.
     - Values mode: each setting carries its `value`, with secrets removed. The database password and username
       and the global salt are always withheld; the database host and name are shown.
-    - Shape mode (the key lacks the values scope): a boolean, a null and a small number are shown, and a string
-      never is - it says only that it is `set`.
+    - Shape mode: a boolean, a null and a small number are shown, and a string never is - it says only that it
+      is `set`. A forum answers this way when its key lacks the values scope or the key's administrator lacks a
+      permission; `mode_reason` says which. It is a setting on the forum, not a fault.
 
     Reading an entry, in either mode:
     - `disclosure` is `shown`, `partly_withheld` or `withheld`. A withheld setting has no `value` key at all; it
       is not empty unless `set` is false. Inside a value, a removed part reads `[withheld]`, or
       `[withheld: not set]` when the secret held nothing - a secret is hidden either way. A null you see is a null.
-    - `redactions` lists each removed part with its `path` and `because`. "Its add-on has not declared its
+    - `[withheld]` and `[withheld: not set]` are this tool's markers, never the stored value. Do not report
+      one as what the setting holds.
+    - `redactions` lists each removed part: its `path` (empty for the whole value), whether the secret was
+      `set`, the `reason` and `because`. `inherited_from` names a key above this one that the rule was for. "Its add-on has not declared its
       secrets" means a key XenForo does not define, whose text is hidden as a precaution.
     - `has_default: false` is a key XenForo does not define, which config.php or an add-on introduced. Every such
       key counts as changed, including the `db.*` settings every forum has, so `changed` is never zero.

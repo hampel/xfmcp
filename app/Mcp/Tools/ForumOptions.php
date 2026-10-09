@@ -18,24 +18,29 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
     Show a forum's options: which are set, which were changed from their defaults and, where the forum's key
     allows it, what they hold. Use it for "how is this forum configured?" - where mail goes, what is switched on.
 
-    Read `headline` first: it says which of two modes the forum answered in.
+    Read `headline` first: it says which of two modes the forum answered in. `mode` is `values` or `shape`.
     - Values mode: each option carries its real `value`, with secrets removed. The value is the one in force;
       `overridden: true` means config.php replaces what is stored.
-    - Shape mode (the key lacks the values scope): only a boolean, a null, a small number or a declared choice
-      is shown. Everything else says whether it is `set`, and `members` opens an array option one level.
+    - Shape mode: only a boolean, a null, a small number or a declared choice is shown. Everything else says
+      whether it is `set`, and `members` opens an array option one level (there is no `members` in values mode).
+      A forum answers this way when its key lacks the values scope or the key's administrator lacks a
+      permission; `mode_reason` says which. It is a setting on the forum, not a fault.
 
     Reading an entry, in either mode:
     - `disclosure` is `shown`, `partly_withheld` or `withheld`. A withheld option has no `value` key at all; it
       is not empty unless `set` is false. Inside a value, a removed part reads `[withheld]`, or
       `[withheld: not set]` when the secret held nothing - a secret is hidden either way. A null you see is a null.
-    - `redactions` lists each removed part with its `path` and `because`. A `url` redaction keeps the scheme
-      and host. "Its add-on has not declared its secrets" means the text of that add-on's settings is hidden
+    - `[withheld]` and `[withheld: not set]` are this tool's markers, never the stored value. Do not report
+      one as what the option holds.
+    - `redactions` lists each removed part: its `path` within the value (empty for the whole value), whether
+      the secret was `set`, the `reason` and `because`. A `url` redaction keeps the scheme and host. "Its add-on has not declared its secrets" means the text of that add-on's settings is hidden
       as a precaution, not that the setting is a secret or is empty.
     - `set` means the option holds something, not that it is switched on: a boolean `false` is `set: true`.
     - `is_default: true` means the option still holds what XenForo or the add-on shipped.
     - Numbers are decimal: a file mode of `436` is octal 0664.
 
-    The mail transport is the `emailTransport` option. `changed` also counts a few values XenForo keeps for
+    The mail transport is the `emailTransport` option: `value.emailTransport`, with the host and port beside
+    it, in values mode; `members.emailTransport` in shape mode. `changed` also counts a few values XenForo keeps for
     itself (`currentVersionId`, `jsLastUpdate`), which differ from their defaults on every forum.
 
     By default only changed options are listed, which is the short and useful list; `total`, `changed` and
