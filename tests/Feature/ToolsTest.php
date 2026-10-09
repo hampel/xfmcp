@@ -210,6 +210,21 @@ it('says what an empty failed-jobs list is worth', function (bool $recorded, str
     'not recorded, as on production' => [false, '`failed` being empty says nothing'],
 ]);
 
+it('says a null attempt count is not recorded, as on XenForo 2.2', function () {
+    // not captured: built from the add-on's description of its answer on a 2.2 forum
+    $jobs = captured('jobs');
+    $jobs['retrying'] = null;
+    $jobs['by_class'] = array_map(fn (array $class): array => ['retrying' => null, 'max_attempts' => null] + $class, $jobs['by_class']);
+    $jobs['failed'] = ['recorded' => false, 'total' => 0, 'oldest_date' => null, 'newest_date' => null, 'by_class' => [], 'signatures' => [], 'examined' => ['rows' => 0, 'complete' => true]];
+
+    fakeForum(['admin-api/jobs/' => Http::response($jobs)]);
+
+    $content = structured(JobQueue::class, ['forum' => 'acme']);
+
+    expect($content['retrying'])->toBeNull()
+        ->and(implode(' ', $content['notes']))->toContain('keeps no count of job attempts')->toContain('`failed` being empty says nothing');
+});
+
 it('names the add-ons that need a look', function () {
     $addOns = captured('add-ons');
     $addOns['add_ons'][0] = ['pending_action' => 'upgrade', 'is_processing' => false] + $addOns['add_ons'][0];

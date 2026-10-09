@@ -12,7 +12,7 @@ shapes the answers for a reader that cannot ask a follow-up question.
 ## Requirements
 
 - PHP 8.3 or later, on the machine the agent runs on
-- Each forum: XenForo 2.3.0 or later with the Hampel/AdminApi add-on installed
+- Each forum: XenForo 2.2 or later with the Hampel/AdminApi add-on installed
 - An API key per forum, created as described under *Forums*
 
 Nothing is installed on a forum's server beyond the add-on.
@@ -203,6 +203,8 @@ answer at all. Further limits:
 - A production forum records failed jobs only in debug mode, so `job-queue` says when an empty
   list means nothing.
 - XenForo 2.3.0 does not log errors raised from the command line.
+- XenForo 2.2 has no record of failed jobs and keeps no count of a job's attempts, so on a 2.2
+  forum `job-queue` reports those as not recorded, never as zero.
 
 ## Commands
 

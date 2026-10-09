@@ -168,7 +168,7 @@ class ForumGateway
 
         if ($e instanceof EndpointNotFoundException) {
             return "{$name} has no such endpoint (endpoint_not_found): the Hampel/AdminApi add-on is not installed "
-                .'or not active there. It needs XenForo 2.3.0 or later. This is a fact about how that forum is set '
+                .'or not active there. It needs XenForo 2.2 or later. This is a fact about how that forum is set '
                 .'up, not an empty result.';
         }
 

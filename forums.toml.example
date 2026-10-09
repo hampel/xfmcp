@@ -2,7 +2,7 @@
 # is NOT in this repository: it holds a live XenForo API key for every forum. Make it 0600.
 #
 # One table per forum. The table name is the id every tool takes, and must be lowercase.
-# Each forum needs the Hampel/AdminApi add-on installed, which needs XenForo 2.3.0 or later.
+# Each forum needs the Hampel/AdminApi add-on installed, which needs XenForo 2.2 or later.
 
 [example]
 name = "Example Forum"                   # optional; shown by list-forums
