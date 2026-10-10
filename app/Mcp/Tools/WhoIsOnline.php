@@ -22,6 +22,9 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
       how many of them sit in the single busiest /24 network and `distinct_24` how many /24s there are; the
       same for /16. Forty guests across forty networks are visitors; six hundred in one /24 is one operator.
       These figures are IPv4 only: `sessions` less `ipv4` is the IPv6 sessions, counted and not grouped.
+    - `robot_networks` is the same six figures for the robots the forum recognised. A recognised robot
+      concentrated in one network is usually one crawler's address range, which is ordinary; it matters when
+      a robot the forum trusts by name is arriving from far more networks than that operator has.
     - `by_robot` names the recognised robots, most numerous first; a null `robot_key` is the rest.
     - `by_action` is what sessions were last doing - controller and action, never which thread or page.
     - `errors` is how many sessions' last request ended in an error.
