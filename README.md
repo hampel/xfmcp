@@ -65,21 +65,54 @@ detail_key = "…"
 ### Create the keys on the forum
 
 **What a key may read is decided on the forum, not here.** The add-on refuses a super user
-key, then asks for the scope, then for an admin permission held by the key's own user. So:
+key, then asks for a scope on the key, then for an admin permission held by the key's own
+administrator. *Permissions* below lists what each tool needs.
 
-1. Under *Groups & permissions > Administrators*, give an administrator the add-on's
-   permissions for the endpoints the key should reach.
-2. Under *Setup > API keys*, create a key of type **User** for that administrator with only
-   the `hampel_admin_api:read` scope. That is `key`. Add `hampel_admin_api:values` to it if
-   the options and configuration tools should show values. The administrator then also needs
-   the add-on's own permission for values and, for options, XenForo's *option* permission.
-   Without them the forum answers as though the scope were absent, and `app:validate` says so.
+1. Under *Groups & permissions > Administrators*, pick the administrator the keys will act
+   as and give them the permissions for the tools you want. A dedicated administrator holding
+   only these is the safest choice. A super administrator already holds all of them.
+2. Under *Setup > API keys*, create a key of type **User** for that administrator, with
+   *Selected scopes only* and `hampel_admin_api:read` ticked. Tick `hampel_admin_api:values`
+   as well if options and configuration should show values. That is `key`.
 3. If error messages should be readable, create a second User key with only
-   `hampel_admin_api:error_detail`, for an administrator who also holds XenForo's own
-   *View logs* permission. That is `detail_key`.
+   `hampel_admin_api:error_detail`. That is `detail_key`.
+4. Run `xfmcp app:validate`. It names any scope or permission that is missing.
 
-The add-on's own README documents the permissions. `php cmd.php admin-api:validate` on the
-forum checks its side.
+`php cmd.php admin-api:validate` on the forum checks the same from its side.
+
+### Permissions
+
+**Each tool needs a scope on the key and an admin permission on the key's administrator**, and
+some need two permissions. The permission names are as they appear on the administrator's
+page in the control panel.
+
+| tool | key | scope | admin permissions |
+|---|---|---|---|
+| `error-log-summary` | `key` | `hampel_admin_api:read` | Admin API: View error log summary |
+| `add-ons` | `key` | `hampel_admin_api:read` | Admin API: View add-ons |
+| `cron-entries`, `job-queue` | `key` | `hampel_admin_api:read` | Admin API: View cron and jobs |
+| `who-is-online` | `key` | `hampel_admin_api:read` | Admin API: View who is online |
+| `forum-options` | `key` | `hampel_admin_api:read` | Admin API: View options |
+| `forum-configuration` | `key` | `hampel_admin_api:read` | Admin API: View config.php |
+| `error-log-entries` | `detail_key` | `hampel_admin_api:error_detail` | Admin API: View error log entries, **and** XenForo's *View logs* |
+
+Showing values takes more, on the same key:
+
+| to show values in | add the scope | and the admin permissions |
+|---|---|---|
+| `forum-configuration` | `hampel_admin_api:values` | Admin API: View setting values |
+| `forum-options` | `hampel_admin_api:values` | Admin API: View setting values, **and** XenForo's *Manage options* |
+
+`list-forums` contacts no forum and needs nothing. `forum-access` needs nothing of its own: it
+reports which of the above a forum grants.
+
+**What happens when one is missing:**
+
+- **A scope or permission for a tool:** the tool returns an error naming it — `missing_scope`
+  for the key, `do_not_have_permission` for the administrator.
+- **Anything needed for values:** no error. The forum answers without values, and the answer's
+  `headline` says which scope or permission was missing.
+- **Either way,** `forum-access` and `app:validate` report it without reading anything.
 
 ### Two keys, and why
 
