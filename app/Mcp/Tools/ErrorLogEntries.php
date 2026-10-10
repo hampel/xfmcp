@@ -27,7 +27,8 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
     the question is specifically who was affected or what was submitted: why an error happened is nearly always in
     the message and the trace, and the summary's `members` and `by_origin` already say whether anyone was affected.
 
-    Only forums that list-forums shows with `error_detail: true` can answer.
+    A forum can only answer if it has a detail key configured and accepts it. forum-access says whether it
+    does, without reading an entry; do not call this tool to find out.
     TEXT)]
 #[IsReadOnly]
 #[IsIdempotent]

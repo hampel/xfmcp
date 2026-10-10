@@ -5,6 +5,7 @@ use App\Mcp\Tools\AddOns;
 use App\Mcp\Tools\CronEntries;
 use App\Mcp\Tools\ErrorLogEntries;
 use App\Mcp\Tools\ErrorLogSummary;
+use App\Mcp\Tools\ForumAccess;
 use App\Mcp\Tools\ForumConfiguration;
 use App\Mcp\Tools\ForumOptions;
 use App\Mcp\Tools\JobQueue;
@@ -15,7 +16,7 @@ use Laravel\Mcp\Facades\Mcp;
 use Laravel\Mcp\Server\Tool;
 
 const TOOLS = [
-    ListForums::class, ErrorLogSummary::class, ErrorLogEntries::class, AddOns::class,
+    ListForums::class, ForumAccess::class, ErrorLogSummary::class, ErrorLogEntries::class, AddOns::class,
     CronEntries::class, JobQueue::class, WhoIsOnline::class, ForumOptions::class, ForumConfiguration::class,
 ];
 

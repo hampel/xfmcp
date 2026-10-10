@@ -17,9 +17,12 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 #[Description(<<<'TEXT'
     List the XenForo forums this server can ask. Call this first: every other tool takes a forum `id` from here.
 
-    Reads a local file and contacts no forum, so it says which forums are configured, not which are up or
-    whether their keys work. `error_detail` is true where the forum is set up to return individual error log
-    entries; where it is false that forum offers summaries only.
+    This reads the server's local list of forums, afresh on every call, and contacts no forum. So it says what
+    is CONFIGURED, not what works: a forum listed here may be down, and its keys may be refused.
+
+    `detail_key_configured` is true where a second key for reading individual error log entries has been set
+    up for that forum. It does not show the forum accepts that key. To find out what a forum will actually
+    answer - without reading anything from it - call forum-access.
     TEXT)]
 #[IsReadOnly]
 #[IsIdempotent]
@@ -46,7 +49,7 @@ class ListForums extends Tool
     {
         return [
             'count' => $schema->integer()->required(),
-            'forums' => $schema->array()->description('One entry per forum: id, name, url, error_detail.')->required(),
+            'forums' => $schema->array()->description('One entry per forum: id, name, url, detail_key_configured.')->required(),
         ];
     }
 }

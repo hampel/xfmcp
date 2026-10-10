@@ -151,7 +151,8 @@ Every tool but the first takes `forum`, an id from `list-forums`.
 
 | tool | answers |
 |---|---|
-| `list-forums` | which forums are configured, and which offer error detail |
+| `list-forums` | which forums are configured, and which have a detail key. Says nothing about whether they work |
+| `forum-access` | what one forum will actually answer — summaries, values, error entries — without reading anything from it |
 | `error-log-summary` | how many errors, of what kind, from where, and how many members met one |
 | `error-log-entries` | the message and stack trace of one error and others like it |
 | `add-ons` | what is installed at which version, and any install or upgrade left unfinished |

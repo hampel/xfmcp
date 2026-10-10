@@ -27,7 +27,7 @@ final class Forum
     /**
      * What a tool may say about a forum: everything but its keys.
      *
-     * @return array{id: string, name: string, url: string, error_detail: bool}
+     * @return array{id: string, name: string, url: string, detail_key_configured: bool}
      */
     public function describe(): array
     {
@@ -35,7 +35,7 @@ final class Forum
             'id' => $this->id,
             'name' => $this->name,
             'url' => $this->url,
-            'error_detail' => $this->hasDetailKey(),
+            'detail_key_configured' => $this->hasDetailKey(),
         ];
     }
 }

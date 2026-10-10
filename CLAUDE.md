@@ -97,6 +97,13 @@ once. Adding the first `detail_key` to an inventory that had none still needs a 
 super user key, which the add-on refuses with a 403 that reads like a broken forum.
 `ForumInventory::problem()` rejects a table that has a `user` line.
 
+**Configured is not the same as working, and the two are different tools.** `list-forums`
+reads the inventory and contacts nothing, so its flag is `detail_key_configured` - it was
+`error_detail` until 2026-10-10, when an agent told its user a forum could return error
+entries on the strength of it and the forum refused the key. `forum-access` is the tool that
+proves it, with the same no-entry probe `app:validate` uses, because the one tool that returns
+personal data must not be the way to find out whether it works.
+
 **`ErrorLogEntries::shouldRegister()` hides the detail tool when no forum has a
 `detail_key`.** A server that cannot read an error message should not advertise a tool that
 does.

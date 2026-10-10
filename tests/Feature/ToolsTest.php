@@ -38,9 +38,9 @@ it('lists the configured forums without contacting any', function () {
 
     expect($content['count'])->toBe(2)
         ->and($content['forums'][0])->toBe([
-            'id' => 'acme', 'name' => 'Acme Forum', 'url' => 'https://forum.example.test', 'error_detail' => true,
+            'id' => 'acme', 'name' => 'Acme Forum', 'url' => 'https://forum.example.test', 'detail_key_configured' => true,
         ])
-        ->and($content['forums'][1]['error_detail'])->toBeFalse()
+        ->and($content['forums'][1]['detail_key_configured'])->toBeFalse()
         ->and(sentRequests())->toBe([]);
 });
 

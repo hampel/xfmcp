@@ -41,7 +41,8 @@ final class AdminApi extends Endpoint
 
     /**
      * The same endpoint with no entry named, which can only ever be refused. app:validate
-     * uses the refusal to tell what kind of key it holds without reading an entry.
+     * and the forum-access tool use the refusal to tell what a key may do without reading
+     * an entry.
      *
      * @return array<mixed>
      */

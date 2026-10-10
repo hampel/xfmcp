@@ -6,6 +6,7 @@ use App\Mcp\Tools\AddOns;
 use App\Mcp\Tools\CronEntries;
 use App\Mcp\Tools\ErrorLogEntries;
 use App\Mcp\Tools\ErrorLogSummary;
+use App\Mcp\Tools\ForumAccess;
 use App\Mcp\Tools\ForumConfiguration;
 use App\Mcp\Tools\ForumOptions;
 use App\Mcp\Tools\JobQueue;
@@ -27,7 +28,8 @@ use Laravel\Mcp\Server\Attributes\Name;
     Read-only operational state of XenForo forums: the server error log, installed add-ons, cron, the job queue,
     who is online, and the forum's options and config.php settings. Nothing here changes a forum.
 
-    Start with list-forums; every other tool takes a forum id from it.
+    Start with list-forums; every other tool takes a forum id from it. list-forums says what is configured;
+    forum-access says what a forum will actually answer, and is the way to find out before relying on it.
 
     For "how is this forum configured?", ask forum-options and forum-configuration; they show values with
     secrets removed where the forum's key allows it, and say so when it does not.
@@ -46,6 +48,7 @@ class XenForoServer extends Server
 {
     protected array $tools = [
         ListForums::class,
+        ForumAccess::class,
         ErrorLogSummary::class,
         ErrorLogEntries::class,
         AddOns::class,
