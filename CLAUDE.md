@@ -85,7 +85,13 @@ and a throwable's message can hold a URL.
 **`config/xfmcp.php` holds the inventory's path and nothing else.** Every table in the file
 carries a live API key, so `App\Support\ForumInventory` parses it when a tool or a check asks
 and never at config load, which would put every key in the config repository for
-`--version`. It is a singleton, so one process parses once.
+`--version`. It is a singleton, and it parses again whenever the file's modification time or
+size changes: the server is one process for the life of a client's session, so a parse kept
+for the life of the process hid a newly added forum until the client reconnected.
+
+**A changed inventory reaches the tools at once, but not the tool list.** Whether
+`error-log-entries` is offered is decided when the client asks for the list, and a client asks
+once. Adding the first `detail_key` to an inventory that had none still needs a reconnect.
 
 **`key` alone, never `key` with `user`.** In `hampel/xenforo-api-laravel` that pair builds a
 super user key, which the add-on refuses with a 403 that reads like a broken forum.

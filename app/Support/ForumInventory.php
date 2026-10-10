@@ -12,13 +12,19 @@ use Yosymfony\Toml\Toml;
  * parsing in config/ would put all of them in the config repository for every command,
  * `--version` included. Nothing is read until a tool or a check asks.
  *
- * Bound as a singleton, so the parse is memoised per process. Tests override raw(); see
- * useForums() in tests/Pest.php.
+ * Bound as a singleton, and the parse is kept for as long as the file is unchanged. The
+ * MCP server is one process that lives as long as its client's session, so a parse kept
+ * for the life of the process would mean a forum added to the file is invisible until the
+ * client reconnects. The file's modification time and size are checked on every read
+ * instead, which costs one stat. Tests override raw(); see useForums() in tests/Pest.php.
  */
 class ForumInventory
 {
-    /** @var array<string, mixed>|null parsed lazily, once */
+    /** @var array<string, mixed>|null parsed lazily, and again when the file changes */
     private ?array $raw = null;
+
+    /** the file's modification time and size when it was last parsed */
+    private ?string $parsedAt = null;
 
     public function path(): string
     {
@@ -35,14 +41,19 @@ class ForumInventory
      */
     public function raw(): array
     {
-        if ($this->raw !== null) {
-            return $this->raw;
-        }
-
         $path = $this->path();
+
+        // PHP caches stat results per process, which in a long-lived one is forever
+        clearstatcache(true, $path);
 
         if (! is_file($path)) {
             throw new ForumInventoryException('file not found');
+        }
+
+        $stamp = filemtime($path).':'.filesize($path);
+
+        if ($this->raw !== null && $this->parsedAt === $stamp) {
+            return $this->raw;
         }
 
         if (! is_readable($path)) {
@@ -54,6 +65,8 @@ class ForumInventory
         } catch (Throwable $e) {
             throw new ForumInventoryException('parse error: '.$e->getMessage(), 0, $e);
         }
+
+        $this->parsedAt = $stamp;
 
         return $this->raw = is_array($parsed) ? $parsed : [];
     }

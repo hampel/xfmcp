@@ -76,6 +76,25 @@ it('fails by name, never silently', function (Closure $make, string $expected) {
     'a file that is not TOML' => [fn () => inventoryFile('[acme'), 'parse error'],
 ]);
 
+it('sees a forum added to the file without being restarted', function () {
+    $inventory = inventoryFile("[one]\nurl = \"https://one.example.test\"\nkey = \"aaa\"\n");
+
+    expect(array_keys($inventory->all()))->toBe(['one']);
+
+    file_put_contents($inventory->path(), "\n[two]\nurl = \"https://two.example.test\"\nkey = \"bbb\"\n", FILE_APPEND);
+
+    expect(array_keys($inventory->all()))->toBe(['one', 'two']);
+});
+
+it('reports a file that has since been removed, instead of answering from memory', function () {
+    $inventory = inventoryFile("[one]\nurl = \"https://one.example.test\"\nkey = \"aaa\"\n");
+    $inventory->all();
+
+    unlink($inventory->path());
+
+    expect(fn () => $inventory->all())->toThrow(ForumInventoryException::class, 'file not found');
+});
+
 it('reads nothing until something asks', function () {
     config(['xfmcp.forums_path' => '/nonexistent/forums.toml']);
     app()->forgetInstance(ForumInventory::class);
