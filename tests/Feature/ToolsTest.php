@@ -407,6 +407,14 @@ it('asks for configuration by key, matching a key and everything beneath it', fu
         ->and($content['headline'])->toEndWith('This forum has no setting called acme, nope.');
 });
 
+it('reads a trailing dot on a key the way the forum does, and ids by exact case', function () {
+    fakeForum(['admin-api/config/' => 'config-values', 'admin-api/options/' => 'options-values']);
+
+    expect(array_column(structured(ForumConfiguration::class, ['forum' => 'acme', 'keys' => ['db.']])['settings'], 'key'))
+        ->toContain('db.host', 'db.port')
+        ->and(structured(ForumOptions::class, ['forum' => 'acme', 'option_ids' => ['boardtitle']])['not_found'])->toBe(['boardtitle']);
+});
+
 it('lists only changed options unless asked for all of them', function (array $arguments, array $query, string $listed) {
     fakeForum(['admin-api/options/' => 'options-changed']);
 

@@ -103,7 +103,8 @@ class ForumConfiguration extends ForumTool
         $data = $gateway->read($forum, static fn (AdminApi $api): array => $api->config(keys: $keys));
 
         if (! array_key_exists('not_found', $data)) {
-            $matches = static fn (string $key, string $asked): bool => $key === $asked || str_starts_with($key, $asked.'.');
+            // the add-on's rule to the letter, trailing dot included: `db.` asks for what is under `db`
+            $matches = static fn (string $key, string $asked): bool => $key === $asked || str_starts_with($key, rtrim($asked, '.').'.');
 
             $all = array_filter((array) ($data['settings'] ?? []), 'is_array');
 
