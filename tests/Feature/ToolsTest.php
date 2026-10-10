@@ -361,6 +361,52 @@ it('says so when the key is given no values, with the forum\'s own reason', func
         ->and($options['emailTransport']['members']['emailTransport'])->toMatchArray(['disclosure' => 'shown', 'value' => 'smtp']);
 });
 
+it('asks a forum for options by id, and passes on what it has none by', function () {
+    // the reply of an add-on that understands option_id: not captured, no released build has it
+    $reply = ['not_found' => ['noSuchOption']] + captured('options-values');
+    $reply['options'] = [$reply['options'][0]];
+
+    fakeForum(['admin-api/options/' => Http::response($reply)]);
+
+    $content = structured(ForumOptions::class, ['forum' => 'acme', 'option_ids' => ['boardTitle', 'noSuchOption'], 'add_on_id' => 'XF']);
+
+    parse_str((string) parse_url(sentRequests()[0]->url(), PHP_URL_QUERY), $sent);
+
+    // by id overrides the other arguments, so neither is sent
+    expect($sent)->toEqual(['option_id' => 'boardTitle,noSuchOption'])
+        ->and($content['headline'])->toEndWith('This forum has no option called noSuchOption.')
+        ->and($content['listed'])->toBe('the options asked for by id, changed or not')
+        ->and(array_column($content['options'], 'option_id'))->toBe(['boardTitle'])
+        ->and($content['not_found'])->toBe(['noSuchOption']);
+});
+
+it('picks the options out itself when the forum\'s add-on ignores the id', function () {
+    // an older add-on returns its whole list and no `not_found`: the captured fixture is exactly that
+    fakeForum(['admin-api/options/' => 'options-values']);
+
+    $content = structured(ForumOptions::class, ['forum' => 'acme', 'option_ids' => 'emailTransport, noSuchOption']);
+
+    expect(array_column($content['options'], 'option_id'))->toBe(['emailTransport'])
+        ->and($content['not_found'])->toBe(['noSuchOption'])
+        ->and($content['headline'])->toContain('1 of the 1 options listed has something withheld')
+        // these counted the whole forum, and would read as counting what was asked for
+        ->and($content)->not->toHaveKey('total')->not->toHaveKey('by_add_on');
+});
+
+it('asks for configuration by key, matching a key and everything beneath it', function () {
+    fakeForum(['admin-api/config/' => 'config-values']);
+
+    $content = structured(ForumConfiguration::class, ['forum' => 'acme', 'keys' => ['db', 'debug', 'acme', 'nope']]);
+
+    parse_str((string) parse_url(sentRequests()[0]->url(), PHP_URL_QUERY), $sent);
+
+    expect($sent)->toEqual(['key' => 'db,debug,acme,nope'])
+        ->and(array_column($content['settings'], 'key'))->toBe(['db.dbname', 'db.host', 'db.password', 'db.port', 'db.socket', 'db.username', 'debug'])
+        // `acme` is not `acmeService` or `acmeLog`: a key matches itself or what sits under it
+        ->and($content['not_found'])->toBe(['acme', 'nope'])
+        ->and($content['headline'])->toEndWith('This forum has no setting called acme, nope.');
+});
+
 it('lists only changed options unless asked for all of them', function (array $arguments, array $query, string $listed) {
     fakeForum(['admin-api/options/' => 'options-changed']);
 

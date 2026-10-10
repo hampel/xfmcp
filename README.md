@@ -197,6 +197,13 @@ Every tool but the first takes `forum`, an id from `list-forums`.
 
 All of them are marked read-only.
 
+### Asking about one setting
+
+`forum-options` takes `option_ids` and `forum-configuration` takes `keys`, and each then
+returns exactly what was asked for, changed or not. A name the forum has nothing by comes back
+under `not_found`, which is different from a setting at its default. This is the way to answer
+"is X switched on, on each forum?" without reading every option.
+
 ### Values, and what is withheld
 
 **Whether the last two show values is decided on the forum, by the key.** With the

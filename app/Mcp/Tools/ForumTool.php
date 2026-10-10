@@ -107,6 +107,32 @@ abstract class ForumTool extends Tool
         }
     }
 
+    /**
+     * A list of names an agent gave, as a list or as one comma-separated string.
+     *
+     * @return list<string>
+     */
+    protected function names(mixed $value, int $max = 100): array
+    {
+        $names = is_array($value) ? $value : explode(',', is_string($value) ? $value : '');
+
+        $names = array_filter(array_map(static fn (mixed $name): string => is_scalar($name) ? trim((string) $name) : '', $names));
+
+        return array_slice(array_values(array_unique($names)), 0, $max);
+    }
+
+    /**
+     * What to add to a headline about names the forum had nothing by.
+     *
+     * @param  array<mixed>  $notFound
+     */
+    protected function notFound(array $notFound, string $noun): string
+    {
+        return $notFound === []
+            ? ''
+            : sprintf(' This forum has no %s called %s.', $noun, implode(', ', array_map(strval(...), $notFound)));
+    }
+
     protected function integer(mixed $value, int $min, int $max): ?int
     {
         return is_numeric($value) ? max($min, min($max, (int) $value)) : null;

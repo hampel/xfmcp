@@ -41,6 +41,9 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
     Useful flags: `debug`, `development.enabled`, `enableListeners`, `enableMail`. `debug: true` is also what makes
     a forum record failed jobs.
 
+    To ask about particular settings, pass `keys`. A key matches itself and everything beneath it. Keys that
+    match nothing come back under `not_found`: this forum's configuration has no such setting.
+
     By default only settings that differ from XenForo's defaults are listed.
     TEXT)]
 #[IsReadOnly]
@@ -51,6 +54,10 @@ class ForumConfiguration extends ForumTool
     {
         return [
             'forum' => $this->forumArgument($schema),
+            'keys' => $schema->array()->items($schema->string())->description(
+                'Exactly these settings and everything beneath each - e.g. ["debug"], or ["db"] for every database '
+                .'setting. Overrides include_unchanged. Up to 100.'
+            ),
             'include_unchanged' => $schema->boolean()->description('List every setting, not only those that differ from XenForo\'s default.'),
         ];
     }
@@ -65,6 +72,11 @@ class ForumConfiguration extends ForumTool
     protected function answer(Request $request, ForumGateway $gateway, Forum $forum): array
     {
         $changedOnly = $request->get('include_unchanged') !== true;
+        $keys = $this->names($request->get('keys'));
+
+        if ($keys !== []) {
+            return $this->named($gateway, $forum, $keys);
+        }
 
         $data = $gateway->read($forum, static fn (AdminApi $api): array => $api->config($changedOnly));
 
@@ -73,6 +85,56 @@ class ForumConfiguration extends ForumTool
         return [
             'headline' => Present::modeHeadline($data, $data['settings'], 'settings'),
             'listed' => $changedOnly ? 'changed settings only' : 'every setting',
+        ] + $data;
+    }
+
+    /**
+     * The settings asked for by key, with everything beneath each.
+     *
+     * As for options: an add-on that predates lookup by key returns every setting, and the
+     * ones asked for are picked out here by the add-on's own rule - a key matches itself
+     * and whatever sits under it, so `db` is not `dbExtra`.
+     *
+     * @param  list<string>  $keys
+     * @return array<mixed>
+     */
+    private function named(ForumGateway $gateway, Forum $forum, array $keys): array
+    {
+        $data = $gateway->read($forum, static fn (AdminApi $api): array => $api->config(keys: $keys));
+
+        if (! array_key_exists('not_found', $data)) {
+            $matches = static fn (string $key, string $asked): bool => $key === $asked || str_starts_with($key, $asked.'.');
+
+            $all = array_filter((array) ($data['settings'] ?? []), 'is_array');
+
+            $data['settings'] = array_values(array_filter($all, static function (array $setting) use ($keys, $matches): bool {
+                foreach ($keys as $asked) {
+                    if ($matches((string) ($setting['key'] ?? ''), $asked)) {
+                        return true;
+                    }
+                }
+
+                return false;
+            }));
+
+            $data['not_found'] = array_values(array_filter($keys, static function (string $asked) use ($data, $matches): bool {
+                foreach ($data['settings'] as $setting) {
+                    if ($matches((string) ($setting['key'] ?? ''), $asked)) {
+                        return false;
+                    }
+                }
+
+                return true;
+            }));
+
+            unset($data['total'], $data['changed']);
+        }
+
+        $data['settings'] = Present::disclosures((array) ($data['settings'] ?? []));
+
+        return [
+            'headline' => Present::modeHeadline($data, $data['settings'], 'settings').$this->notFound($data['not_found'], 'setting'),
+            'listed' => 'the settings asked for by key, with everything beneath each',
         ] + $data;
     }
 }

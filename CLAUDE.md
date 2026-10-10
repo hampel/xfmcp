@@ -145,6 +145,14 @@ response got something wrong, in trials run against the add-on before this tool 
 - **`who-is-online` is the one tool not marked idempotent.** It is a snapshot; two calls are
   two answers.
 
+- **Options and settings can be asked for by name, and the answer is the same whatever the
+  forum's add-on version.** An add-on before 1.0.0a6 ignores `option_id` and `key` and returns
+  its list, with no `not_found` in the reply - that absence is the test. The request is sent
+  without `changed`, so the ignored case returns everything and the tool picks out what was
+  asked for itself. It exists because an agent asked which of five forums had friendly URLs
+  on read 213 entries and inferred two answers from an option being absent from the changed
+  list.
+
 Changing one of these changes what an agent concludes. Add a test with the change.
 
 ## `app:validate` proves the kind of each key

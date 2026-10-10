@@ -80,19 +80,34 @@ final class AdminApi extends Endpoint
     }
 
     /**
+     * `$optionIds` asks for exactly those options, changed or not, and overrides the other
+     * two. An add-on older than 1.0.0a6 ignores it and returns the list: the reply then has
+     * no `not_found`, which is how to tell.
+     *
+     * @param  list<string>  $optionIds
      * @return array<mixed>
      */
-    public function options(?string $addOnId = null, bool $changed = false): array
+    public function options(?string $addOnId = null, bool $changed = false, array $optionIds = []): array
     {
         return $this->apiGet('admin-api/options/', array_filter([
             'add_on_id' => $addOnId,
             'changed' => $changed ? 1 : null,
+            'option_id' => $optionIds === [] ? null : implode(',', $optionIds),
         ], static fn ($value): bool => $value !== null))->data;
     }
 
-    /** @return array<mixed> */
-    public function config(bool $changed = false): array
+    /**
+     * `$keys` asks for those settings and everything beneath each, and overrides `$changed`.
+     * Ignored by an add-on older than 1.0.0a6, as for options().
+     *
+     * @param  list<string>  $keys
+     * @return array<mixed>
+     */
+    public function config(bool $changed = false, array $keys = []): array
     {
-        return $this->apiGet('admin-api/config/', $changed ? ['changed' => 1] : [])->data;
+        return $this->apiGet('admin-api/config/', array_filter([
+            'changed' => $changed ? 1 : null,
+            'key' => $keys === [] ? null : implode(',', $keys),
+        ], static fn ($value): bool => $value !== null))->data;
     }
 }

@@ -11,6 +11,7 @@
   All are marked read-only.
 - Option and configuration values, with secrets removed and each removal explained, from a
   forum whose key holds the add-on's values scope; shape only from one whose key does not.
+- Lookup of particular options by id and configuration settings by key.
 - A forum inventory in TOML, with a read key and an optional detail key per forum.
   `error-log-entries` is offered only when some forum has a detail key.
 - An ISO 8601 time beside every Unix timestamp, in UTC and optionally in a second zone.
