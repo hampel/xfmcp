@@ -476,3 +476,21 @@ it('does not call one guest a swarm', function () {
     expect(structured(WhoIsOnline::class, ['forum' => 'acme'])['headline'])
         ->toBe('3 online in the last 15 minutes: 0 members, 3 guests, 0 recognised robots.');
 });
+
+it('passes on the remainder of the actions, which names no controller', function () {
+    // built by hand from the add-on's description: no captured forum has more than 25 distinct actions
+    $online = [
+        'total' => 9, 'guests' => 9,
+        'by_action' => [
+            ['controller' => 'XF:Thread', 'action' => 'Index', 'count' => 6, 'members' => 0, 'guests' => 6, 'robots' => 0],
+            ['controller' => null, 'action' => null, 'count' => 3, 'members' => 0, 'guests' => 3, 'robots' => 0],
+        ],
+    ] + captured('online');
+
+    fakeForum(['admin-api/online/' => Http::response($online)]);
+
+    $content = structured(WhoIsOnline::class, ['forum' => 'acme']);
+
+    expect($content['by_action'])->toBe($online['by_action'])
+        ->and(array_sum(array_column($content['by_action'], 'count')))->toBe($content['total']);
+});

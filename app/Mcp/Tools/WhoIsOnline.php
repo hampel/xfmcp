@@ -26,7 +26,10 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
       concentrated in one network is usually one crawler's address range, which is ordinary; it matters when
       a robot the forum trusts by name is arriving from far more networks than that operator has.
     - `by_robot` names the recognised robots, most numerous first; a null `robot_key` is the rest.
-    - `by_action` is what sessions were last doing - controller and action, never which thread or page.
+    - `by_action` is what sessions were last doing - controller and action, never which thread or page. It
+      lists the busiest; a last entry with a null `controller` and `action` is everything else added together,
+      not an unknown action. Without that entry the list may be complete, or may be an older forum leaving
+      the rest out: compare its counts with `total`.
     - `errors` is how many sessions' last request ended in an error.
     - `window_minutes` is the forum's own online timeout: a session counts if it was active in that long.
 
