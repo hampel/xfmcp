@@ -22,6 +22,8 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
     Whose error is it? Read in this order:
     - `by_origin_add_on` / a signature's `origin_add_ons`: the add-on the error was raised in or, for one raised
       in the core, the nearest add-on in the calls that led there. The best answer, and still a lead, not a verdict.
+      `from_message` on a row is how many of its `count` were attributed only because the error's message names
+      the add-on, its trace naming none - a missing class or file that fails inside the core. A weaker lead still.
     - `location`: `add_on_vendor` or `add_on_tests` means a library bundled with an add-on, or its test suite -
       not that add-on's own code.
     - `by_add_on` (last in the answer) is only where the error surfaced. An add-on's template fault surfaces in `XF`.
@@ -149,6 +151,20 @@ class ErrorLogSummary extends ForumTool
         if (($data['examined']['complete'] ?? true) === false) {
             $notes[] = 'This is an error storm: severity, origin, originating add-on and template describe only the '
                 .'most recent rows examined. Every other figure is exact.';
+        }
+
+        $fromMessage = array_sum(array_map(
+            static fn (mixed $row): int => is_array($row) ? (int) ($row['from_message'] ?? 0) : 0,
+            (array) ($data['by_origin_add_on'] ?? []),
+        ));
+
+        if ($fromMessage > 0) {
+            $notes[] = sprintf(
+                '%d of these errors %s attributed to an add-on because the message names it, not the trace: the '
+                .'error was raised inside the core before any of that add-on\'s code ran. `from_message` says which rows.',
+                $fromMessage,
+                $fromMessage === 1 ? 'is' : 'are',
+            );
         }
 
         if ((int) ($data['total'] ?? 0) > 0 && (int) ($data['signature_count'] ?? 0) > count($data['signatures'] ?? [])) {

@@ -93,6 +93,23 @@ it('notes a window that starts before the log does, and signatures left out', fu
     expect($notes)->toContain('starts before the oldest entry')->toContain('more signatures than are listed');
 });
 
+it('says when an add-on is blamed on the strength of the message alone', function () {
+    // not captured: no forum the fixtures came from had an error attributed this way
+    $log = captured('error-log-all');
+    $log['by_origin_add_on'][0] = ['from_message' => 2] + $log['by_origin_add_on'][0];
+
+    fakeForum(['admin-api/error-log/' => Http::response($log)]);
+
+    expect(implode(' ', structured(ErrorLogSummary::class, ['forum' => 'acme'])['notes']))
+        ->toContain('2 of these errors are attributed to an add-on because the message names it, not the trace');
+});
+
+it('says nothing about messages when every attribution came from a trace', function () {
+    fakeForum(['admin-api/error-log/' => 'error-log-all']);
+
+    expect(implode(' ', structured(ErrorLogSummary::class, ['forum' => 'acme'])['notes']))->not->toContain('message names it');
+});
+
 it('sends the window the agent asked for', function (array $arguments, array $query) {
     fakeForum(['admin-api/error-log/' => 'error-log-24h']);
 

@@ -20,6 +20,9 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
     when the error happened - a member's input, an email address, SQL - so use it when error-log-summary has said
     where a problem is and you need to know why, not to browse.
 
+    `origin_basis` says how an entry's originating add-on was worked out: `trace`, or `message` when only the
+    error's message names it - the weaker of the two.
+
     Takes an `error_id`: a signature's `last_error_id` from error-log-summary. It returns that entry with the most
     recent others at the same exception type, file and line. There is no way to page through the log.
 
