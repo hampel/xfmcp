@@ -159,6 +159,25 @@ it('reads individual entries with the detail key, and without the request by def
         ->and($sent)->toEqual(['error_id' => '15853']);
 });
 
+it('says when the forum took secrets out of an entry\'s text', function () {
+    // not captured: built from the add-on's description; no released build scrubs yet
+    $entries = captured('error-entries');
+    $entries['entries'][0]['message'] = 'Slack said no: https://hooks.example.test/[withheld]';
+    $entries['entries'][0]['scrubbed'] = 1;
+
+    fakeForum(['admin-api/error-entries/' => Http::response($entries)]);
+
+    $content = structured(ErrorLogEntries::class, ['forum' => 'acme', 'error_id' => 15853]);
+
+    expect($content['notes'])->toBe(['The forum removed 1 secret from the text of these entries. Each `[withheld]` marks one; it is not what was logged.']);
+});
+
+it('adds no note to entries nothing was removed from', function () {
+    fakeForum(['admin-api/error-entries/' => 'error-entries']);
+
+    expect(structured(ErrorLogEntries::class, ['forum' => 'acme', 'error_id' => 15853]))->not->toHaveKey('notes');
+});
+
 it('asks for the request only when told to', function () {
     fakeForum(['admin-api/error-entries/' => 'error-entries']);
 
