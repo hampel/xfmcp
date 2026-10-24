@@ -1,0 +1,116 @@
+{
+  "window": {
+    "since": 1792748575,
+    "until": 1792834975
+  },
+  "logs": [
+    {
+      "log": "admin",
+      "total": 29,
+      "oldest_date": 1788066630,
+      "newest_date": 1792831970
+    },
+    {
+      "log": "moderator",
+      "total": 0,
+      "oldest_date": 1752127630,
+      "newest_date": 1752127634
+    },
+    {
+      "log": "user_change",
+      "total": 0,
+      "oldest_date": 1788829728,
+      "newest_date": 1792132584
+    },
+    {
+      "log": "username_change",
+      "total": 0,
+      "oldest_date": null,
+      "newest_date": null
+    },
+    {
+      "log": "cookie_consent",
+      "total": 0,
+      "oldest_date": null,
+      "newest_date": null
+    },
+    {
+      "log": "spam_trigger",
+      "total": 0,
+      "oldest_date": null,
+      "newest_date": null
+    },
+    {
+      "log": "spam_cleaner",
+      "total": 0,
+      "oldest_date": null,
+      "newest_date": null
+    },
+    {
+      "log": "rejected_user",
+      "total": 0,
+      "oldest_date": null,
+      "newest_date": null
+    },
+    {
+      "log": "email_bounce",
+      "total": 0,
+      "oldest_date": null,
+      "newest_date": null
+    },
+    {
+      "log": "image_proxy",
+      "total": 0,
+      "oldest_date": null,
+      "newest_date": null
+    },
+    {
+      "log": "link_proxy",
+      "total": 0,
+      "oldest_date": null,
+      "newest_date": null
+    },
+    {
+      "log": "oembed",
+      "total": 0,
+      "oldest_date": null,
+      "newest_date": null
+    },
+    {
+      "log": "payment_provider",
+      "total": 0,
+      "oldest_date": null,
+      "newest_date": null
+    },
+    {
+      "log": "sitemap",
+      "total": 0,
+      "oldest_date": 1787724243,
+      "newest_date": 1792733824
+    },
+    {
+      "log": "server_error",
+      "total": 11,
+      "oldest_date": 1792743026,
+      "newest_date": 1792808539
+    },
+    {
+      "log": "ip",
+      "total": 0,
+      "oldest_date": 1761510360,
+      "newest_date": 1792132584
+    },
+    {
+      "log": "login_attempt",
+      "total": 0,
+      "oldest_date": null,
+      "newest_date": null
+    },
+    {
+      "log": "upgrade",
+      "total": 0,
+      "oldest_date": 1749870916,
+      "newest_date": 1792059788
+    }
+  ]
+}

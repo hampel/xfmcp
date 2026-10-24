@@ -2,13 +2,16 @@
 
 use App\Mcp\Servers\XenForoServer;
 use App\Mcp\Tools\AddOns;
+use App\Mcp\Tools\ApprovalQueue;
 use App\Mcp\Tools\CronEntries;
 use App\Mcp\Tools\ErrorLogEntries;
 use App\Mcp\Tools\ErrorLogSummary;
 use App\Mcp\Tools\ForumConfiguration;
+use App\Mcp\Tools\ForumLogs;
 use App\Mcp\Tools\ForumOptions;
 use App\Mcp\Tools\JobQueue;
 use App\Mcp\Tools\ListForums;
+use App\Mcp\Tools\UserUpgrades;
 use App\Mcp\Tools\WhoIsOnline;
 use App\Support\ForumInventoryException;
 
@@ -211,6 +214,9 @@ it('sends every summary with the read key and never as a super user', function (
     [CronEntries::class, 'admin-api/cron/', 'cron'],
     [JobQueue::class, 'admin-api/jobs/', 'jobs'],
     [WhoIsOnline::class, 'admin-api/online/', 'online'],
+    [ForumLogs::class, 'admin-api/logs/', 'logs'],
+    [ApprovalQueue::class, 'admin-api/approval-queue/', 'approval-queue'],
+    [UserUpgrades::class, 'admin-api/user-upgrades/', 'user-upgrades'],
     [ForumOptions::class, 'admin-api/options/', 'options-changed'],
     [ForumConfiguration::class, 'admin-api/config/', 'config-changed'],
 ]);
@@ -493,4 +499,98 @@ it('passes on the remainder of the actions, which names no controller', function
 
     expect($content['by_action'])->toBe($online['by_action'])
         ->and(array_sum(array_column($content['by_action'], 'count')))->toBe($content['total']);
+});
+
+it('names the logs that recorded something, busiest first', function () {
+    fakeForum(['admin-api/logs/' => 'logs']);
+
+    $content = structured(ForumLogs::class, ['forum' => 'acme']);
+
+    expect($content['headline'])->toBe('2 of 18 logs recorded something in this window: admin 29, server_error 11.')
+        ->and($content['logs'][0]['newest_date_iso'])->toEndWith('Z')
+        ->and(sentRequests()[0]->url())->not->toContain('log=');
+});
+
+it('describes one log, and the whole of it when asked for all', function () {
+    fakeForum(['admin-api/logs/' => 'logs-admin']);
+
+    $content = structured(ForumLogs::class, ['forum' => 'acme', 'log' => ' Admin ', 'since' => 'all']);
+
+    parse_str((string) parse_url(sentRequests()[0]->url(), PHP_URL_QUERY), $query);
+
+    expect($query)->toBe(['log' => 'admin', 'since' => '0'])
+        ->and($content['headline'])->toStartWith('3061 entries in the admin log in this window; the newest is from 2026-10-')
+        ->and($content['headline'])->toEndWith('2 distinct members acted.')
+        ->and(implode(' ', $content['notes']))->toContain('pruned')
+        ->and(array_slice(array_keys($content), 2, 4))->toBe(['headline', 'notes', 'log', 'window']);
+});
+
+it('says an empty window on a log that is not empty is not an empty log', function () {
+    $log = ['window' => ['since' => 1792748575, 'until' => 1792834975, 'precedes_log' => false], 'total' => 0, 'oldest_date' => null, 'newest_date' => null]
+        + captured('logs-moderator');
+
+    fakeForum(['admin-api/logs/' => Http::response($log)]);
+
+    expect(structured(ForumLogs::class, ['forum' => 'acme', 'log' => 'moderator'])['headline'])
+        ->toStartWith('Nothing in the moderator log in this window, but it holds 2 entries; the newest is from 2025-07-10');
+});
+
+it('says a log that is empty is empty, without counting members it does not have', function () {
+    fakeForum(['admin-api/logs/' => 'logs-login-attempt']);
+
+    expect(structured(ForumLogs::class, ['forum' => 'acme', 'log' => 'login_attempt'])['headline'])
+        ->toBe('The login_attempt log is empty.');
+});
+
+it('passes on the forum\'s list of logs when asked for one it does not keep', function () {
+    fakeForum(['admin-api/logs/' => ['logs-unknown', 400]]);
+
+    $response = XenForoServer::tool(ForumLogs::class, ['forum' => 'acme', 'log' => 'nope']);
+
+    $response->assertHasErrors()->assertSee('spam_trigger');
+});
+
+it('counts the upgrades and says the amounts are list prices', function () {
+    $upgrades = captured('user-upgrades');
+    $upgrades['active'] = 3;
+    $upgrades['payments'] = ['total' => 2, 'by_provider' => [['provider' => 'stripe', 'payments' => 2, 'newest_date' => 1792803483]], 'by_currency' => [['currency' => 'usd', 'payments' => 2, 'amount' => '100.00']]];
+
+    fakeForum(['admin-api/user-upgrades/' => Http::response($upgrades)]);
+
+    $content = structured(UserUpgrades::class, ['forum' => 'acme', 'days' => 500]);
+
+    parse_str((string) parse_url(sentRequests()[0]->url(), PHP_URL_QUERY), $query);
+
+    expect($query)->toBe(['days' => '366'])
+        ->and($content['headline'])->toBe('3 active records across 1 upgrade; 0 end in the next 30 days and 0 expired in the last 30. 2 payments reported in the last 30 days.')
+        ->and(implode(' ', $content['notes']))->toContain('list price');
+});
+
+it('says a null cancelled count is not recorded, as on XenForo 2.2', function () {
+    // not captured: the dev 2.2 forum's key lacks the permission; built from the add-on's description
+    $upgrades = captured('user-upgrades');
+    $upgrades['upgrades'][0]['cancelled'] = null;
+
+    fakeForum(['admin-api/user-upgrades/' => Http::response($upgrades)]);
+
+    expect(implode(' ', structured(UserUpgrades::class, ['forum' => 'acme'])['notes']))->toContain('It is not zero.');
+});
+
+it('says how much awaits approval and for how long', function () {
+    fakeForum(['admin-api/approval-queue/' => 'approval-queue']);
+
+    $content = structured(ApprovalQueue::class, ['forum' => 'acme']);
+
+    expect($content['headline'])->toMatch('/^100 items are awaiting approval; the oldest was posted .+ ago\. 100 are older than a week\.$/')
+        ->and($content['oldest_date_iso'])->toEndWith('Z');
+});
+
+it('says when moderators are shown the wrong count', function () {
+    $queue = ['total' => 0, 'oldest_date' => null, 'newest_date' => null, 'by_age' => ['under_hour' => 0, 'under_day' => 0, 'under_week' => 0, 'older' => 0], 'by_content_type' => []]
+        + captured('approval-queue');
+
+    fakeForum(['admin-api/approval-queue/' => Http::response($queue)]);
+
+    expect(structured(ApprovalQueue::class, ['forum' => 'acme'])['headline'])
+        ->toBe('Nothing is awaiting approval. Moderators are shown 100, which is wrong.');
 });

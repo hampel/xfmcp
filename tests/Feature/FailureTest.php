@@ -2,8 +2,11 @@
 
 use App\Mcp\Servers\XenForoServer;
 use App\Mcp\Tools\AddOns;
+use App\Mcp\Tools\ApprovalQueue;
 use App\Mcp\Tools\ErrorLogEntries;
 use App\Mcp\Tools\ErrorLogSummary;
+use App\Mcp\Tools\ForumLogs;
+use App\Mcp\Tools\UserUpgrades;
 use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Psr7\Request as Psr7Request;
 
@@ -45,6 +48,20 @@ it('names the two refusals the add-on phrases itself', function (string $code, s
 })->with([
     ['hampel_adminapi_user_api_key_required', 'only accepts a User key'],
     ['do_not_have_permission', 'does not hold the admin permission'],
+]);
+
+it('names the admin permission the refused endpoint needs', function (string $tool, string $path, string $permission) {
+    fakeForum([$path => Http::response(
+        ['errors' => [['code' => 'do_not_have_permission', 'message' => 'Refused.', 'params' => []]]],
+        403,
+    )]);
+
+    XenForoServer::tool($tool, ['forum' => 'acme'])->assertHasErrors([$permission.'.', 'the key is fine']);
+})->with([
+    [AddOns::class, 'admin-api/add-ons/', 'Admin API: View add-ons'],
+    [ForumLogs::class, 'admin-api/logs/', 'Admin API: View log summaries'],
+    [ApprovalQueue::class, 'admin-api/approval-queue/', 'Admin API: View approval queue summary'],
+    [UserUpgrades::class, 'admin-api/user-upgrades/', 'Admin API: View user upgrade summary'],
 ]);
 
 it('says which scope the forum asked for', function () {

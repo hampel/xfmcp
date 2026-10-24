@@ -1,0 +1,56 @@
+{
+  "days": 30,
+  "active": 0,
+  "ending": 0,
+  "expired": 0,
+  "upgrades": [
+    {
+      "user_upgrade_id": 2605,
+      "title": "Gold member",
+      "can_purchase": true,
+      "recurring": false,
+      "cost_amount": "50.00",
+      "cost_currency": "usd",
+      "length_amount": 1,
+      "length_unit": "month",
+      "active": 0,
+      "permanent": 0,
+      "cancelled": 0,
+      "ending": 0,
+      "expired": 0
+    }
+  ],
+  "ending_by_day": [
+    {
+      "day": "2026-10-24",
+      "count": 0
+    },
+    {
+      "day": "2026-10-25",
+      "count": 0
+    },
+    {
+      "day": "2026-10-26",
+      "count": 0
+    }
+  ],
+  "expired_by_day": [
+    {
+      "day": "2026-10-22",
+      "count": 0
+    },
+    {
+      "day": "2026-10-23",
+      "count": 0
+    },
+    {
+      "day": "2026-10-24",
+      "count": 0
+    }
+  ],
+  "payments": {
+    "total": 0,
+    "by_provider": [],
+    "by_currency": []
+  }
+}

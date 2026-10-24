@@ -92,6 +92,9 @@ page in the control panel.
 | `add-ons` | `key` | `hampel_admin_api:read` | Admin API: View add-ons |
 | `cron-entries`, `job-queue` | `key` | `hampel_admin_api:read` | Admin API: View cron and jobs |
 | `who-is-online` | `key` | `hampel_admin_api:read` | Admin API: View who is online |
+| `forum-logs` | `key` | `hampel_admin_api:read` | Admin API: View log summaries |
+| `approval-queue` | `key` | `hampel_admin_api:read` | Admin API: View approval queue summary |
+| `user-upgrades` | `key` | `hampel_admin_api:read` | Admin API: View user upgrade summary |
 | `forum-options` | `key` | `hampel_admin_api:read` | Admin API: View options |
 | `forum-configuration` | `key` | `hampel_admin_api:read` | Admin API: View config.php |
 | `error-log-entries` | `detail_key` | `hampel_admin_api:error_detail` | Admin API: View error log entries, **and** XenForo's *View logs* |
@@ -109,10 +112,11 @@ reports which of the above a forum grants.
 **What happens when one is missing:**
 
 - **A scope or permission for a tool:** the tool returns an error naming it — `missing_scope`
-  for the key, `do_not_have_permission` for the administrator.
+  for the key, `do_not_have_permission` and the permission's name for the administrator.
 - **Anything needed for values:** no error. The forum answers without values, and the answer's
   `headline` says which scope or permission was missing.
-- **Either way,** `forum-access` and `app:validate` report it without reading anything.
+- **Either way,** `forum-access` reports it, tool by tool, without reading an error entry.
+  `app:validate` checks the keys and values, not each summary's permission.
 
 ### Two keys, and why
 
@@ -185,13 +189,16 @@ Every tool but the first takes `forum`, an id from `list-forums`.
 | tool | answers |
 |---|---|
 | `list-forums` | which forums are configured, and which have a detail key. Says nothing about whether they work |
-| `forum-access` | what one forum will actually answer — summaries, values, error entries — without reading anything from it |
+| `forum-access` | what one forum will actually answer — each summary, values, error entries — without reading an error entry |
 | `error-log-summary` | how many errors, of what kind, from where, and how many members met one |
 | `error-log-entries` | the message and stack trace of one error and others like it |
 | `add-ons` | what is installed at which version, and any install or upgrade left unfinished |
 | `cron-entries` | every cron entry, and whether cron is running at all |
 | `job-queue` | the queue by job class, and where failed jobs failed |
 | `who-is-online` | how many members, guests and robots are online, and how concentrated the guests are |
+| `forum-logs` | how much each of XenForo's 18 logs recorded, or one log's breakdowns: admin, moderator, spam, bounced mail and the rest |
+| `approval-queue` | how much awaits approval, of what kind and for how long, and whether moderators are shown the right count |
+| `user-upgrades` | how many members hold each upgrade, what ends soon or expired, and what payments were reported |
 | `forum-options` | the forum's options: what is set, what was changed, and their values with secrets removed |
 | `forum-configuration` | the `config.php` settings in force, and their values with secrets removed |
 
@@ -225,9 +232,8 @@ Hampel/AdminApi are hidden as a precaution, whatever they hold.
 
 - **An ISO 8601 time beside every timestamp.** The forum reports Unix seconds in UTC; each
   `x_date` gains `x_date_iso`, and `x_date_local` when `APP_TIMEZONE` is set.
-- **A `headline`** on the error log and cron answers, and `notes` where an answer is easy to
-  misread — an empty window on a log that is not empty, a forum that does not record failed
-  jobs.
+- **A `headline`** on most answers, and `notes` where an answer is easy to misread — an empty
+  window on a log that is not empty, a forum that does not record failed jobs.
 - **`disclosure`** on every option and setting, in place of nulls that could mean withheld or
   empty.
 - **Errors as sentences.** A forum that is unreachable, a forum without the add-on and a key
@@ -245,7 +251,12 @@ answer at all. Further limits:
   list means nothing.
 - XenForo 2.3.0 does not log errors raised from the command line.
 - XenForo 2.2 has no record of failed jobs and keeps no count of a job's attempts, so on a 2.2
-  forum `job-queue` reports those as not recorded, never as zero.
+  forum `job-queue` reports those as not recorded, never as zero. Nor does it record a cancelled
+  subscription, so `user-upgrades` reports `cancelled` as null there.
+- `user-upgrades` payment amounts are each upgrade's list price, not what the provider took.
+- The add-on's member lookups — members by IP address, upgrade records, moderators,
+  administrators and log entries — have no tool here, deliberately. Every answer here is counts
+  or settings, never a member.
 
 ## Commands
 

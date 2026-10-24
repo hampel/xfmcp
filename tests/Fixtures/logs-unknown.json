@@ -1,0 +1,11 @@
+{
+  "errors": [
+    {
+      "code": "hampel_adminapi_unknown_log",
+      "message": "There is no log by that name. Name one of: admin, moderator, user_change, username_change, cookie_consent, spam_trigger, spam_cleaner, rejected_user, email_bounce, image_proxy, link_proxy, oembed, payment_provider, sitemap, server_error, ip, login_attempt, upgrade",
+      "params": {
+        "logs": "admin, moderator, user_change, username_change, cookie_consent, spam_trigger, spam_cleaner, rejected_user, email_bounce, image_proxy, link_proxy, oembed, payment_provider, sitemap, server_error, ip, login_attempt, upgrade"
+      }
+    }
+  ]
+}

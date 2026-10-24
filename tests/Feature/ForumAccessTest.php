@@ -34,8 +34,17 @@ function accessOf(string $forum): array
     return $content;
 }
 
-const READ_OK = [
+const SUMMARIES_OK = [
     'admin-api/add-ons' => ['add-ons', 200],
+    'admin-api/error-log' => ['error-log-24h', 200],
+    'admin-api/cron' => ['cron', 200],
+    'admin-api/online' => ['online', 200],
+    'admin-api/logs' => ['logs', 200],
+    'admin-api/approval-queue' => ['approval-queue', 200],
+    'admin-api/user-upgrades' => ['user-upgrades', 200],
+];
+
+const READ_OK = SUMMARIES_OK + [
     'admin-api/options' => ['options-values', 200],
     'admin-api/config' => ['config-values', 200],
 ];
@@ -45,8 +54,8 @@ it('says everything a well set up forum will answer', function () {
 
     $content = accessOf('acme');
 
-    expect($content['headline'])->toBe('Summaries can be read. Values are shown for options and configuration. Individual error log entries can be read.')
-        ->and($content['summaries'])->toBe(['available' => true, 'xenforo' => '2.3.12'])
+    expect($content['headline'])->toBe('Every summary can be read. Values are shown for options and configuration. Individual error log entries can be read.')
+        ->and($content['summaries'])->toBe(['available' => true, 'xenforo' => '2.3.12', 'refused' => []])
         ->and($content['values'])->toBe(['options' => ['available' => true], 'configuration' => ['available' => true]])
         ->and($content['error_entries'])->toBe(['configured' => true, 'available' => true]);
 });
@@ -91,14 +100,26 @@ it('says a forum with no detail key offers summaries only, without contacting it
     Http::fake(function ($request) {
         $path = trim(explode('/api/', (string) parse_url($request->url(), PHP_URL_PATH))[1] ?? '', '/');
 
-        return Http::response(captured(['admin-api/add-ons' => 'add-ons', 'admin-api/options' => 'options-changed', 'admin-api/config' => 'config-changed'][$path]));
+        return Http::response(captured((array_map(fn (array $answer): string => $answer[0], SUMMARIES_OK) + ['admin-api/options' => 'options-changed', 'admin-api/config' => 'config-changed'])[$path]));
     });
 
     $content = accessOf('plain');
 
-    expect($content['headline'])->toBe('Summaries can be read. Values are shown for neither options nor configuration. Individual error log entries cannot be read: no detail key is configured.')
+    expect($content['headline'])->toBe('Every summary can be read. Values are shown for neither options nor configuration. Individual error log entries cannot be read: no detail key is configured.')
         ->and($content['error_entries']['configured'])->toBeFalse()
         ->and(collect(sentRequests())->filter(fn ($request) => str_contains($request->url(), 'error-entries')))->toBeEmpty();
+});
+
+it('names each summary tool the forum refuses, since each has its own permission', function () {
+    $refused = [['errors' => [['code' => 'do_not_have_permission', 'message' => 'You do not have permission.', 'params' => []]]], 403];
+
+    fakeAccess([READ_KEY => ['admin-api/logs' => $refused, 'admin-api/user-upgrades' => $refused] + READ_OK, DETAIL_KEY => ['admin-api/error-entries' => ['refused-error-id-required', 400]]]);
+
+    $content = accessOf('acme');
+
+    expect($content['headline'])->toStartWith('Summaries can be read, EXCEPT forum-logs, user-upgrades: see `summaries.refused`.')
+        ->and(array_keys($content['summaries']['refused']))->toBe(['forum-logs', 'user-upgrades'])
+        ->and($content['summaries']['refused']['forum-logs'])->toContain('Admin API: View log summaries');
 });
 
 it('says a forum that cannot be read at all cannot be read at all', function () {

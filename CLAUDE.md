@@ -7,7 +7,8 @@ Guidance for a session working in this repository.
 `xfmcp` is a Laravel Zero 13 CLI (PHP 8.3+) that runs an MCP server over stdio. Its tools are
 the read-only endpoints of the Hampel/AdminApi XenForo add-on, reached through
 `hampel/xenforo-api`, so an agent can ask a forum about its error log, add-ons, cron, job
-queue, options and configuration.
+queue, who is online, its other logs, the approval queue, user upgrades, options and
+configuration.
 
 **The add-on's `README.md` is the contract**: every endpoint, parameter and field. This
 repository does not restate it. `README.md` here is the operator's document; this file is why
@@ -40,6 +41,12 @@ costs a rebuild on one workstation. When an agent misreads an answer, the fix be
 refuses a super user key, then asks for the scope, then for an admin permission held by the
 key's own user. The only decision made here is which of a forum's two keys a call is sent
 with. A check added on this side would be a second copy of a rule, and the two would drift.
+
+**The add-on's member lookups have no tool here, by decision.** Since its 1.0.0a8 the add-on
+can look up members by IP address, upgrade records, moderators, administrators and log entries,
+each on its own scope and each writing an admin log row. Simon decided on 2026-10-24 not to
+expose them for now: every answer this tool gives is counts or settings, the one exception
+being error entries behind their own key. Adding them is a decision, not a gap.
 
 ## Stdio only, and stdout is the protocol
 
@@ -145,6 +152,11 @@ response got something wrong, in trials run against the add-on before this tool 
   fixes, and "the tool could only say smtp" is what prompted values in the first place.
 - **`notes` says what an empty answer is worth**, because absence is not health and a
   description alone did not stop an agent overclaiming it.
+
+- **`forum-access` asks every summary endpoint, not one.** Each has its own admin permission,
+  so add-ons answering said nothing about logs or upgrades; on 2026-10-24 three dev forums
+  answered every older summary and refused all three new ones. A refusal names the permission
+  from `AdminApi::PERMISSIONS`, which is kept in step with the add-on by hand.
 
 - **`who-is-online` is the one tool not marked idempotent.** It is a snapshot; two calls are
   two answers.

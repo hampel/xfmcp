@@ -1,0 +1,55 @@
+{
+  "log": "moderator",
+  "window": {
+    "since": 0,
+    "until": 1792834976,
+    "precedes_log": true
+  },
+  "total": 2,
+  "oldest_date": 1752127630,
+  "newest_date": 1752127634,
+  "log_total": 2,
+  "log_oldest_date": 1752127630,
+  "log_newest_date": 1752127634,
+  "members": 1,
+  "by_day": [
+    {
+      "day": "2026-10-22",
+      "count": 0
+    },
+    {
+      "day": "2026-10-23",
+      "count": 0
+    },
+    {
+      "day": "2026-10-24",
+      "count": 0
+    }
+  ],
+  "by_content_type": [
+    {
+      "content_type": "thread",
+      "count": 1,
+      "newest_date": 1752127630
+    },
+    {
+      "content_type": "post",
+      "count": 1,
+      "newest_date": 1752127634
+    }
+  ],
+  "by_action": [
+    {
+      "content_type": "thread",
+      "action": "delete_soft",
+      "count": 1,
+      "newest_date": 1752127630
+    },
+    {
+      "content_type": "post",
+      "action": "delete_soft",
+      "count": 1,
+      "newest_date": 1752127634
+    }
+  ]
+}

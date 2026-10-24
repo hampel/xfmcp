@@ -14,8 +14,8 @@ use Laravel\Mcp\Server\Tools\Annotations\IsIdempotent;
 use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 
 #[Description(<<<'TEXT'
-    Find out what one forum will actually answer, before relying on it: whether it is reachable, whether its
-    summaries can be read, whether options and configuration come with values, and whether individual error log
+    Find out what one forum will actually answer, before relying on it: whether it is reachable, which of its
+    summary tools it will answer (each needs its own admin permission), whether options and configuration come with values, and whether individual error log
     entries can be read. Use it when list-forums is not enough - it only says what is configured.
 
     It reads nothing personal. The check for error log entries asks for no entry, so the forum can only say
@@ -35,7 +35,7 @@ class ForumAccess extends ForumTool
     {
         return parent::outputSchema($schema) + [
             'headline' => $schema->string()->description('What this forum will and will not answer, in one sentence.')->required(),
-            'summaries' => $schema->object()->description('The error log summary, add-ons, cron, job queue and who is online.')->required(),
+            'summaries' => $schema->object()->description('Whether the summary tools can be read, and `refused`: each one the forum will not answer, and why.')->required(),
             'values' => $schema->object()->description('Whether options and configuration are answered with values.')->required(),
             'error_entries' => $schema->object()->description('Whether individual error log entries can be read.')->required(),
         ];
@@ -44,6 +44,8 @@ class ForumAccess extends ForumTool
     protected function answer(Request $request, ForumGateway $gateway, Forum $forum): array
     {
         $summaries = $this->attempt(static fn (): array => $gateway->read($forum, static fn (AdminApi $api): array => $api->addOns()));
+
+        $refused = $summaries['problem'] === null ? $this->refused($gateway, $forum) : [];
 
         $values = [];
 
@@ -60,13 +62,45 @@ class ForumAccess extends ForumTool
         $entries = $this->errorEntries($gateway, $forum);
 
         return [
-            'headline' => $this->headline($summaries['problem'], $values, $entries),
+            'headline' => $this->headline($summaries['problem'], $refused, $values, $entries),
             'summaries' => $summaries['problem'] === null
-                ? ['available' => true, 'xenforo' => $summaries['data']['xf']['version_string'] ?? null]
+                ? ['available' => true, 'xenforo' => $summaries['data']['xf']['version_string'] ?? null, 'refused' => (object) $refused]
                 : ['available' => false, 'problem' => $summaries['problem']],
             'values' => $values,
             'error_entries' => $entries,
         ];
+    }
+
+    /**
+     * The summary tools the forum will not answer, beyond add-ons, which has already been asked.
+     *
+     * Each endpoint needs its own admin permission, so one answering says nothing about the
+     * next. These are the same counts the tools return; none is about a member.
+     *
+     * @return array<string, string>
+     */
+    private function refused(ForumGateway $gateway, Forum $forum): array
+    {
+        $calls = [
+            'error-log-summary' => static fn (AdminApi $api): array => $api->errorLog(),
+            'cron-entries and job-queue' => static fn (AdminApi $api): array => $api->cron(),
+            'who-is-online' => static fn (AdminApi $api): array => $api->online(),
+            'forum-logs' => static fn (AdminApi $api): array => $api->logs(),
+            'approval-queue' => static fn (AdminApi $api): array => $api->approvalQueue(),
+            'user-upgrades' => static fn (AdminApi $api): array => $api->userUpgrades(),
+        ];
+
+        $refused = [];
+
+        foreach ($calls as $tool => $call) {
+            $problem = $this->attempt(static fn (): array => $gateway->read($forum, $call))['problem'];
+
+            if ($problem !== null) {
+                $refused[$tool] = $problem;
+            }
+        }
+
+        return $refused;
     }
 
     /**
@@ -115,10 +149,11 @@ class ForumAccess extends ForumTool
     }
 
     /**
+     * @param  array<string, string>  $refused
      * @param  array<string, array{available: bool}>  $values
      * @param  array{configured: bool, available: bool}  $entries
      */
-    private function headline(?string $summariesProblem, array $values, array $entries): string
+    private function headline(?string $summariesProblem, array $refused, array $values, array $entries): string
     {
         if ($summariesProblem !== null) {
             return 'This forum cannot be read at all: '.$summariesProblem;
@@ -127,7 +162,10 @@ class ForumAccess extends ForumTool
         $withValues = array_keys(array_filter($values, static fn (array $part): bool => $part['available']));
 
         return sprintf(
-            'Summaries can be read. Values are shown for %s. Individual error log entries %s.',
+            '%s Values are shown for %s. Individual error log entries %s.',
+            $refused === []
+                ? 'Every summary can be read.'
+                : 'Summaries can be read, EXCEPT '.implode(', ', array_keys($refused)).': see `summaries.refused`.',
             match (count($withValues)) {
                 2 => 'options and configuration',
                 1 => $withValues[0].' only',

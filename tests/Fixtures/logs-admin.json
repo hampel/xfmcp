@@ -1,0 +1,51 @@
+{
+  "log": "admin",
+  "window": {
+    "since": 0,
+    "until": 1792834975,
+    "precedes_log": true
+  },
+  "total": 3061,
+  "oldest_date": 1788066630,
+  "newest_date": 1792831970,
+  "log_total": 3061,
+  "log_oldest_date": 1788066630,
+  "log_newest_date": 1792831970,
+  "members": 2,
+  "by_day": [
+    {
+      "day": "2026-10-22",
+      "count": 70
+    },
+    {
+      "day": "2026-10-23",
+      "count": 28
+    },
+    {
+      "day": "2026-10-24",
+      "count": 12
+    }
+  ],
+  "by_section": [
+    {
+      "section": "login",
+      "count": 1417,
+      "newest_date": 1792831970
+    },
+    {
+      "section": "index",
+      "count": 1414,
+      "newest_date": 1792662789
+    },
+    {
+      "section": "tools",
+      "count": 93,
+      "newest_date": 1792203758
+    },
+    {
+      "section": "options",
+      "count": 19,
+      "newest_date": 1791117177
+    }
+  ]
+}

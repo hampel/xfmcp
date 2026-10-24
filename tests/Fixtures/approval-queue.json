@@ -1,0 +1,21 @@
+{
+  "total": 100,
+  "oldest_date": 1783761344,
+  "newest_date": 1791425100,
+  "by_age": {
+    "under_hour": 0,
+    "under_day": 0,
+    "under_week": 0,
+    "older": 100
+  },
+  "by_content_type": [
+    {
+      "content_type": "user",
+      "count": 100,
+      "oldest_date": 1783761344,
+      "newest_date": 1791425100
+    }
+  ],
+  "cached_total": 100,
+  "cached_date": 1792834363
+}

@@ -3,11 +3,12 @@
 namespace App\Forum;
 
 use Hampel\XenForo\Api\Endpoint\Endpoint;
+use Hampel\XenForo\Api\Result\ApiResponse;
 
 /**
  * The read-only endpoints the Hampel/AdminApi add-on adds to a forum.
  *
- * One class for all eight, because they are one add-on's surface and share nothing but a
+ * One class for all of them, because they are one add-on's surface and share nothing but a
  * prefix. Each method returns the decoded body untouched: shaping an answer for a reader is
  * App\Support\Present's job, and keeping it out of here keeps this a description of the
  * add-on's contract and nothing else.
@@ -17,12 +18,39 @@ use Hampel\XenForo\Api\Endpoint\Endpoint;
 final class AdminApi extends Endpoint
 {
     /**
+     * The admin permission each endpoint needs on the key's administrator, as the control
+     * panel names it, so a refusal can say which one is missing. The error entries endpoint
+     * also needs XenForo's own "View logs".
+     */
+    public const PERMISSIONS = [
+        'admin-api/error-log/' => 'Admin API: View error log summary',
+        'admin-api/error-entries/' => 'Admin API: View error log entries, and XenForo\'s own "View logs"',
+        'admin-api/add-ons/' => 'Admin API: View add-ons',
+        'admin-api/online/' => 'Admin API: View who is online',
+        'admin-api/cron/' => 'Admin API: View cron and jobs',
+        'admin-api/jobs/' => 'Admin API: View cron and jobs',
+        'admin-api/logs/' => 'Admin API: View log summaries',
+        'admin-api/user-upgrades/' => 'Admin API: View user upgrade summary',
+        'admin-api/approval-queue/' => 'Admin API: View approval queue summary',
+        'admin-api/options/' => 'Admin API: View options',
+        'admin-api/config/' => 'Admin API: View config.php',
+    ];
+
+    private ?string $path = null;
+
+    /** the endpoint most recently asked, so a refusal can be explained in its terms */
+    public function lastPath(): ?string
+    {
+        return $this->path;
+    }
+
+    /**
      * @param  array<string, scalar|null>  $query  since, until, limit
      * @return array<mixed>
      */
     public function errorLog(array $query = []): array
     {
-        return $this->apiGet('admin-api/error-log/', $query)->data;
+        return $this->ask('admin-api/error-log/', $query)->data;
     }
 
     /**
@@ -32,7 +60,7 @@ final class AdminApi extends Endpoint
      */
     public function errorEntries(int $errorId, ?int $limit = null, bool $request = false): array
     {
-        return $this->apiGet('admin-api/error-entries/', array_filter([
+        return $this->ask('admin-api/error-entries/', array_filter([
             'error_id' => $errorId,
             'limit' => $limit,
             'request' => $request ? 1 : null,
@@ -48,13 +76,13 @@ final class AdminApi extends Endpoint
      */
     public function errorEntriesProbe(): array
     {
-        return $this->apiGet('admin-api/error-entries/')->data;
+        return $this->ask('admin-api/error-entries/')->data;
     }
 
     /** @return array<mixed> */
     public function addOns(): array
     {
-        return $this->apiGet('admin-api/add-ons/')->data;
+        return $this->ask('admin-api/add-ons/')->data;
     }
 
     /**
@@ -64,19 +92,50 @@ final class AdminApi extends Endpoint
      */
     public function online(): array
     {
-        return $this->apiGet('admin-api/online/')->data;
+        return $this->ask('admin-api/online/')->data;
     }
 
     /** @return array<mixed> */
     public function cron(): array
     {
-        return $this->apiGet('admin-api/cron/')->data;
+        return $this->ask('admin-api/cron/')->data;
     }
 
     /** @return array<mixed> */
     public function jobs(): array
     {
-        return $this->apiGet('admin-api/jobs/')->data;
+        return $this->ask('admin-api/jobs/')->data;
+    }
+
+    /**
+     * Counts from every log the forum keeps, or with `log` one log in full. Never an entry.
+     *
+     * @param  array<string, scalar|null>  $query  log, since, until
+     * @return array<mixed>
+     */
+    public function logs(array $query = []): array
+    {
+        return $this->ask('admin-api/logs/', $query)->data;
+    }
+
+    /**
+     * Counts of who holds each user upgrade, what ends soon and what was paid. Never a member.
+     *
+     * @return array<mixed>
+     */
+    public function userUpgrades(?int $days = null): array
+    {
+        return $this->ask('admin-api/user-upgrades/', array_filter(['days' => $days], static fn ($value): bool => $value !== null))->data;
+    }
+
+    /**
+     * How much awaits approval, of what kind and for how long. Never the content.
+     *
+     * @return array<mixed>
+     */
+    public function approvalQueue(): array
+    {
+        return $this->ask('admin-api/approval-queue/')->data;
     }
 
     /**
@@ -89,7 +148,7 @@ final class AdminApi extends Endpoint
      */
     public function options(?string $addOnId = null, bool $changed = false, array $optionIds = []): array
     {
-        return $this->apiGet('admin-api/options/', array_filter([
+        return $this->ask('admin-api/options/', array_filter([
             'add_on_id' => $addOnId,
             'changed' => $changed ? 1 : null,
             'option_id' => $optionIds === [] ? null : implode(',', $optionIds),
@@ -105,9 +164,19 @@ final class AdminApi extends Endpoint
      */
     public function config(bool $changed = false, array $keys = []): array
     {
-        return $this->apiGet('admin-api/config/', array_filter([
+        return $this->ask('admin-api/config/', array_filter([
             'changed' => $changed ? 1 : null,
             'key' => $keys === [] ? null : implode(',', $keys),
         ], static fn ($value): bool => $value !== null))->data;
+    }
+
+    /**
+     * @param  array<string, scalar|null>  $query
+     */
+    private function ask(string $path, array $query = []): ApiResponse
+    {
+        $this->path = $path;
+
+        return $this->apiGet($path, $query);
     }
 }

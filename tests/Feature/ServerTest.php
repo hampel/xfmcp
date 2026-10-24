@@ -2,14 +2,17 @@
 
 use App\Mcp\Servers\XenForoServer;
 use App\Mcp\Tools\AddOns;
+use App\Mcp\Tools\ApprovalQueue;
 use App\Mcp\Tools\CronEntries;
 use App\Mcp\Tools\ErrorLogEntries;
 use App\Mcp\Tools\ErrorLogSummary;
 use App\Mcp\Tools\ForumAccess;
 use App\Mcp\Tools\ForumConfiguration;
+use App\Mcp\Tools\ForumLogs;
 use App\Mcp\Tools\ForumOptions;
 use App\Mcp\Tools\JobQueue;
 use App\Mcp\Tools\ListForums;
+use App\Mcp\Tools\UserUpgrades;
 use App\Mcp\Tools\WhoIsOnline;
 use App\Support\ForumInventoryException;
 use Laravel\Mcp\Facades\Mcp;
@@ -17,7 +20,8 @@ use Laravel\Mcp\Server\Tool;
 
 const TOOLS = [
     ListForums::class, ForumAccess::class, ErrorLogSummary::class, ErrorLogEntries::class, AddOns::class,
-    CronEntries::class, JobQueue::class, WhoIsOnline::class, ForumOptions::class, ForumConfiguration::class,
+    CronEntries::class, JobQueue::class, WhoIsOnline::class, ForumLogs::class, ApprovalQueue::class, UserUpgrades::class,
+    ForumOptions::class, ForumConfiguration::class,
 ];
 
 it('registers every tool', function () {

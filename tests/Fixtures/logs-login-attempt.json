@@ -1,0 +1,17 @@
+{
+  "log": "login_attempt",
+  "window": {
+    "since": 0,
+    "until": 1792834976,
+    "precedes_log": false
+  },
+  "total": 0,
+  "oldest_date": null,
+  "newest_date": null,
+  "log_total": 0,
+  "log_oldest_date": null,
+  "log_newest_date": null,
+  "logins": 0,
+  "addresses": 0,
+  "by_day": []
+}

@@ -110,10 +110,14 @@ class ForumGateway
      */
     private function send(Forum $forum, #[\SensitiveParameter] string $key, string $which, Closure $call): array
     {
+        $api = null;
+
         try {
-            return $call($this->client($forum, $key)->endpoint(AdminApi::class));
+            $api = $this->client($forum, $key)->endpoint(AdminApi::class);
+
+            return $call($api);
         } catch (XenForoException $e) {
-            throw new ForumCallException($this->explain($forum, $which, $e), 0, $e);
+            throw new ForumCallException($this->explain($forum, $which, $e, $api?->lastPath()), 0, $e);
         } catch (Throwable $e) {
             // Anything else is a fault on this side of the wire. Named by class only: the
             // message of an arbitrary throwable is not known to be free of a URL or a key.
@@ -132,8 +136,9 @@ class ForumGateway
      * Why a call failed, for someone who cannot see the response.
      *
      * @param  string  $which  the inventory setting the key came from: `key` or `detail_key`
+     * @param  string|null  $path  the endpoint asked, when known, to name the permission it needs
      */
-    public function explain(Forum $forum, string $which, XenForoException $e): string
+    public function explain(Forum $forum, string $which, XenForoException $e, ?string $path = null): string
     {
         $name = sprintf('Forum "%s"', $forum->id);
 
@@ -168,7 +173,8 @@ class ForumGateway
 
         if ($e instanceof EndpointNotFoundException) {
             return "{$name} has no such endpoint (endpoint_not_found): the Hampel/AdminApi add-on is not installed "
-                .'or not active there. It needs XenForo 2.2 or later. This is a fact about how that forum is set '
+                .'or not active there, or is a version older than this endpoint, which the add-ons tool would show. '
+                .'It needs XenForo 2.2 or later. This is a fact about how that forum is set '
                 .'up, not an empty result.';
         }
 
@@ -184,9 +190,14 @@ class ForumGateway
         }
 
         if ($e->hasCode('do_not_have_permission')) {
+            $permission = AdminApi::PERMISSIONS[$path ?? ''] ?? null;
+
             return "{$name} refused the key (do_not_have_permission): the administrator `{$which}` belongs to does "
-                .'not hold the admin permission for this endpoint. Reading error entries also needs XenForo\'s own '
-                .'"View logs" permission.';
+                .($permission === null
+                    ? 'not hold the admin permission for this endpoint. Reading error entries also needs XenForo\'s '
+                        .'own "View logs" permission.'
+                    : "not hold the admin permission it needs: {$permission}.")
+                .' It is granted on the administrator in the forum\'s admin control panel; the key is fine.';
         }
 
         if ($e instanceof NotAuthenticatedException || $e instanceof NotPermittedException) {
