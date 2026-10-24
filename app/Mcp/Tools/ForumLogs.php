@@ -17,19 +17,23 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
     proxies, payment callbacks and the rest of the 18 logs XenForo keeps. Counts only - never an entry, a name,
     an address, a reason or a URL.
 
-    Without `log`, one line per log: how many entries fall in the window, and the oldest and newest the log holds.
-    With `log`, that one log in full: `members` (how many distinct members acted, never who), its breakdowns, and
-    `by_day`. Read `headline` first.
+    Without `log`, one line per log: `total` is how many entries fall in the window, and `log_oldest_date` and
+    `log_newest_date` are the oldest and newest the whole log holds, whatever the window. With `log`, that one log
+    in full: `total`, `oldest_date` and `newest_date` describe the window and the `log_` fields the whole log, then
+    `members` (how many distinct members acted, never who), its breakdowns, and `by_day`. Read `headline` first.
 
     `log` is one of: admin, moderator, user_change, username_change, cookie_consent, spam_trigger, spam_cleaner,
     rejected_user, email_bounce, image_proxy, link_proxy, oembed, payment_provider, sitemap, server_error, ip,
-    login_attempt, upgrade. For the server error log, error-log-summary says far more.
+    login_attempt, upgrade. `upgrade` is XenForo's own install and upgrade log, not members' user upgrades - ask
+    user-upgrades for those. For the server error log, error-log-summary says far more.
 
     Easy to misread:
     - The default window is the last 24 hours, so a quiet day reads as zero. `since: "all"` covers the whole log.
     - `log_total`, `log_oldest_date` and `log_newest_date` describe the whole log, whatever the window. Most logs
       are pruned by an option, so `window.precedes_log: true` means the earliest days may read as zero because
       they were pruned, not because nothing happened.
+    - `by_day` lists only days with entries, in UTC, and reaches back at most 366 days: on a longer window, `notes`
+      says from when, and how many entries fall before it.
     - In any breakdown, an entry whose name is null is everything else counted together: a value the forum no
       longer defines, and whatever falls past the busiest 500. It is not an unknown item.
     - An admin log `section` is the first part of a control panel route: `index` is the front page, `login` a
@@ -78,10 +82,40 @@ class ForumLogs extends ForumTool
 
         $data = $gateway->read($forum, static fn (AdminApi $api): array => $api->logs($query));
 
-        $data['headline'] = isset($data['logs']) ? $this->overview($data) : $this->single($data);
+        if (isset($data['logs'])) {
+            $data['logs'] = array_map($this->overviewRow(...), (array) $data['logs']);
+            $data['headline'] = $this->overview($data);
+        } else {
+            $data['headline'] = $this->single($data);
+        }
+
         $data['notes'] = $this->notes($data);
 
+        if (is_array($data['by_day'] ?? null)) {
+            $data['by_day'] = Present::busyDays($data['by_day']);
+        }
+
         return Present::lead($data, self::ORDER);
+    }
+
+    /**
+     * One log's line in the overview, with the add-on's whole-log dates named as the detail
+     * view names them: an agent read `total: 0` beside `oldest_date` as an empty log holding
+     * dated entries.
+     */
+    private function overviewRow(mixed $row): mixed
+    {
+        if (! is_array($row)) {
+            return $row;
+        }
+
+        $out = [];
+
+        foreach ($row as $key => $value) {
+            $out[in_array($key, ['oldest_date', 'newest_date'], true) ? 'log_'.$key : $key] = $value;
+        }
+
+        return $out;
     }
 
     /**
@@ -164,9 +198,28 @@ class ForumLogs extends ForumTool
     {
         $notes = [];
 
-        if (($data['window']['precedes_log'] ?? false) === true) {
+        // a window from 0 always precedes the log, and says nothing about pruning
+        if (($data['window']['precedes_log'] ?? false) === true && (int) ($data['window']['since'] ?? 0) > 0) {
             $notes[] = 'The window starts before the oldest entry the log still holds. Most logs are pruned, so its '
-                .'earliest days read as zero whether or not anything happened then.';
+                .'earliest days may read as zero because entries were removed, not because nothing happened then.';
+        }
+
+        $days = is_array($data['by_day'] ?? null) ? $data['by_day'] : [];
+        $byDay = array_sum(array_map(static fn (mixed $day): int => is_array($day) ? (int) ($day['count'] ?? 0) : 0, $days));
+        $total = (int) ($data['total'] ?? 0);
+
+        if ($days !== [] && $byDay < $total) {
+            $notes[] = sprintf(
+                '`by_day` starts at %s: the add-on reports at most 366 days. %d of the %d entries in this window are '
+                .'older than that and are counted in `total` but on no day.',
+                (string) ($days[0]['day'] ?? '?'),
+                $total - $byDay,
+                $total,
+            );
+        }
+
+        if ($days !== []) {
+            $notes[] = '`by_day` lists only days with entries; a day not listed had none.';
         }
 
         if (($data['log'] ?? null) === 'server_error') {

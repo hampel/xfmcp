@@ -27,7 +27,8 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
     - A payment is one the provider reported - one for a purchase and one per renewal. Its `amount` is the
       upgrade's own price, so a refund, a fee or a currency conversion is not reflected. It is not revenue.
     - A null `provider` is one the forum no longer has.
-    - `ending_by_day` and `expired_by_day` are UTC days.
+    - `ending_by_day` runs from today to `days` ahead and `expired_by_day` from `days` back to today, in UTC days;
+      both include today. Only days with a record are listed: a day not listed had none.
     TEXT)]
 #[IsReadOnly]
 #[IsIdempotent]
@@ -57,6 +58,12 @@ class UserUpgrades extends ForumTool
 
         $data['headline'] = $this->headline($data);
         $data['notes'] = $this->notes($data);
+
+        foreach (['ending_by_day', 'expired_by_day'] as $breakdown) {
+            if (is_array($data[$breakdown] ?? null)) {
+                $data[$breakdown] = Present::busyDays($data[$breakdown]);
+            }
+        }
 
         return Present::lead($data, ['headline', 'notes', 'days', 'active', 'ending', 'expired', 'payments', 'upgrades']);
     }

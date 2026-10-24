@@ -507,7 +507,9 @@ it('names the logs that recorded something, busiest first', function () {
     $content = structured(ForumLogs::class, ['forum' => 'acme']);
 
     expect($content['headline'])->toBe('2 of 18 logs recorded something in this window: admin 29, server_error 11.')
-        ->and($content['logs'][0]['newest_date_iso'])->toEndWith('Z')
+        ->and($content['logs'][1])->toMatchArray(['log' => 'moderator', 'total' => 0, 'log_oldest_date' => 1752127630])
+        ->and($content['logs'][1])->not->toHaveKey('oldest_date')
+        ->and($content['logs'][0]['log_newest_date_iso'])->toEndWith('Z')
         ->and(sentRequests()[0]->url())->not->toContain('log=');
 });
 
@@ -521,7 +523,8 @@ it('describes one log, and the whole of it when asked for all', function () {
     expect($query)->toBe(['log' => 'admin', 'since' => '0'])
         ->and($content['headline'])->toStartWith('3061 entries in the admin log in this window; the newest is from 2026-10-')
         ->and($content['headline'])->toEndWith('2 distinct members acted.')
-        ->and(implode(' ', $content['notes']))->toContain('pruned')
+        ->and(implode(' ', $content['notes']))->not->toContain('because entries were removed')
+        ->and(implode(' ', $content['notes']))->not->toContain('at most 366 days')
         ->and(array_slice(array_keys($content), 2, 4))->toBe(['headline', 'notes', 'log', 'window']);
 });
 
@@ -593,4 +596,34 @@ it('says when moderators are shown the wrong count', function () {
 
     expect(structured(ApprovalQueue::class, ['forum' => 'acme'])['headline'])
         ->toBe('Nothing is awaiting approval. Moderators are shown 100, which is wrong.');
+});
+
+it('says when by_day stops short of the window, and does not blame pruning for it', function () {
+    // captured: an install log older than 366 days, asked for since "all"
+    fakeForum(['admin-api/logs/' => 'logs-upgrade']);
+
+    $content = structured(ForumLogs::class, ['forum' => 'acme', 'log' => 'upgrade', 'since' => 'all']);
+    $notes = implode(' ', $content['notes']);
+
+    expect($notes)->toContain('`by_day` starts at 2025-10-24: the add-on reports at most 366 days. 2 of the 7 entries')
+        ->and($notes)->not->toContain('because entries were removed')
+        ->and(array_column($content['by_day'], 'count'))->toBe([4, 1]);
+});
+
+it('says a window before the oldest entry may have been pruned', function () {
+    $log = captured('logs-moderator');
+    $log['window'] = ['since' => 1751000000, 'until' => 1752200000, 'precedes_log' => true];
+
+    fakeForum(['admin-api/logs/' => Http::response($log)]);
+
+    expect(implode(' ', structured(ForumLogs::class, ['forum' => 'acme', 'log' => 'moderator', 'since' => '1751000000'])['notes']))
+        ->toContain('because entries were removed');
+});
+
+it('lists only the days on which an upgrade ends or expired', function () {
+    fakeForum(['admin-api/user-upgrades/' => 'user-upgrades']);
+
+    $content = structured(UserUpgrades::class, ['forum' => 'acme']);
+
+    expect($content['ending_by_day'])->toBe([])->and($content['expired_by_day'])->toBe([]);
 });

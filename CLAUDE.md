@@ -158,6 +158,12 @@ response got something wrong, in trials run against the add-on before this tool 
   answered every older summary and refused all three new ones. A refusal names the permission
   from `AdminApi::PERMISSIONS`, which is kept in step with the add-on by hand.
 
+- **A day-by-day breakdown from the new tools lists only busy days, and says when it stops
+  short.** The add-on lists every day up to 366, so a year of nothing was 730 rows, and on a
+  longer window an agent read entries missing from `by_day` as pruned. `forum-logs` also renames
+  an overview row's whole-log dates to `log_oldest_date` and `log_newest_date`, as the detail
+  view has them: `total: 0` beside an `oldest_date` read as an empty log holding entries.
+
 - **`who-is-online` is the one tool not marked idempotent.** It is a snapshot; two calls are
   two answers.
 

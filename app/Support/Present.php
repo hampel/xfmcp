@@ -61,6 +61,20 @@ class Present
         return $out;
     }
 
+    /**
+     * A day-by-day breakdown with the empty days left out.
+     *
+     * The add-on lists every day, quiet ones included, which over a year is hundreds of rows
+     * saying nothing. A tool that uses this says in its notes that a missing day had none.
+     *
+     * @param  array<mixed>  $days
+     * @return list<mixed>
+     */
+    public static function busyDays(array $days): array
+    {
+        return array_values(array_filter($days, static fn (mixed $day): bool => ! is_array($day) || (int) ($day['count'] ?? 0) !== 0));
+    }
+
     public static function iso(int $timestamp): string
     {
         return CarbonImmutable::createFromTimestampUTC($timestamp)->format('Y-m-d\TH:i:s\Z');
