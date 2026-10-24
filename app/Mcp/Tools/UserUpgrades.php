@@ -116,6 +116,10 @@ class UserUpgrades extends ForumTool
             }
         }
 
+        // said here as well as in the description, which a client may have cached from an older build
+        $notes[] = '`ending_by_day` and `expired_by_day` list only days with a record, and both ranges include today. '
+            .'An empty list means no record ends or expired in the range.';
+
         if ((int) ($data['payments']['total'] ?? 0) > 0) {
             $notes[] = 'Payment amounts are each upgrade\'s list price, not what the provider took: refunds, fees and '
                 .'conversions are not reflected.';

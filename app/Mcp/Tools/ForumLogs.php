@@ -209,12 +209,17 @@ class ForumLogs extends ForumTool
         $total = (int) ($data['total'] ?? 0);
 
         if ($days !== [] && $byDay < $total) {
+            $older = $total - $byDay;
+
             $notes[] = sprintf(
-                '`by_day` starts at %s: the add-on reports at most 366 days. %d of the %d entries in this window are '
-                .'older than that and are counted in `total` but on no day.',
+                '`by_day` starts at %s: the add-on reports at most 366 days. %s older than that and %s counted in '
+                .'`total` but on no day.',
                 (string) ($days[0]['day'] ?? '?'),
-                $total - $byDay,
-                $total,
+                match (true) {
+                    $older === $total => sprintf('%s in this window %s', $total === 1 ? 'The one entry' : ($total === 2 ? 'Both entries' : "All {$total} entries"), $total === 1 ? 'is' : 'are'),
+                    default => sprintf('%d of the %d entries in this window %s', $older, $total, $older === 1 ? 'is' : 'are'),
+                },
+                $older === 1 ? 'is' : 'are',
             );
         }
 

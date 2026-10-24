@@ -605,7 +605,7 @@ it('says when by_day stops short of the window, and does not blame pruning for i
     $content = structured(ForumLogs::class, ['forum' => 'acme', 'log' => 'upgrade', 'since' => 'all']);
     $notes = implode(' ', $content['notes']);
 
-    expect($notes)->toContain('`by_day` starts at 2025-10-24: the add-on reports at most 366 days. 2 of the 7 entries')
+    expect($notes)->toContain('`by_day` starts at 2025-10-24: the add-on reports at most 366 days. 2 of the 7 entries in this window are older than that and are counted')
         ->and($notes)->not->toContain('because entries were removed')
         ->and(array_column($content['by_day'], 'count'))->toBe([4, 1]);
 });
@@ -625,5 +625,16 @@ it('lists only the days on which an upgrade ends or expired', function () {
 
     $content = structured(UserUpgrades::class, ['forum' => 'acme']);
 
-    expect($content['ending_by_day'])->toBe([])->and($content['expired_by_day'])->toBe([]);
+    expect($content['ending_by_day'])->toBe([])->and($content['expired_by_day'])->toBe([])
+        ->and(implode(' ', $content['notes']))->toContain('An empty list means no record ends or expired');
+});
+
+it('says so when every entry in the window is older than by_day reaches', function () {
+    // captured: both moderator log entries are more than 366 days old
+    fakeForum(['admin-api/logs/' => 'logs-moderator']);
+
+    $content = structured(ForumLogs::class, ['forum' => 'acme', 'log' => 'moderator', 'since' => 'all']);
+
+    expect(implode(' ', $content['notes']))->toContain('Both entries in this window are older than that and are counted')
+        ->and($content['by_day'])->toBe([]);
 });
