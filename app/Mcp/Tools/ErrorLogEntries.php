@@ -21,9 +21,11 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
     where a problem is and you need to know why, not to browse.
 
     The forum removes what it recognises as a secret from the message, the trace and the request - a webhook
-    URL, a token, a password parameter - and puts `[withheld]` in its place; a URL keeps its scheme and host.
-    That marker is not logged text. `scrubbed` counts the removals in an entry, and `notes` says so when there
-    were any. It is best effort on free text: anything that is not a recognisable secret is still there.
+    URL, a token, a password parameter - and puts `[withheld]` in its place; a URL keeps its scheme and host,
+    or its scheme alone when it has no host. A request field named like a credential is withheld whole, and so
+    is a message or trace too long to scrub. That marker is not logged text; `********` is XenForo's own mask
+    on a password field and is not counted. `scrubbed` counts the removals in an entry, and `notes` says so when
+    there were any. It is best effort on free text: anything that is not a recognisable secret is still there.
 
     `origin_basis` says how an entry's originating add-on was worked out: `trace`, or `message` when only the
     error's message names it - the weaker of the two.
