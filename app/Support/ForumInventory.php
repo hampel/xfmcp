@@ -63,7 +63,9 @@ class ForumInventory
         try {
             $parsed = Toml::parseFile($path);
         } catch (Throwable $e) {
-            throw new ForumInventoryException('parse error: '.$e->getMessage(), 0, $e);
+            // never the parser's message, nor the exception chained: either can quote the token it
+            // stopped on, and any value in this file may be an API key
+            throw new ForumInventoryException('parse error; the parser\'s own message is not shown, as it can quote the file');
         }
 
         $this->parsedAt = $stamp;

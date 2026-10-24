@@ -76,6 +76,20 @@ it('fails by name, never silently', function (Closure $make, string $expected) {
     'a file that is not TOML' => [fn () => inventoryFile('[acme'), 'parse error'],
 ]);
 
+it('never quotes the file in a parse error, since any line of it may be a key', function () {
+    // an unquoted value is the case the parser names in its own message
+    $inventory = inventoryFile("[acme]\nurl = \"https://forum.example.test\"\nkey = SECRETKEYVALUE\n");
+
+    try {
+        $inventory->all();
+        $this->fail('the file parsed');
+    } catch (ForumInventoryException $e) {
+        expect($e->getMessage())->toStartWith('parse error')
+            ->not->toContain('SECRETKEYVALUE')
+            ->and($e->getPrevious())->toBeNull();
+    }
+});
+
 it('sees a forum added to the file without being restarted', function () {
     $inventory = inventoryFile("[one]\nurl = \"https://one.example.test\"\nkey = \"aaa\"\n");
 
