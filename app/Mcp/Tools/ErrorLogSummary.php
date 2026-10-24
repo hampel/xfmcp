@@ -33,6 +33,7 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
     - `by_origin`: `web` is a request, `job` includes every cron entry, `cli` is someone at a terminal.
     - `members` counts different logged-in members; guests, the command line and jobs count as nobody.
     - `ErrorException` covers PHP warnings, fatals and messages an add-on logged; `severity` tells them apart.
+    - `by_day` reaches back at most 366 days; on a longer window `notes` says from when.
     - XenForo prunes the log. `window.precedes_log: true` means part of the window is older than anything kept,
       and those days read as zero whether or not anything happened.
 
@@ -146,6 +147,10 @@ class ErrorLogSummary extends ForumTool
         if (($data['window']['precedes_log'] ?? false) === true) {
             $notes[] = 'The window starts before the oldest entry the log still holds, so its earliest days read as '
                 .'zero whether or not anything happened then.';
+        }
+
+        if (($cut = Present::byDayCut($data)) !== null) {
+            $notes[] = $cut;
         }
 
         if (($data['examined']['complete'] ?? true) === false) {

@@ -638,3 +638,35 @@ it('says so when every entry in the window is older than by_day reaches', functi
     expect(implode(' ', $content['notes']))->toContain('Both entries in this window are older than that and are counted')
         ->and($content['by_day'])->toBe([]);
 });
+
+it('passes on a 1.0.0a9 overview row, which already names the whole log', function () {
+    fakeForum(['admin-api/logs/' => 'logs-a9']);
+
+    expect(structured(ForumLogs::class, ['forum' => 'acme'])['logs'][1])
+        ->toMatchArray(['log' => 'moderator', 'total' => 0, 'log_total' => 2, 'log_oldest_date' => 1752127630])
+        ->not->toHaveKey('oldest_date');
+});
+
+it('takes the forum\'s word that by_day was cut, from 1.0.0a9', function () {
+    fakeForum(['admin-api/logs/' => 'logs-upgrade-a9']);
+
+    expect(implode(' ', structured(ForumLogs::class, ['forum' => 'acme', 'log' => 'upgrade', 'since' => 'all'])['notes']))
+        ->toContain('`by_day` starts at 2025-10-24');
+});
+
+it('says when the error log\'s by_day stops short of the window', function () {
+    // by_day_complete set by hand: the captured log is younger than 366 days
+    $log = ['by_day_complete' => false] + captured('error-log-all');
+
+    fakeForum(['admin-api/error-log/' => Http::response($log)]);
+
+    expect(implode(' ', structured(ErrorLogSummary::class, ['forum' => 'acme', 'since' => 'all'])['notes']))
+        ->toContain('the add-on reports at most 366 days');
+});
+
+it('does not call a complete by_day cut', function () {
+    fakeForum(['admin-api/error-log/' => 'error-log-all']);
+
+    expect(implode(' ', structured(ErrorLogSummary::class, ['forum' => 'acme', 'since' => 'all'])['notes']))
+        ->not->toContain('at most 366 days');
+});

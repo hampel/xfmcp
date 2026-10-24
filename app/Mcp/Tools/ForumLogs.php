@@ -17,8 +17,9 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
     proxies, payment callbacks and the rest of the 18 logs XenForo keeps. Counts only - never an entry, a name,
     an address, a reason or a URL.
 
-    Without `log`, one line per log: `total` is how many entries fall in the window, and `log_oldest_date` and
-    `log_newest_date` are the oldest and newest the whole log holds, whatever the window. With `log`, that one log
+    Without `log`, one line per log: `total` is how many entries fall in the window, and `log_total`,
+    `log_oldest_date` and `log_newest_date` describe the whole log, whatever the window (`log_total` only from a
+    forum on Hampel/AdminApi 1.0.0a9 or later). With `log`, that one log
     in full: `total`, `oldest_date` and `newest_date` describe the window and the `log_` fields the whole log, then
     `members` (how many distinct members acted, never who), its breakdowns, and `by_day`. Read `headline` first.
 
@@ -33,7 +34,7 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
       are pruned by an option, so `window.precedes_log: true` means the earliest days may read as zero because
       they were pruned, not because nothing happened.
     - `by_day` lists only days with entries, in UTC, and reaches back at most 366 days: on a longer window, `notes`
-      says from when, and how many entries fall before it.
+      says from when, and how many entries fall before it. `by_day_complete: false` is the forum saying the same.
     - In any breakdown, an entry whose name is null is everything else counted together: a value the forum no
       longer defines, and whatever falls past the busiest 500. It is not an unknown item.
     - An admin log `section` is the first part of a control panel route: `index` is the front page, `login` a
@@ -205,22 +206,9 @@ class ForumLogs extends ForumTool
         }
 
         $days = is_array($data['by_day'] ?? null) ? $data['by_day'] : [];
-        $byDay = array_sum(array_map(static fn (mixed $day): int => is_array($day) ? (int) ($day['count'] ?? 0) : 0, $days));
-        $total = (int) ($data['total'] ?? 0);
 
-        if ($days !== [] && $byDay < $total) {
-            $older = $total - $byDay;
-
-            $notes[] = sprintf(
-                '`by_day` starts at %s: the add-on reports at most 366 days. %s older than that and %s counted in '
-                .'`total` but on no day.',
-                (string) ($days[0]['day'] ?? '?'),
-                match (true) {
-                    $older === $total => sprintf('%s in this window %s', $total === 1 ? 'The one entry' : ($total === 2 ? 'Both entries' : "All {$total} entries"), $total === 1 ? 'is' : 'are'),
-                    default => sprintf('%d of the %d entries in this window %s', $older, $total, $older === 1 ? 'is' : 'are'),
-                },
-                $older === 1 ? 'is' : 'are',
-            );
+        if (($cut = Present::byDayCut($data)) !== null) {
+            $notes[] = $cut;
         }
 
         if ($days !== []) {

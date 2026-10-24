@@ -75,6 +75,48 @@ class Present
         return array_values(array_filter($days, static fn (mixed $day): bool => ! is_array($day) || (int) ($day['count'] ?? 0) !== 0));
     }
 
+    /**
+     * What to say when a day-by-day breakdown stops short of the window, or null if it does not.
+     *
+     * The add-on reports at most 366 days. From 1.0.0a9 it says so in `by_day_complete`;
+     * before that, the days adding up to less than `total` is the only sign.
+     *
+     * @param  array<mixed>  $data
+     */
+    public static function byDayCut(array $data): ?string
+    {
+        $days = is_array($data['by_day'] ?? null) ? array_values($data['by_day']) : [];
+        $total = (int) ($data['total'] ?? 0);
+        $counted = array_sum(array_map(static fn (mixed $day): int => is_array($day) ? (int) ($day['count'] ?? 0) : 0, $days));
+
+        $cut = is_bool($data['by_day_complete'] ?? null) ? ! $data['by_day_complete'] : ($days !== [] && $counted < $total);
+
+        if (! $cut || $days === []) {
+            return null;
+        }
+
+        $older = $total - $counted;
+        $first = is_array($days[0]) ? (string) ($days[0]['day'] ?? '?') : '?';
+
+        if ($older <= 0) {
+            return "`by_day` starts at {$first}: the add-on reports at most 366 days, so earlier days are not shown.";
+        }
+
+        return sprintf(
+            '`by_day` starts at %s: the add-on reports at most 366 days. %s older than that and %s counted in '
+            .'`total` but on no day.',
+            $first,
+            $older === $total
+                ? sprintf('%s in this window %s', match ($total) {
+                    1 => 'The one entry',
+                    2 => 'Both entries',
+                    default => "All {$total} entries",
+                }, $total === 1 ? 'is' : 'are')
+                : sprintf('%d of the %d entries in this window %s', $older, $total, $older === 1 ? 'is' : 'are'),
+            $older === 1 ? 'is' : 'are',
+        );
+    }
+
     public static function iso(int $timestamp): string
     {
         return CarbonImmutable::createFromTimestampUTC($timestamp)->format('Y-m-d\TH:i:s\Z');
