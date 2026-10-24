@@ -93,6 +93,10 @@ for the life of the process hid a newly added forum until the client reconnected
 `error-log-entries` is offered is decided when the client asks for the list, and a client asks
 once. Adding the first `detail_key` to an inventory that had none still needs a reconnect.
 
+**A parse error never quotes the parser.** The TOML parser names the token it stopped on, which
+in this file can be part of a key, so `ForumInventory` reports a fixed sentence and chains
+nothing. `ForumInventoryTest` holds it to that.
+
 **`key` alone, never `key` with `user`.** In `hampel/xenforo-api-laravel` that pair builds a
 super user key, which the add-on refuses with a 403 that reads like a broken forum.
 `ForumInventory::problem()` rejects a table that has a `user` line.
