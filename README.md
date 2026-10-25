@@ -128,6 +128,12 @@ anywhere does not offer the tool.
 
 One key holding both scopes works, and `app:validate` warns about it.
 
+**Asking for an entry's request is recorded on the forum.** `include_request` adds the
+recorded request, the user id and the IP address, and is off by default. From Hampel/AdminApi
+1.0.0a9 the forum writes each such call to its admin log as a member lookup, whether or not the
+entry exists, so anything that forwards the admin log forwards those calls too. A read without
+it records nothing.
+
 ## Configuration
 
 Every setting has a default, so a checkout needs no `.env`. `.env.example` documents each one.

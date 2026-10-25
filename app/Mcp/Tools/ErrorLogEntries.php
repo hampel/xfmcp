@@ -36,6 +36,8 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
     `include_request` adds the recorded request, the user id and the IP address to each entry. Leave it off unless
     the question is specifically who was affected or what was submitted: why an error happened is nearly always in
     the message and the trace, and the summary's `members` and `by_origin` already say whether anyone was affected.
+    A forum on Hampel/AdminApi 1.0.0a9 or later records each call with `include_request` in its admin log as a
+    member lookup, found or not, and a forum may forward its admin log elsewhere. Without it nothing is recorded.
 
     A forum can only answer if it has a detail key configured and accepts it. forum-access says whether it
     does, without reading an entry; do not call this tool to find out.
@@ -71,7 +73,7 @@ class ErrorLogEntries extends ForumTool
             'limit' => $schema->integer()->description('How many entries to return, counting the one asked for. Default 5, maximum 20.'),
             'include_request' => $schema->boolean()->description(
                 'Add the recorded request (URL, referrer, submitted data or command line), the user id and the IP '
-                .'address. Personal data; off by default.'
+                .'address. Personal data, and recorded in the forum\'s admin log; off by default.'
             ),
         ];
     }
