@@ -30,6 +30,9 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 
     Easy to misread:
     - The default window is the last 24 hours, so a quiet day reads as zero. `since: "all"` covers the whole log.
+    - A long window on a large log is slow: the forum reads every row in it, and on the `ip` log that can take many
+      seconds. To learn how big a log is, do not widen the window - `log_total` gives the whole log's size on any
+      call, and the overview (no `log`) is the quickest way to ask.
     - `log_total`, `log_oldest_date` and `log_newest_date` describe the whole log, whatever the window. Most logs
       are pruned by an option, so `window.precedes_log: true` means the earliest days may read as zero because
       they were pruned, not because nothing happened.
