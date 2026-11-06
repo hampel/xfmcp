@@ -15,7 +15,7 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 
 #[Description(<<<'TEXT'
     Find out what one forum will actually answer, before relying on it: whether it is reachable, which of its
-    summary tools it will answer (each needs its own admin permission), whether options and configuration come with values, and whether individual error log
+    summary tools it will answer (each needs its own scope on the key), whether options and configuration come with values, and whether individual error log
     entries can be read. Use it when list-forums is not enough - it only says what is configured.
 
     It reads nothing personal. The check for error log entries asks for no entry, so the forum can only say
@@ -74,8 +74,9 @@ class ForumAccess extends ForumTool
     /**
      * The summary tools the forum will not answer, beyond add-ons, which has already been asked.
      *
-     * Each endpoint needs its own admin permission, so one answering says nothing about the
-     * next. These are the same counts the tools return; none is about a member.
+     * Each endpoint needs its own scope (before 1.0.0a11, its own admin permission), so one
+     * answering says nothing about the next. These are the same counts the tools return; none
+     * is about a member.
      *
      * @return array<string, string>
      */

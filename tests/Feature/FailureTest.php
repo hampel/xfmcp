@@ -73,6 +73,25 @@ it('passes on the forum\'s refusal of a window longer than it allows', function 
         ->assertHasErrors(['The window may be at most 31 days long.']);
 });
 
+it('says a key allowed all scopes must have them selected, from 1.0.0a11', function () {
+    // not captured: the add-on's phrase and code as its session described them on 2026-11-06
+    fakeForum(['admin-api/add-ons/' => Http::response(
+        ['errors' => [['code' => 'hampel_adminapi_scope_must_be_selected', 'message' => 'This key allows all scopes, which does not include the Admin API\'s. Choose "Selected scopes only" and select hampel_admin_api:add_ons.', 'params' => ['scope' => 'hampel_admin_api:add_ons']]]],
+        403,
+    )]);
+
+    XenForoServer::tool(AddOns::class, ['forum' => 'acme'])
+        ->assertHasErrors(['is allowed all scopes', 'select hampel_admin_api:add_ons', 'the key itself is fine']);
+});
+
+it('names the one admin permission of 1.0.0a11 and the older one beside it', function () {
+    fakeForum(['admin-api/reports/' => ['refused-no-permission', 403]]);
+
+    XenForoServer::tool(Reports::class, ['forum' => 'acme'])
+        ->assertHasErrors(['"Use the Admin API"; on an older add-on, Admin API: View report summary.'])
+        ->assertDontSee('View logs');
+});
+
 it('says which scope the forum asked for', function () {
     fakeForum(['admin-api/error-entries/' => ['refused-missing-scope', 403]]);
 

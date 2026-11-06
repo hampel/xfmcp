@@ -171,7 +171,7 @@ it('fails a key without its scope, a forum without the add-on, and a forum that 
 
     expect($exit)->toBe(1)->and($output)->toContain('[fail]')->toContain($expected);
 })->with([
-    'no scope' => [['index' => [['key' => ['type' => 'user', 'scopes' => []]], 200]], 'without the hampel_admin_api:read scope'],
+    'no scope' => [['index' => [['key' => ['type' => 'user', 'scopes' => []]], 200]], 'without a summary scope'],
     'no add-on' => [['index' => ['index-read-key', 200]], 'add-on is not installed'],
     'down' => [['index' => ['<html>Bad Gateway</html>', 502]], 'answered HTTP 502'],
     'unknown key' => [['index' => ['bad-key', 401]], 'rejected the key (api_key_not_found)'],
@@ -188,6 +188,48 @@ it('reads scopes sent as a list as well as a map', function () {
     ]]);
 
     expect(runCommand('app:validate')[1])->toContain('a user key holding hampel_admin_api:read only');
+});
+
+it('passes a read key holding the per-endpoint scopes of the add-on\'s 1.0.0a11', function () {
+    // not captured: index-read-key with its scopes replaced as the add-on's 1.0.0a11 names them
+    $index = captured('index-read-key');
+    $index['key']['scopes'] = ['hampel_admin_api:error_log' => true, 'hampel_admin_api:add_ons' => true, 'hampel_admin_api:jobs' => true];
+
+    fakeHealthyForum([READ_KEY => [
+        'index' => [$index, 200],
+        'admin-api/add-ons' => ['add-ons', 200],
+        'admin-api/error-entries' => ['refused-missing-scope', 403],
+    ]]);
+
+    [$exit, $output] = runCommand('app:validate');
+
+    expect($exit)->toBe(0)->and($output)->not->toContain('[warn]')
+        ->toContain('a user key holding 3 of the 11 summary scopes only; options and configuration show no values. Not selected, so refused: hampel_admin_api:logs');
+});
+
+it('does not fail a 1.0.0a11 read key for leaving add-ons unselected', function () {
+    $index = captured('index-read-key');
+    $index['key']['scopes'] = ['hampel_admin_api:error_log' => true];
+
+    fakeHealthyForum([READ_KEY => [
+        'index' => [$index, 200],
+        'admin-api/add-ons' => [['errors' => [['code' => 'missing_scope', 'message' => 'This request requires the hampel_admin_api:add_ons scope.', 'params' => ['scope' => 'hampel_admin_api:add_ons']]]], 403],
+        'admin-api/error-entries' => ['refused-missing-scope', 403],
+    ]]);
+
+    [$exit, $output] = runCommand('app:validate');
+
+    expect($exit)->toBe(0)->and($output)->toContain('add-ons is not among the read key\'s scopes');
+});
+
+it('warns that a key allowed all scopes reaches nothing from 1.0.0a11', function () {
+    $index = captured('index-read-key');
+    $index['key']['allow_all_scopes'] = true;
+    $index['key']['scopes'] = [];
+
+    fakeHealthyForum([READ_KEY => ['index' => [$index, 200]]]);
+
+    expect(runCommand('app:validate')[1])->toContain('[warn]')->toContain('from 1.0.0a11 it reaches none');
 });
 
 it('contacts nothing when offline, and says each forum was skipped rather than passed', function () {

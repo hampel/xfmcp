@@ -33,7 +33,27 @@ use Throwable;
  */
 class ForumGateway
 {
+    /** every summary, on an add-on before 1.0.0a11; gone from 1.0.0a11 */
     public const SCOPE_READ = 'hampel_admin_api:read';
+
+    /**
+     * From the add-on's 1.0.0a11, each summary endpoint has a scope of its own and the read
+     * key holds the ones it is to answer. Endpoint to scope, as the add-on's README has it.
+     */
+    public const SUMMARY_SCOPES = [
+        'admin-api/error-log/' => 'hampel_admin_api:error_log',
+        'admin-api/logs/' => 'hampel_admin_api:logs',
+        'admin-api/add-ons/' => 'hampel_admin_api:add_ons',
+        'admin-api/cron/' => 'hampel_admin_api:jobs',
+        'admin-api/jobs/' => 'hampel_admin_api:jobs',
+        'admin-api/options/' => 'hampel_admin_api:options',
+        'admin-api/config/' => 'hampel_admin_api:config',
+        'admin-api/online/' => 'hampel_admin_api:online',
+        'admin-api/user-upgrades/' => 'hampel_admin_api:user_upgrades',
+        'admin-api/approval-queue/' => 'hampel_admin_api:approval_queue',
+        'admin-api/reports/' => 'hampel_admin_api:reports',
+        'admin-api/activity/' => 'hampel_admin_api:activity',
+    ];
 
     public const SCOPE_DETAIL = 'hampel_admin_api:error_detail';
 
@@ -41,6 +61,9 @@ class ForumGateway
     public const SCOPE_VALUES = 'hampel_admin_api:values';
 
     public const CODE_KEY_TYPE = 'hampel_adminapi_user_api_key_required';
+
+    /** from 1.0.0a11: a key allowed all scopes reaches none of the add-on's */
+    public const CODE_SCOPE_MUST_BE_SELECTED = 'hampel_adminapi_scope_must_be_selected';
 
     public const CODE_ERROR_ID_REQUIRED = 'hampel_adminapi_error_id_required';
 
@@ -184,20 +207,25 @@ class ForumGateway
                 .'forum\'s admin control panel and in the inventory.';
         }
 
+        if ($e->hasCode(self::CODE_SCOPE_MUST_BE_SELECTED)) {
+            return "{$name} refused the key ({$codes}): `{$which}` is allowed all scopes, and from Hampel/AdminApi "
+                .'1.0.0a11 that reaches none of the add-on\'s. '.$this->messages($e).' The key\'s scopes are set in '
+                .'the forum\'s admin control panel; the key itself is fine.';
+        }
+
         if ($e->hasCode('missing_scope')) {
             return "{$name} refused the key (missing_scope): `{$which}` does not hold the API scope this endpoint "
                 .'needs. '.$this->messages($e).' The scope is set on the key in the forum\'s admin control panel.';
         }
 
         if ($e->hasCode('do_not_have_permission')) {
-            $permission = AdminApi::PERMISSIONS[$path ?? ''] ?? null;
+            $legacy = AdminApi::PERMISSIONS[$path ?? ''] ?? null;
 
             return "{$name} refused the key (do_not_have_permission): the administrator `{$which}` belongs to does "
-                .($permission === null
-                    ? 'not hold the admin permission for this endpoint. Reading error entries also needs XenForo\'s '
-                        .'own "View logs" permission.'
-                    : "not hold the admin permission it needs: {$permission}.")
-                .' It is granted on the administrator in the forum\'s admin control panel; the key is fine.';
+                .'not hold the admin permission it needs. From Hampel/AdminApi 1.0.0a11 that is "'.AdminApi::PERMISSION.'"'
+                .($legacy === null ? '' : "; on an older add-on, {$legacy}")
+                .(in_array($path, [null, 'admin-api/error-entries/'], true) ? '. Reading error entries also needs XenForo\'s own "View logs"' : '')
+                .'. It is granted on the administrator in the forum\'s admin control panel; the key is fine.';
         }
 
         if ($e instanceof NotAuthenticatedException || $e instanceof NotPermittedException) {

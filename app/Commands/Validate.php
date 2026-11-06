@@ -142,7 +142,7 @@ class Validate extends Command
 
     protected function checkForum(ForumGateway $gateway, Forum $forum): void
     {
-        if (! $this->checkKeyKind($gateway, $forum, $forum->key, 'key', ForumGateway::SCOPE_READ)) {
+        if (! $this->checkKeyKind($gateway, $forum, $forum->key, 'key')) {
             // nothing below can say anything useful about a key the forum did not accept
             return;
         }
@@ -152,6 +152,11 @@ class Validate extends Command
         try {
             $addOns = $api->addOns();
             $this->checkOk('Summaries', $this->describeForum($addOns));
+        } catch (ApiException $e) {
+            // from 1.0.0a11 a read key may leave add-ons unselected, which the key check reported
+            $e->hasCode('missing_scope') && ! $this->holdsLegacyRead
+                ? $this->checkSkip('Summaries', 'add-ons is not among the read key\'s scopes, so the add-on inventory is not read')
+                : $this->checkFail('Summaries', $gateway->explain($forum, 'key', $e));
         } catch (XenForoException $e) {
             $this->checkFail('Summaries', $gateway->explain($forum, 'key', $e));
         }
@@ -186,7 +191,7 @@ class Validate extends Command
             return;
         }
 
-        if (! $this->checkKeyKind($gateway, $forum, $forum->detailKey, 'detail_key', ForumGateway::SCOPE_DETAIL)) {
+        if (! $this->checkKeyKind($gateway, $forum, $forum->detailKey, 'detail_key')) {
             return;
         }
 
@@ -254,6 +259,9 @@ class Validate extends Command
     /** whether the read key last checked by checkKeyKind() holds the values scope */
     protected bool $holdsValues = false;
 
+    /** whether it holds the single read scope of an add-on before 1.0.0a11 */
+    protected bool $holdsLegacyRead = false;
+
     /**
      * What the forum itself says about a key: its type, and the scopes it holds.
      *
@@ -262,7 +270,7 @@ class Validate extends Command
      *
      * @return bool whether the key is one the add-on will accept
      */
-    protected function checkKeyKind(ForumGateway $gateway, Forum $forum, #[\SensitiveParameter] string $key, string $which, string $scope): bool
+    protected function checkKeyKind(ForumGateway $gateway, Forum $forum, #[\SensitiveParameter] string $key, string $which): bool
     {
         $label = $which === 'key' ? 'Read key' : 'Detail key';
 
@@ -283,33 +291,68 @@ class Validate extends Command
             return false;
         }
 
-        if (! $info->hasScope($scope)) {
-            $this->checkFail($label, 'a user key without the '.$scope.' scope');
+        if ($info->allowAllScopes) {
+            if ($which === 'key') {
+                $this->holdsValues = $this->holdsLegacyRead = true;
+            }
 
-            return false;
+            $this->checkWarn($label, 'a user key allowed ALL scopes. Before Hampel/AdminApi 1.0.0a11 that reaches every '
+                .'endpoint; from 1.0.0a11 it reaches none. Choose "Selected scopes only" and select the scopes it is for');
+
+            return true;
         }
 
-        // the values scope widens what the read key's own endpoints show; it is a choice
-        // made per forum, not a key holding more than it should
-        $expected = $which === 'key' ? [$scope, ForumGateway::SCOPE_VALUES] : [$scope];
-        $extra = array_values(array_diff($info->scopes, $expected));
         $values = $which === 'key' && in_array(ForumGateway::SCOPE_VALUES, $info->scopes, true);
+        $summaries = array_values(array_unique(ForumGateway::SUMMARY_SCOPES));
+        $held = array_values(array_intersect($summaries, $info->scopes));
+        $legacy = in_array(ForumGateway::SCOPE_READ, $info->scopes, true);
 
         if ($which === 'key') {
-            $this->holdsValues = $values || $info->allowAllScopes;
+            $this->holdsValues = $values;
+            $this->holdsLegacyRead = $legacy;
+
+            if (! $legacy && $held === []) {
+                $this->checkFail($label, 'a user key without a summary scope: it needs '.ForumGateway::SCOPE_READ
+                    .' before Hampel/AdminApi 1.0.0a11, or from 1.0.0a11 the scope of each summary it is to answer');
+
+                return false;
+            }
+
+            // the values scope widens what options and configuration show; it is a choice
+            // made per forum, not a key holding more than it should
+            $expected = [...$summaries, ForumGateway::SCOPE_READ, ForumGateway::SCOPE_VALUES];
+        } else {
+            if (! $info->hasScope(ForumGateway::SCOPE_DETAIL)) {
+                $this->checkFail($label, 'a user key without the '.ForumGateway::SCOPE_DETAIL.' scope');
+
+                return false;
+            }
+
+            $expected = [ForumGateway::SCOPE_DETAIL];
         }
 
-        if ($info->allowAllScopes) {
-            $this->checkWarn($label, 'a user key allowed ALL scopes; give it '.$scope.' and nothing else');
-        } elseif ($extra !== []) {
+        $extra = array_values(array_diff($info->scopes, $expected));
+
+        if ($extra !== []) {
             $this->checkWarn($label, sprintf('a user key holding %d scope(s) it does not need: %s', count($extra), implode(', ', $extra)));
-        } else {
-            $this->checkOk($label, match (true) {
-                $values => 'a user key holding '.$scope.' and '.ForumGateway::SCOPE_VALUES,
-                $which === 'key' => 'a user key holding '.$scope.' only; options and configuration show no values',
-                default => 'a user key holding '.$scope.' only',
-            });
+
+            return true;
         }
+
+        if ($which !== 'key') {
+            $this->checkOk($label, 'a user key holding '.ForumGateway::SCOPE_DETAIL.' only');
+
+            return true;
+        }
+
+        $what = $legacy
+            ? ForumGateway::SCOPE_READ
+            : sprintf('%d of the %d summary scopes', count($held), count($summaries));
+        $missing = $legacy ? [] : array_values(array_diff($summaries, $held));
+
+        $this->checkOk($label, 'a user key holding '.$what
+            .($values ? ' and '.ForumGateway::SCOPE_VALUES : ' only; options and configuration show no values')
+            .($missing === [] ? '' : '. Not selected, so refused: '.implode(', ', $missing)));
 
         return true;
     }

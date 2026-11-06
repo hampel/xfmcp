@@ -58,55 +58,60 @@ detail_key = "…"
 |---|---|
 | table name | the id every tool takes. Lowercase |
 | `url` | the board URL, or its `/api` URL |
-| `key` | a User key holding `hampel_admin_api:read`, and `hampel_admin_api:values` if values should be shown |
+| `key` | a User key holding the scope of each summary tool wanted, and `hampel_admin_api:values` if values should be shown |
 | `detail_key` | optional: a second User key holding only `hampel_admin_api:error_detail` |
 | `name` | optional: a label shown by `list-forums` |
 
 ### Create the keys on the forum
 
 **What a key may read is decided on the forum, not here.** The add-on refuses a super user
-key, then asks for a scope on the key, then for an admin permission held by the key's own
-administrator. *Permissions* below lists what each tool needs.
+key, then asks for the endpoint's scope on the key, then for an admin permission held by the
+key's own administrator. *Permissions* below lists what each tool needs.
 
 1. Under *Groups & permissions > Administrators*, pick the administrator the keys will act
-   as and give them the permissions for the tools you want. A dedicated administrator holding
-   only these is the safest choice. A super administrator already holds all of them.
+   as and give them *Use the Admin API*. A dedicated administrator holding only that is the
+   safest choice; options values and error entries need one core permission each as well.
 2. Under *Setup > API keys*, create a key of type **User** for that administrator, with
-   *Selected scopes only* and `hampel_admin_api:read` ticked. Tick `hampel_admin_api:values`
-   as well if options and configuration should show values. That is `key`.
+   *Selected scopes only*, and tick the scope of each tool you want. Tick
+   `hampel_admin_api:values` as well if options and configuration should show values. That is
+   `key`.
 3. If error messages should be readable, create a second User key with only
    `hampel_admin_api:error_detail`. That is `detail_key`.
 4. Run `xfmcp app:validate`. It names any scope or permission that is missing.
+
+**"All scopes" reaches none of the add-on's endpoints.** The scopes have to be ticked one by
+one, so that a key is never given the member lookups by accident.
 
 `php cmd.php admin-api:validate` on the forum checks the same from its side.
 
 ### Permissions
 
-**Each tool needs a scope on the key and an admin permission on the key's administrator**, and
-some need two permissions. The permission names are as they appear on the administrator's
-page in the control panel.
+**Each tool needs its own scope on the key, and the key's administrator needs *Use the Admin
+API*.** Two need a core permission as well. The names are as they appear in the control
+panel.
 
-| tool | key | scope | admin permissions |
-|---|---|---|---|
-| `error-log-summary` | `key` | `hampel_admin_api:read` | Admin API: View error log summary |
-| `add-ons` | `key` | `hampel_admin_api:read` | Admin API: View add-ons |
-| `cron-entries`, `job-queue` | `key` | `hampel_admin_api:read` | Admin API: View cron and jobs |
-| `who-is-online` | `key` | `hampel_admin_api:read` | Admin API: View who is online |
-| `forum-logs` | `key` | `hampel_admin_api:read` | Admin API: View log summaries |
-| `approval-queue` | `key` | `hampel_admin_api:read` | Admin API: View approval queue summary |
-| `reports` | `key` | `hampel_admin_api:read` | Admin API: View report summary |
-| `forum-activity` | `key` | `hampel_admin_api:read` | Admin API: View activity summary |
-| `user-upgrades` | `key` | `hampel_admin_api:read` | Admin API: View user upgrade summary |
-| `forum-options` | `key` | `hampel_admin_api:read` | Admin API: View options |
-| `forum-configuration` | `key` | `hampel_admin_api:read` | Admin API: View config.php |
-| `error-log-entries` | `detail_key` | `hampel_admin_api:error_detail` | Admin API: View error log entries, **and** XenForo's *View logs* |
-
-Showing values takes more, on the same key:
-
-| to show values in | add the scope | and the admin permissions |
+| tool | key | scope |
 |---|---|---|
-| `forum-configuration` | `hampel_admin_api:values` | Admin API: View setting values |
-| `forum-options` | `hampel_admin_api:values` | Admin API: View setting values, **and** XenForo's *Manage options* |
+| `error-log-summary` | `key` | `hampel_admin_api:error_log` |
+| `add-ons` | `key` | `hampel_admin_api:add_ons` |
+| `cron-entries`, `job-queue` | `key` | `hampel_admin_api:jobs` |
+| `who-is-online` | `key` | `hampel_admin_api:online` |
+| `forum-logs` | `key` | `hampel_admin_api:logs` |
+| `approval-queue` | `key` | `hampel_admin_api:approval_queue` |
+| `reports` | `key` | `hampel_admin_api:reports` |
+| `forum-activity` | `key` | `hampel_admin_api:activity` |
+| `user-upgrades` | `key` | `hampel_admin_api:user_upgrades` |
+| `forum-options` | `key` | `hampel_admin_api:options` |
+| `forum-configuration` | `key` | `hampel_admin_api:config` |
+| `error-log-entries` | `detail_key` | `hampel_admin_api:error_detail`, **and** XenForo's *View logs* on the administrator |
+
+**Showing values takes `hampel_admin_api:values` on the same key**, beside `options` or
+`config`. Option values also need XenForo's *Manage options* on the administrator.
+
+**A forum on Hampel/AdminApi 1.0.0a10 or earlier works the old way** until it is upgraded:
+one `hampel_admin_api:read` scope for every summary, and an admin permission per endpoint
+instead of *Use the Admin API*. On such a forum *All scopes* reaches everything. A refusal
+names the permission for both versions, and `app:validate` accepts either kind of key.
 
 `list-forums` contacts no forum and needs nothing. `forum-access` needs nothing of its own: it
 reports which of the above a forum grants.

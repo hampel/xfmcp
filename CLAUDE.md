@@ -153,10 +153,12 @@ response got something wrong, in trials run against the add-on before this tool 
 - **`notes` says what an empty answer is worth**, because absence is not health and a
   description alone did not stop an agent overclaiming it.
 
-- **`forum-access` asks every summary endpoint, not one.** Each has its own admin permission,
-  so add-ons answering said nothing about logs or upgrades; on 2026-10-24 three dev forums
-  answered every older summary and refused all three new ones. A refusal names the permission
-  from `AdminApi::PERMISSIONS`, which is kept in step with the add-on by hand.
+- **`forum-access` asks every summary endpoint, not one.** Each has its own scope from the
+  add-on's 1.0.0a11, and had its own admin permission before, so add-ons answering says nothing
+  about logs or upgrades; on 2026-10-24 three dev forums answered every older summary and
+  refused all three new ones. A permission refusal names *Use the Admin API* and, for a forum
+  not yet upgraded, the old per-endpoint permission from `AdminApi::PERMISSIONS`. Both, and
+  `ForumGateway::SUMMARY_SCOPES`, are kept in step with the add-on by hand.
 
 - **A day-by-day breakdown from the new tools lists only busy days, and says when it stops
   short.** The add-on lists every day up to 366, so a year of nothing was 730 rows, and on a
@@ -179,10 +181,17 @@ Changing one of these changes what an agent concludes. Add a test with the chang
 
 ## `app:validate` proves the kind of each key
 
+**A read key may hold either access model, because forums upgrade one at a time.** From the
+add-on's 1.0.0a11 (2026-11-06) each summary has its own scope and *All scopes* reaches nothing;
+before it one `hampel_admin_api:read` covered them all. `app:validate` accepts a key holding
+either, reports which summary scopes a new-model key left unselected without warning, and warns
+on *All scopes*, which is everything on an old forum and nothing on a new one.
+
 **The values scope on a read key is a choice, not an excess.** `hampel_admin_api:values`
-widens what the read key's own two endpoints show, so `app:validate` reports it and does not
-warn. Any other extra scope still warns. The scope is not sufficient, though: the key's user also needs
-admin permissions, and lacking one the forum answers 200 with shape only. So the command asks
+widens what the read key's options and configuration show, so `app:validate` reports it and
+does not warn. Any other extra scope, a member lookup's above all, still warns. The scope is not sufficient, though: the key's user also needs
+an admin permission, core's own for options, and lacking one the forum answers 200 with shape
+only. So the command asks
 both endpoints and reads `mode`, warning with the forum's own `mode_reason`. That reason is
 quoted, never matched on - the add-on has already added one.
 
