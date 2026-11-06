@@ -32,6 +32,8 @@ final class AdminApi extends Endpoint
         'admin-api/logs/' => 'Admin API: View log summaries',
         'admin-api/user-upgrades/' => 'Admin API: View user upgrade summary',
         'admin-api/approval-queue/' => 'Admin API: View approval queue summary',
+        'admin-api/reports/' => 'Admin API: View report summary',
+        'admin-api/activity/' => 'Admin API: View activity summary',
         'admin-api/options/' => 'Admin API: View options',
         'admin-api/config/' => 'Admin API: View config.php',
     ];
@@ -136,6 +138,29 @@ final class AdminApi extends Endpoint
     public function approvalQueue(): array
     {
         return $this->ask('admin-api/approval-queue/')->data;
+    }
+
+    /**
+     * How many reports wait, of what kind, for how long and since anyone touched them.
+     * Never the report, the content or who made it.
+     *
+     * @return array<mixed>
+     */
+    public function reports(): array
+    {
+        return $this->ask('admin-api/reports/')->data;
+    }
+
+    /**
+     * Registrations, threads and posts created in a window, by their state now. The forum
+     * refuses a window longer than 31 days.
+     *
+     * @param  array<string, scalar|null>  $query  since, until
+     * @return array<mixed>
+     */
+    public function activity(array $query = []): array
+    {
+        return $this->ask('admin-api/activity/', $query)->data;
     }
 
     /**

@@ -1,0 +1,10 @@
+{
+    "now": 1792445101,
+    "window": {"since": 1792358701, "until": 1792445101},
+    "registrations": {
+        "total": 41,
+        "by_state": {"valid": 30, "email_confirm": 6, "email_confirm_edit": 0, "moderated": 3, "email_bounce": 0, "rejected": 1, "disabled": 1, "other": 0}
+    },
+    "threads": {"total": 52, "by_state": {"visible": 49, "moderated": 2, "deleted": 1, "other": 0}},
+    "posts": {"total": 610, "by_state": {"visible": 598, "moderated": 4, "deleted": 8, "other": 0}}
+}

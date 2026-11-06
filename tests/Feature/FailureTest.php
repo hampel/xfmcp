@@ -5,7 +5,9 @@ use App\Mcp\Tools\AddOns;
 use App\Mcp\Tools\ApprovalQueue;
 use App\Mcp\Tools\ErrorLogEntries;
 use App\Mcp\Tools\ErrorLogSummary;
+use App\Mcp\Tools\ForumActivity;
 use App\Mcp\Tools\ForumLogs;
+use App\Mcp\Tools\Reports;
 use App\Mcp\Tools\UserUpgrades;
 use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Psr7\Request as Psr7Request;
@@ -51,10 +53,8 @@ it('names the two refusals the add-on phrases itself', function (string $code, s
 ]);
 
 it('names the admin permission the refused endpoint needs', function (string $tool, string $path, string $permission) {
-    fakeForum([$path => Http::response(
-        ['errors' => [['code' => 'do_not_have_permission', 'message' => 'Refused.', 'params' => []]]],
-        403,
-    )]);
+    // captured: a forum's refusal of the reports endpoint, whose permission the key's administrator lacked
+    fakeForum([$path => ['refused-no-permission', 403]]);
 
     XenForoServer::tool($tool, ['forum' => 'acme'])->assertHasErrors([$permission.'.', 'the key is fine']);
 })->with([
@@ -62,7 +62,20 @@ it('names the admin permission the refused endpoint needs', function (string $to
     [ForumLogs::class, 'admin-api/logs/', 'Admin API: View log summaries'],
     [ApprovalQueue::class, 'admin-api/approval-queue/', 'Admin API: View approval queue summary'],
     [UserUpgrades::class, 'admin-api/user-upgrades/', 'Admin API: View user upgrade summary'],
+    [Reports::class, 'admin-api/reports/', 'Admin API: View report summary'],
+    [ForumActivity::class, 'admin-api/activity/', 'Admin API: View activity summary'],
 ]);
+
+it('passes on the forum\'s refusal of a window longer than it allows', function () {
+    // not captured: the add-on's phrase, from its source; the dev key lacks the permission
+    fakeForum(['admin-api/activity/' => Http::response(
+        ['errors' => [['code' => 'hampel_adminapi_window_too_long', 'message' => 'The window may be at most 31 days long.', 'params' => []]]],
+        400,
+    )]);
+
+    XenForoServer::tool(ForumActivity::class, ['forum' => 'acme', 'since' => '-60 days'])
+        ->assertHasErrors(['The window may be at most 31 days long.']);
+});
 
 it('says which scope the forum asked for', function () {
     fakeForum(['admin-api/error-entries/' => ['refused-missing-scope', 403]]);

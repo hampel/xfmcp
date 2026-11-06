@@ -1,0 +1,9 @@
+{
+    "errors": [
+        {
+            "code": "do_not_have_permission",
+            "message": "You do not have permission to view this page or perform this action.",
+            "params": []
+        }
+    ]
+}

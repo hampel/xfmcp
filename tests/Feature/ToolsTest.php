@@ -6,11 +6,13 @@ use App\Mcp\Tools\ApprovalQueue;
 use App\Mcp\Tools\CronEntries;
 use App\Mcp\Tools\ErrorLogEntries;
 use App\Mcp\Tools\ErrorLogSummary;
+use App\Mcp\Tools\ForumActivity;
 use App\Mcp\Tools\ForumConfiguration;
 use App\Mcp\Tools\ForumLogs;
 use App\Mcp\Tools\ForumOptions;
 use App\Mcp\Tools\JobQueue;
 use App\Mcp\Tools\ListForums;
+use App\Mcp\Tools\Reports;
 use App\Mcp\Tools\UserUpgrades;
 use App\Mcp\Tools\WhoIsOnline;
 use App\Support\ForumInventoryException;
@@ -216,6 +218,8 @@ it('sends every summary with the read key and never as a super user', function (
     [WhoIsOnline::class, 'admin-api/online/', 'online'],
     [ForumLogs::class, 'admin-api/logs/', 'logs'],
     [ApprovalQueue::class, 'admin-api/approval-queue/', 'approval-queue'],
+    [Reports::class, 'admin-api/reports/', 'reports'],
+    [ForumActivity::class, 'admin-api/activity/', 'activity'],
     [UserUpgrades::class, 'admin-api/user-upgrades/', 'user-upgrades'],
     [ForumOptions::class, 'admin-api/options/', 'options-changed'],
     [ForumConfiguration::class, 'admin-api/config/', 'config-changed'],
@@ -690,4 +694,70 @@ it('does not call a complete by_day cut', function () {
 
     expect(implode(' ', structured(ErrorLogSummary::class, ['forum' => 'acme', 'since' => 'all'])['notes']))
         ->not->toContain('at most 366 days');
+});
+
+/*
+ * reports.json and activity.json are the add-on README's examples with `now` added, not captures:
+ * the dev forum's administrator lacked both permissions when the tools were written. Recapture.
+ */
+
+it('says how many reports wait and how long since anyone touched one', function () {
+    fakeForum(['admin-api/reports/' => 'reports']);
+
+    expect(structured(Reports::class, ['forum' => 'acme'])['headline'])
+        ->toBe('6 reports are waiting (4 open, 2 assigned); the oldest was first reported 6 days ago, and the longest untouched was last acted on 3 days ago.');
+});
+
+it('says when moderators are shown the wrong report count', function () {
+    fakeForum(['admin-api/reports/' => Http::response(['cached_total' => 2] + captured('reports'))]);
+
+    expect(structured(Reports::class, ['forum' => 'acme'])['headline'])->toEndWith('Moderators are shown 2, which is wrong.');
+});
+
+it('says when no report is waiting', function () {
+    $reports = ['total' => 0, 'open' => 0, 'assigned' => 0, 'oldest_date' => null, 'newest_date' => null, 'oldest_activity_date' => null, 'by_content_type' => [], 'cached_total' => 0] + captured('reports');
+
+    fakeForum(['admin-api/reports/' => Http::response($reports)]);
+
+    expect(structured(Reports::class, ['forum' => 'acme'])['headline'])->toBe('No report is waiting for a moderator.');
+});
+
+it('counts registrations and posting by the state each is in now', function () {
+    fakeForum(['admin-api/activity/' => 'activity']);
+
+    $content = structured(ForumActivity::class, ['forum' => 'acme']);
+
+    expect($content['headline'])->toBe('41 registrations in this window, 6 of them awaiting email confirmation and 3 awaiting approval; 52 threads and 610 posts, of which 6 are awaiting approval and 9 deleted.')
+        ->and(implode(' ', $content['notes']))->toContain('in the state it is in now')->toContain('includes the opening post')
+        ->not->toContain('`other`');
+});
+
+it('says when an add-on has given something a state XenForo does not define', function () {
+    $activity = captured('activity');
+    $activity['posts']['by_state']['other'] = 3;
+
+    fakeForum(['admin-api/activity/' => Http::response($activity)]);
+
+    expect(implode(' ', structured(ForumActivity::class, ['forum' => 'acme'])['notes']))->toContain('3 are in a state XenForo does not define');
+});
+
+it('says a quiet window is quiet', function () {
+    $activity = captured('activity');
+
+    foreach (['registrations', 'threads', 'posts'] as $part) {
+        $activity[$part]['total'] = 0;
+        $activity[$part]['by_state'] = array_map(fn () => 0, $activity[$part]['by_state']);
+    }
+
+    fakeForum(['admin-api/activity/' => Http::response($activity)]);
+
+    expect(structured(ForumActivity::class, ['forum' => 'acme'])['headline'])->toBe('Nobody registered and nothing was posted in this window.');
+});
+
+it('sends the window it was given to the activity endpoint', function () {
+    fakeForum(['admin-api/activity/' => 'activity']);
+
+    structured(ForumActivity::class, ['forum' => 'acme', 'since' => '1792000000', 'until' => '1792086400']);
+
+    expect(sentRequests()[0]->url())->toContain('since=1792000000')->toContain('until=1792086400');
 });

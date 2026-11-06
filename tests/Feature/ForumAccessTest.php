@@ -41,6 +41,8 @@ const SUMMARIES_OK = [
     'admin-api/online' => ['online', 200],
     'admin-api/logs' => ['logs', 200],
     'admin-api/approval-queue' => ['approval-queue', 200],
+    'admin-api/reports' => ['reports', 200],
+    'admin-api/activity' => ['activity', 200],
     'admin-api/user-upgrades' => ['user-upgrades', 200],
 ];
 

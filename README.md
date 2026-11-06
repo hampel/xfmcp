@@ -94,6 +94,8 @@ page in the control panel.
 | `who-is-online` | `key` | `hampel_admin_api:read` | Admin API: View who is online |
 | `forum-logs` | `key` | `hampel_admin_api:read` | Admin API: View log summaries |
 | `approval-queue` | `key` | `hampel_admin_api:read` | Admin API: View approval queue summary |
+| `reports` | `key` | `hampel_admin_api:read` | Admin API: View report summary |
+| `forum-activity` | `key` | `hampel_admin_api:read` | Admin API: View activity summary |
 | `user-upgrades` | `key` | `hampel_admin_api:read` | Admin API: View user upgrade summary |
 | `forum-options` | `key` | `hampel_admin_api:read` | Admin API: View options |
 | `forum-configuration` | `key` | `hampel_admin_api:read` | Admin API: View config.php |
@@ -204,6 +206,8 @@ Every tool but the first takes `forum`, an id from `list-forums`.
 | `who-is-online` | how many members, guests and robots are online, and how concentrated the guests are |
 | `forum-logs` | how much each of XenForo's 18 logs recorded, or one log's breakdowns: admin, moderator, spam, bounced mail and the rest |
 | `approval-queue` | how much awaits approval, of what kind and for how long, and whether moderators are shown the right count |
+| `reports` | how many reports wait for a moderator, for how long and since anyone touched one, and whether moderators are shown the right count |
+| `forum-activity` | how many members registered and how many threads and posts were made in a window, by the state each is in now |
 | `user-upgrades` | how many members hold each upgrade, what ends soon or expired, and what payments were reported |
 | `forum-options` | the forum's options: what is set, what was changed, and their values with secrets removed |
 | `forum-configuration` | the `config.php` settings in force, and their values with secrets removed |
@@ -260,6 +264,8 @@ answer at all. Further limits:
   forum `job-queue` reports those as not recorded, never as zero. Nor does it record a cancelled
   subscription, so `user-upgrades` reports `cancelled` as null there.
 - `user-upgrades` payment amounts are each upgrade's list price, not what the provider took.
+- `forum-activity` counts each registration, thread and post in the state it is in now, and
+  cannot count what was deleted outright. Its window is at most 31 days.
 - `forum-logs` over a long window on a large log is slow, because the forum reads every row in
   the window; the IP log is the worst. Asking for one log returns its whole size whatever the
   window, so the default 24 hours is enough to learn it.

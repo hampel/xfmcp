@@ -6,9 +6,10 @@
 
 - A stdio MCP server, `xfmcp mcp:start xenforo`, over the read-only endpoints of the
   Hampel/AdminApi XenForo add-on.
-- Thirteen tools: `list-forums`, `forum-access`, `error-log-summary`, `error-log-entries`,
+- Fifteen tools: `list-forums`, `forum-access`, `error-log-summary`, `error-log-entries`,
   `add-ons`, `cron-entries`, `job-queue`, `who-is-online`, `forum-logs`, `approval-queue`,
-  `user-upgrades`, `forum-options` and `forum-configuration`. All are marked read-only.
+  `reports`, `forum-activity`, `user-upgrades`, `forum-options` and `forum-configuration`. All
+  are marked read-only.
 - A refused call names the admin permission its endpoint needs, and `forum-access` reports
   each summary tool a forum refuses.
 - Option and configuration values, with secrets removed and each removal explained, from a

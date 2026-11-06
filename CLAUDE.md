@@ -7,8 +7,8 @@ Guidance for a session working in this repository.
 `xfmcp` is a Laravel Zero 13 CLI (PHP 8.3+) that runs an MCP server over stdio. Its tools are
 the read-only endpoints of the Hampel/AdminApi XenForo add-on, reached through
 `hampel/xenforo-api`, so an agent can ask a forum about its error log, add-ons, cron, job
-queue, who is online, its other logs, the approval queue, user upgrades, options and
-configuration.
+queue, who is online, its other logs, the approval queue, reports, registrations and posting,
+user upgrades, options and configuration.
 
 **The add-on's `README.md` is the contract**: every endpoint, parameter and field. This
 repository does not restate it. `README.md` here is the operator's document; this file is why
@@ -224,7 +224,9 @@ consumes it can only agree with that code. To refresh one, capture the endpoint 
 apply the same replacement; do not edit a shape by hand to make a test pass.
 
 The two `index-*.json` files are the exception: a real `index` response with the site's own
-details replaced by hand.
+details replaced by hand. So, for now, are `reports.json` and `activity.json`: the add-on README's
+examples with `now` added, written on 2026-11-06 before any forum's key could read either
+endpoint. Recapture them once one can.
 
 ## Known gaps
 

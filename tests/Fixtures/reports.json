@@ -1,0 +1,16 @@
+{
+    "now": 1792445201,
+    "total": 6,
+    "open": 4,
+    "assigned": 2,
+    "oldest_date": 1791840601,
+    "newest_date": 1792445101,
+    "oldest_activity_date": 1792100001,
+    "by_age": {"under_hour": 1, "under_day": 2, "under_week": 2, "older": 1},
+    "by_content_type": [
+        {"content_type": "post", "count": 5, "assigned": 2, "oldest_date": 1791840601, "newest_date": 1792445101, "oldest_activity_date": 1792100001},
+        {"content_type": "user", "count": 1, "assigned": 0, "oldest_date": 1792400001, "newest_date": 1792400001, "oldest_activity_date": 1792400001}
+    ],
+    "cached_total": 6,
+    "cached_date": 1792445101
+}

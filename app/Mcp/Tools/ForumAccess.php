@@ -87,6 +87,8 @@ class ForumAccess extends ForumTool
             'who-is-online' => static fn (AdminApi $api): array => $api->online(),
             'forum-logs' => static fn (AdminApi $api): array => $api->logs(),
             'approval-queue' => static fn (AdminApi $api): array => $api->approvalQueue(),
+            'reports' => static fn (AdminApi $api): array => $api->reports(),
+            'forum-activity' => static fn (AdminApi $api): array => $api->activity(),
             'user-upgrades' => static fn (AdminApi $api): array => $api->userUpgrades(),
         ];
 
