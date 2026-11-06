@@ -1,10 +1,38 @@
 {
-    "now": 1792445101,
-    "window": {"since": 1792358701, "until": 1792445101},
-    "registrations": {
-        "total": 41,
-        "by_state": {"valid": 30, "email_confirm": 6, "email_confirm_edit": 0, "moderated": 3, "email_bounce": 0, "rejected": 1, "disabled": 1, "other": 0}
+    "now": 1793947865,
+    "window": {
+        "since": 1791355865,
+        "until": 1793947865
     },
-    "threads": {"total": 52, "by_state": {"visible": 49, "moderated": 2, "deleted": 1, "other": 0}},
-    "posts": {"total": 610, "by_state": {"visible": 598, "moderated": 4, "deleted": 8, "other": 0}}
+    "registrations": {
+        "total": 187,
+        "by_state": {
+            "valid": 157,
+            "email_confirm": 6,
+            "email_confirm_edit": 0,
+            "moderated": 7,
+            "email_bounce": 8,
+            "rejected": 0,
+            "disabled": 9,
+            "other": 0
+        }
+    },
+    "threads": {
+        "total": 15,
+        "by_state": {
+            "visible": 15,
+            "moderated": 0,
+            "deleted": 0,
+            "other": 0
+        }
+    },
+    "posts": {
+        "total": 93,
+        "by_state": {
+            "visible": 93,
+            "moderated": 0,
+            "deleted": 0,
+            "other": 0
+        }
+    }
 }

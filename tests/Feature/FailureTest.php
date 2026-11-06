@@ -67,11 +67,7 @@ it('names the admin permission the refused endpoint needs', function (string $to
 ]);
 
 it('passes on the forum\'s refusal of a window longer than it allows', function () {
-    // not captured: code, message and params confirmed by the add-on session from its source on 2026-11-06
-    fakeForum(['admin-api/activity/' => Http::response(
-        ['errors' => [['code' => 'hampel_adminapi_window_too_long', 'message' => 'The window may be at most 31 days long.', 'params' => ['days' => 31]]]],
-        400,
-    )]);
+    fakeForum(['admin-api/activity/' => ['refused-window-too-long', 400]]);
 
     XenForoServer::tool(ForumActivity::class, ['forum' => 'acme', 'since' => '-60 days'])
         ->assertHasErrors(['The window may be at most 31 days long.']);

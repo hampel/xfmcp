@@ -224,9 +224,9 @@ consumes it can only agree with that code. To refresh one, capture the endpoint 
 apply the same replacement; do not edit a shape by hand to make a test pass.
 
 The two `index-*.json` files are the exception: a real `index` response with the site's own
-details replaced by hand. So, for now, are `reports.json` and `activity.json`: the add-on README's
-examples with `now` added, written on 2026-11-06 before any forum's key could read either
-endpoint. Recapture them once one can.
+details replaced by hand. So is `reports.json`, the add-on README's example with `now` added: the
+forum captured on 2026-11-06 had no reports, and `reports-empty.json` is that capture. Replace it
+when a forum has reports waiting.
 
 ## Known gaps
 

@@ -89,8 +89,7 @@ class ForumActivity extends ForumTool
         $deleted = (int) ($data['threads']['by_state']['deleted'] ?? 0) + (int) ($data['posts']['by_state']['deleted'] ?? 0);
 
         return sprintf(
-            '%d %s in this window, %d of them awaiting email confirmation and %d awaiting approval; %d %s and %d %s, '
-            .'of which %d %s awaiting approval and %d deleted.',
+            '%d %s in this window, %d of them awaiting email confirmation and %d awaiting approval; %d %s and %d %s, %s.',
             $registrations,
             $registrations === 1 ? 'registration' : 'registrations',
             $waiting,
@@ -99,9 +98,9 @@ class ForumActivity extends ForumTool
             $threads === 1 ? 'thread' : 'threads',
             $posts,
             $posts === 1 ? 'post' : 'posts',
-            $held,
-            $held === 1 ? 'is' : 'are',
-            $deleted,
+            $held + $deleted === 0
+                ? 'none awaiting approval or deleted'
+                : sprintf('of which %d %s awaiting approval and %d deleted', $held, $held === 1 ? 'is' : 'are', $deleted),
         );
     }
 

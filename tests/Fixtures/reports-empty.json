@@ -1,0 +1,18 @@
+{
+    "now": 1793947857,
+    "total": 0,
+    "open": 0,
+    "assigned": 0,
+    "oldest_date": null,
+    "newest_date": null,
+    "oldest_activity_date": null,
+    "by_age": {
+        "under_hour": 0,
+        "under_day": 0,
+        "under_week": 0,
+        "older": 0
+    },
+    "by_content_type": [],
+    "cached_total": 0,
+    "cached_date": 1749883997
+}

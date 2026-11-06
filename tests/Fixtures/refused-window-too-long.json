@@ -1,0 +1,11 @@
+{
+    "errors": [
+        {
+            "code": "hampel_adminapi_window_too_long",
+            "message": "The window may be at most 31 days long.",
+            "params": {
+                "days": 31
+            }
+        }
+    ]
+}

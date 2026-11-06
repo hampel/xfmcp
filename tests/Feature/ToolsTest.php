@@ -697,8 +697,8 @@ it('does not call a complete by_day cut', function () {
 });
 
 /*
- * reports.json and activity.json are the add-on README's examples with `now` added, not captures:
- * the dev forum's administrator lacked both permissions when the tools were written. Recapture.
+ * reports.json is the add-on README's example with `now` added: the forum it was captured from has
+ * no reports, and reports-empty.json is that capture.
  */
 
 it('says how many reports wait and how long since anyone touched one', function () {
@@ -715,21 +715,30 @@ it('says when moderators are shown the wrong report count', function () {
 });
 
 it('says when no report is waiting', function () {
-    $reports = ['total' => 0, 'open' => 0, 'assigned' => 0, 'oldest_date' => null, 'newest_date' => null, 'oldest_activity_date' => null, 'by_content_type' => [], 'cached_total' => 0] + captured('reports');
-
-    fakeForum(['admin-api/reports/' => Http::response($reports)]);
+    fakeForum(['admin-api/reports/' => 'reports-empty']);
 
     expect(structured(Reports::class, ['forum' => 'acme'])['headline'])->toBe('No report is waiting for a moderator.');
 });
 
 it('counts registrations and posting by the state each is in now', function () {
+    // captured: a 30-day window
     fakeForum(['admin-api/activity/' => 'activity']);
 
     $content = structured(ForumActivity::class, ['forum' => 'acme']);
 
-    expect($content['headline'])->toBe('41 registrations in this window, 6 of them awaiting email confirmation and 3 awaiting approval; 52 threads and 610 posts, of which 6 are awaiting approval and 9 deleted.')
+    expect($content['headline'])->toBe('187 registrations in this window, 6 of them awaiting email confirmation and 7 awaiting approval; 15 threads and 93 posts, none awaiting approval or deleted.')
         ->and(implode(' ', $content['notes']))->toContain('in the state it is in now')->toContain('includes the opening post')
         ->not->toContain('`other`');
+});
+
+it('counts the threads and posts held or deleted', function () {
+    $activity = captured('activity');
+    $activity['posts']['by_state']['moderated'] = 1;
+    $activity['threads']['by_state']['deleted'] = 2;
+
+    fakeForum(['admin-api/activity/' => Http::response($activity)]);
+
+    expect(structured(ForumActivity::class, ['forum' => 'acme'])['headline'])->toEndWith('15 threads and 93 posts, of which 1 is awaiting approval and 2 deleted.');
 });
 
 it('says when an add-on has given something a state XenForo does not define', function () {
