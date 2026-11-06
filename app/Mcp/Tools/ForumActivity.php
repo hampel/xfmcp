@@ -28,8 +28,8 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
       address, `moderated` awaiting approval, `email_bounce` a member whose mail bounced, `disabled` an account an
       administrator disabled. `other` is a state XenForo does not define, which only an add-on changing core's
       tables could make. `headline` names every state but `valid` that holds anyone.
-    - A window longer than 31 days is refused. For a longer period, ask in consecutive windows, each `until` the
-      next one's `since`, and add the counts.
+    - A window longer than 31 days is refused. For a longer period, ask in consecutive windows and add the counts.
+      Both ends of a window are counted, so start each window one second after the previous `until`.
     - Every thread's first post is a post as well, so `posts` includes the opening post of each thread.
     TEXT)]
 #[IsReadOnly]
@@ -44,7 +44,10 @@ class ForumActivity extends ForumTool
                 'Start of the window: ISO 8601, Unix seconds or a relative time such as "-7 days". A time without a '
                 .'zone is UTC. Defaults to 24 hours before `until`; at most 31 days before it.'
             ),
-            'until' => $schema->string()->description('End of the window, in the same forms. Defaults to now.'),
+            'until' => $schema->string()->description(
+                'End of the window, in the same forms. Defaults to now. Both ends are included: an entry at '
+                .'exactly `since` or `until` is counted.'
+            ),
         ];
     }
 

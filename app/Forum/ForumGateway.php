@@ -242,7 +242,8 @@ class ForumGateway
 
         if ($e->hasCode(self::CODE_WINDOW_TOO_LONG)) {
             return "{$name} rejected the request ({$codes}): ".$this->messages($e)
-                .' For a longer period, ask in consecutive windows, each `until` the next one\'s `since`, and add the counts.';
+                .' For a longer period, ask in consecutive windows and add the counts. Both ends of a window are '
+                .'counted, so start each window one second after the previous `until`.';
         }
 
         return "{$name} rejected the request (HTTP {$e->statusCode}; {$codes}): ".$this->messages($e);

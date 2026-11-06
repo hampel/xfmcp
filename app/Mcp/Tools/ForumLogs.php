@@ -63,7 +63,10 @@ class ForumLogs extends ForumTool
                 'Start of the window: ISO 8601, Unix seconds, a relative time such as "-7 days", or "all" for the '
                 .'whole log. A time without a zone is UTC. Defaults to 24 hours before `until`.'
             ),
-            'until' => $schema->string()->description('End of the window, in the same forms. Defaults to now.'),
+            'until' => $schema->string()->description(
+                'End of the window, in the same forms. Defaults to now. Both ends are included: an entry at '
+                .'exactly `since` or `until` is counted.'
+            ),
         ];
     }
 
