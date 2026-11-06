@@ -208,7 +208,8 @@ it('passes a read key holding the per-endpoint scopes of the add-on\'s 1.0.0a11'
 });
 
 it('does not fail a 1.0.0a11 read key for leaving add-ons unselected', function () {
-    // not captured: core's missing_scope, as the add-on session quoted it on 2026-11-06
+    // core's missing_scope for add-ons: refused-missing-scope.json is the same refusal for
+    // error_detail, captured again from a 1.0.0a11 forum on 2026-11-06 and identical
     $index = captured('index-read-key');
     $index['key']['scopes'] = ['hampel_admin_api:error_log' => true];
 
