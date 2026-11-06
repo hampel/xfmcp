@@ -208,12 +208,13 @@ it('passes a read key holding the per-endpoint scopes of the add-on\'s 1.0.0a11'
 });
 
 it('does not fail a 1.0.0a11 read key for leaving add-ons unselected', function () {
+    // not captured: core's missing_scope, as the add-on session quoted it on 2026-11-06
     $index = captured('index-read-key');
     $index['key']['scopes'] = ['hampel_admin_api:error_log' => true];
 
     fakeHealthyForum([READ_KEY => [
         'index' => [$index, 200],
-        'admin-api/add-ons' => [['errors' => [['code' => 'missing_scope', 'message' => 'This request requires the hampel_admin_api:add_ons scope.', 'params' => ['scope' => 'hampel_admin_api:add_ons']]]], 403],
+        'admin-api/add-ons' => [['errors' => [['code' => 'missing_scope', 'message' => 'This request requires access to the following scope: hampel_admin_api:add_ons', 'params' => ['scope' => 'hampel_admin_api:add_ons']]]], 403],
         'admin-api/error-entries' => ['refused-missing-scope', 403],
     ]]);
 

@@ -74,7 +74,7 @@ it('passes on the forum\'s refusal of a window longer than it allows', function 
 });
 
 it('says a key allowed all scopes must have them selected, from 1.0.0a11', function () {
-    // not captured: the add-on's phrase and code as its session described them on 2026-11-06
+    // not captured: code, params and message as the add-on session quoted them on 2026-11-06
     fakeForum(['admin-api/add-ons/' => Http::response(
         ['errors' => [['code' => 'hampel_adminapi_scope_must_be_selected', 'message' => 'This key allows all scopes, which does not include the Admin API\'s. Choose "Selected scopes only" and select hampel_admin_api:add_ons.', 'params' => ['scope' => 'hampel_admin_api:add_ons']]]],
         403,
