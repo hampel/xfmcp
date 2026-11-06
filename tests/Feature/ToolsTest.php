@@ -588,6 +588,15 @@ it('says how much awaits approval and for how long', function () {
         ->and($content['oldest_date_iso'])->toEndWith('Z');
 });
 
+it('measures the queue\'s age by the forum\'s clock when it sends one, from 1.0.0a10', function () {
+    $queue = captured('approval-queue');
+    $queue['now'] = (int) $queue['oldest_date'] + 3 * 86400;
+
+    fakeForum(['admin-api/approval-queue/' => Http::response($queue)]);
+
+    expect(structured(ApprovalQueue::class, ['forum' => 'acme'])['headline'])->toContain('the oldest was posted 3 days ago');
+});
+
 it('says when moderators are shown the wrong count', function () {
     $queue = ['total' => 0, 'oldest_date' => null, 'newest_date' => null, 'by_age' => ['under_hour' => 0, 'under_day' => 0, 'under_week' => 0, 'older' => 0], 'by_content_type' => []]
         + captured('approval-queue');
@@ -645,6 +654,18 @@ it('passes on a 1.0.0a9 overview row, which already names the whole log', functi
     expect(structured(ForumLogs::class, ['forum' => 'acme'])['logs'][1])
         ->toMatchArray(['log' => 'moderator', 'total' => 0, 'log_total' => 2, 'log_oldest_date' => 1752127630])
         ->not->toHaveKey('oldest_date');
+});
+
+it('reads a 1.0.0a10 overview, which no longer counts a whole log', function () {
+    fakeForum(['admin-api/logs/' => 'logs-a10']);
+
+    $content = structured(ForumLogs::class, ['forum' => 'acme']);
+
+    expect($content['headline'])->toBe('2 of 18 logs recorded something in this window: admin 1, sitemap 1.')
+        ->and($content['logs'][1])->toMatchArray(['log' => 'moderator', 'total' => 0, 'log_oldest_date' => 1752127630])
+        ->and($content['logs'][1])->not->toHaveKey('log_total')
+        ->and(implode(' ', $content['notes']))
+        ->toContain('moderator, user_change, server_error, ip, upgrade: none in this window, but each holds older entries');
 });
 
 it('takes the forum\'s word that by_day was cut, from 1.0.0a9', function () {

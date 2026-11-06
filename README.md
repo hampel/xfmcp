@@ -261,8 +261,8 @@ answer at all. Further limits:
   subscription, so `user-upgrades` reports `cancelled` as null there.
 - `user-upgrades` payment amounts are each upgrade's list price, not what the provider took.
 - `forum-logs` over a long window on a large log is slow, because the forum reads every row in
-  the window; the IP log is the worst. The whole log's size comes back on every call, so the
-  default 24 hours is enough to learn it.
+  the window; the IP log is the worst. Asking for one log returns its whole size whatever the
+  window, so the default 24 hours is enough to learn it.
 - The add-on's member lookups — members by IP address, upgrade records, moderators,
   administrators and log entries — have no tool here, deliberately. Every answer here is counts
   or settings, never a member.

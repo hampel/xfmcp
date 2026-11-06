@@ -17,11 +17,13 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
     proxies, payment callbacks and the rest of the 18 logs XenForo keeps. Counts only - never an entry, a name,
     an address, a reason or a URL.
 
-    Without `log`, one line per log: `total` is how many entries fall in the window, and `log_total`,
-    `log_oldest_date` and `log_newest_date` describe the whole log, whatever the window (`log_total` only from a
-    forum on Hampel/AdminApi 1.0.0a9 or later). With `log`, that one log
-    in full: `total`, `oldest_date` and `newest_date` describe the window and the `log_` fields the whole log, then
-    `members` (how many distinct members acted, never who), its breakdowns, and `by_day`. Read `headline` first.
+    Without `log`, one line per log: `total` is how many entries fall in the window, and `log_oldest_date` and
+    `log_newest_date` describe the whole log, whatever the window. A row with `total: 0` and a `log_newest_date`
+    is a log that holds entries, none of them in the window; both dates null is an empty log. The overview does
+    not count a whole log (a forum on Hampel/AdminApi 1.0.0a9 alone sends `log_total` there). With `log`, that
+    one log in full: `total`, `oldest_date` and `newest_date` describe the window and `log_total`,
+    `log_oldest_date` and `log_newest_date` the whole log, then `members` (how many distinct members acted, never
+    who), its breakdowns, and `by_day`. Read `headline` first.
 
     `log` is one of: admin, moderator, user_change, username_change, cookie_consent, spam_trigger, spam_cleaner,
     rejected_user, email_bounce, image_proxy, link_proxy, oembed, payment_provider, sitemap, server_error, ip,
@@ -31,8 +33,8 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
     Easy to misread:
     - The default window is the last 24 hours, so a quiet day reads as zero. `since: "all"` covers the whole log.
     - A long window on a large log is slow: the forum reads every row in it, and on the `ip` log that can take many
-      seconds. To learn how big a log is, do not widen the window - `log_total` gives the whole log's size on any
-      call, and the overview (no `log`) is the quickest way to ask.
+      seconds. To learn how big a log is, do not widen the window - ask with `log`, whose `log_total` is the whole
+      log's size whatever the window.
     - `log_total`, `log_oldest_date` and `log_newest_date` describe the whole log, whatever the window. Most logs
       are pruned by an option, so `window.precedes_log: true` means the earliest days may read as zero because
       they were pruned, not because nothing happened.
@@ -216,6 +218,18 @@ class ForumLogs extends ForumTool
 
         if ($days !== []) {
             $notes[] = '`by_day` lists only days with entries; a day not listed had none.';
+        }
+
+        if (isset($data['logs'])) {
+            $held = array_filter((array) $data['logs'], static fn (mixed $row): bool => is_array($row)
+                && (int) ($row['total'] ?? 0) === 0 && ($row['log_newest_date'] ?? null) !== null);
+
+            if ($held !== []) {
+                $notes[] = sprintf(
+                    '%s: none in this window, but each holds older entries. Ask with `log` for how many.',
+                    implode(', ', array_column($held, 'log')),
+                );
+            }
         }
 
         if (($data['log'] ?? null) === 'server_error') {

@@ -68,7 +68,7 @@ class ApprovalQueue extends ForumTool
             '%d %s awaiting approval; the oldest was posted %s. %s%s',
             $total,
             $total === 1 ? 'item is' : 'items are',
-            Present::distance($oldest, time()),
+            Present::distance($oldest, (int) ($data['now'] ?? time())),
             $older === 0 ? 'None is older than a week.' : sprintf('%d %s older than a week.', $older, $older === 1 ? 'is' : 'are'),
             $mismatch,
         );
