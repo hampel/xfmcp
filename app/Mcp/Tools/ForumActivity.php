@@ -25,8 +25,11 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
     - What was deleted outright is not counted at all. `deleted` is a soft deletion, still restorable. A rejected
       registration counts as `rejected` while XenForo keeps its record.
     - Registration states: `email_confirm` is awaiting email confirmation, `email_confirm_edit` confirming a changed
-      address, `moderated` awaiting approval, `email_bounce` a member whose mail bounced. `other` is a state XenForo
-      does not define, which only an add-on changing core's tables could make.
+      address, `moderated` awaiting approval, `email_bounce` a member whose mail bounced, `disabled` an account an
+      administrator disabled. `other` is a state XenForo does not define, which only an add-on changing core's
+      tables could make. `headline` names every state but `valid` that holds anyone.
+    - A window longer than 31 days is refused. For a longer period, ask in consecutive windows, each `until` the
+      next one's `since`, and add the counts.
     - Every thread's first post is a post as well, so `posts` includes the opening post of each thread.
     TEXT)]
 #[IsReadOnly]
@@ -82,18 +85,12 @@ class ForumActivity extends ForumTool
         }
 
         $states = (array) ($data['registrations']['by_state'] ?? []);
-        $waiting = (int) ($states['email_confirm'] ?? 0) + (int) ($states['email_confirm_edit'] ?? 0);
-        $moderated = (int) ($states['moderated'] ?? 0);
-
         $held = (int) ($data['threads']['by_state']['moderated'] ?? 0) + (int) ($data['posts']['by_state']['moderated'] ?? 0);
         $deleted = (int) ($data['threads']['by_state']['deleted'] ?? 0) + (int) ($data['posts']['by_state']['deleted'] ?? 0);
 
         return sprintf(
-            '%d %s in this window, %d of them awaiting email confirmation and %d awaiting approval; %d %s and %d %s, %s.',
-            $registrations,
-            $registrations === 1 ? 'registration' : 'registrations',
-            $waiting,
-            $moderated,
+            '%s; %d %s and %d %s, %s.',
+            $this->registrations($registrations, $states),
             $threads,
             $threads === 1 ? 'thread' : 'threads',
             $posts,
@@ -101,6 +98,46 @@ class ForumActivity extends ForumTool
             $held + $deleted === 0
                 ? 'none awaiting approval or deleted'
                 : sprintf('of which %d %s awaiting approval and %d deleted', $held, $held === 1 ? 'is' : 'are', $deleted),
+        );
+    }
+
+    /**
+     * Every state but `valid` that holds anyone, so that the headline alone does not leave a
+     * reader inferring the rest are valid: a bounced or disabled member was read as one.
+     *
+     * @param  array<mixed>  $states
+     */
+    private function registrations(int $total, array $states): string
+    {
+        if ($total === 0) {
+            return 'No registrations in this window';
+        }
+
+        $count = static fn (string ...$keys): int => array_sum(array_map(static fn (string $key): int => (int) ($states[$key] ?? 0), $keys));
+
+        $parts = array_filter([
+            'awaiting email confirmation' => $count('email_confirm', 'email_confirm_edit'),
+            'awaiting approval' => $count('moderated'),
+            'bounced' => $count('email_bounce'),
+            'disabled' => $count('disabled'),
+            'rejected' => $count('rejected'),
+            'in a state XenForo does not define' => $count('other'),
+        ]);
+
+        $head = sprintf('%d %s in this window', $total, $total === 1 ? 'registration' : 'registrations');
+
+        if ($parts === []) {
+            return $head.($total === 1 ? ', valid' : ', all valid');
+        }
+
+        $listed = array_map(static fn (string $state, int $n): string => "{$n} {$state}", array_keys($parts), $parts);
+        $last = array_pop($listed);
+
+        return sprintf(
+            '%s: %d valid, %s',
+            $head,
+            $count('valid'),
+            $listed === [] ? $last : implode(', ', $listed).' and '.$last,
         );
     }
 

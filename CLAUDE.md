@@ -166,6 +166,11 @@ response got something wrong, in trials run against the add-on before this tool 
   an overview row's whole-log dates to `log_oldest_date` and `log_newest_date`, as the detail
   view has them: `total: 0` beside an `oldest_date` read as an empty log holding entries.
 
+- **The activity headline names every registration state but `valid` that holds anyone.** It
+  named two, and on 2026-11-06 an agent noted that a reader stopping there would count bounced
+  and disabled members as valid. Ages past 60 days read in months, and past two years in years,
+  because "2377 days ago" was exact and slow to take in.
+
 - **`who-is-online` is the one tool not marked idempotent.** It is a snapshot; two calls are
   two answers.
 

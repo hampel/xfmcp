@@ -65,6 +65,8 @@ class ForumGateway
     /** from 1.0.0a11: a key allowed all scopes reaches none of the add-on's */
     public const CODE_SCOPE_MUST_BE_SELECTED = 'hampel_adminapi_scope_must_be_selected';
 
+    public const CODE_WINDOW_TOO_LONG = 'hampel_adminapi_window_too_long';
+
     public const CODE_ERROR_ID_REQUIRED = 'hampel_adminapi_error_id_required';
 
     public function __construct(
@@ -236,6 +238,11 @@ class ForumGateway
         if ($e instanceof NotFoundException) {
             return "{$name} has nothing at that id ({$codes}). An error log entry disappears when XenForo prunes "
                 .'the log or an administrator clears it; take a current last_error_id from the error log summary.';
+        }
+
+        if ($e->hasCode(self::CODE_WINDOW_TOO_LONG)) {
+            return "{$name} rejected the request ({$codes}): ".$this->messages($e)
+                .' For a longer period, ask in consecutive windows, each `until` the next one\'s `since`, and add the counts.';
         }
 
         return "{$name} rejected the request (HTTP {$e->statusCode}; {$codes}): ".$this->messages($e);

@@ -726,9 +726,28 @@ it('counts registrations and posting by the state each is in now', function () {
 
     $content = structured(ForumActivity::class, ['forum' => 'acme']);
 
-    expect($content['headline'])->toBe('187 registrations in this window, 6 of them awaiting email confirmation and 7 awaiting approval; 15 threads and 93 posts, none awaiting approval or deleted.')
+    expect($content['headline'])->toBe('187 registrations in this window: 157 valid, 6 awaiting email confirmation, 7 awaiting approval, 8 bounced and 9 disabled; 15 threads and 93 posts, none awaiting approval or deleted.')
         ->and(implode(' ', $content['notes']))->toContain('in the state it is in now')->toContain('includes the opening post')
         ->not->toContain('`other`');
+});
+
+it('says when every registration is valid', function () {
+    $activity = captured('activity');
+    $activity['registrations']['by_state'] = ['valid' => 187] + array_map(fn () => 0, $activity['registrations']['by_state']);
+
+    fakeForum(['admin-api/activity/' => Http::response($activity)]);
+
+    expect(structured(ForumActivity::class, ['forum' => 'acme'])['headline'])->toStartWith('187 registrations in this window, all valid; 15 threads');
+});
+
+it('says when nobody registered but something was posted', function () {
+    $activity = captured('activity');
+    $activity['registrations']['total'] = 0;
+    $activity['registrations']['by_state'] = array_map(fn () => 0, $activity['registrations']['by_state']);
+
+    fakeForum(['admin-api/activity/' => Http::response($activity)]);
+
+    expect(structured(ForumActivity::class, ['forum' => 'acme'])['headline'])->toStartWith('No registrations in this window; 15 threads');
 });
 
 it('counts the threads and posts held or deleted', function () {

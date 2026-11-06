@@ -373,7 +373,9 @@ class Present
     }
 
     /**
-     * "3 days ago", "in 20 seconds" - the distance between two instants, in one unit.
+     * "3 days ago", "in 20 seconds" - the distance between two instants, in one unit. Past 60 days
+     * in months and past two years in years to one place, since "2377 days" is slow to take in;
+     * the exact instant is always beside it in an `_iso` field.
      */
     public static function distance(int $from, int $to): string
     {
@@ -383,10 +385,12 @@ class Present
             $seconds < 120 => [$seconds, 'second'],
             $seconds < 7200 => [intdiv($seconds, 60), 'minute'],
             $seconds < 172800 => [intdiv($seconds, 3600), 'hour'],
-            default => [intdiv($seconds, 86400), 'day'],
+            $seconds < 60 * 86400 => [intdiv($seconds, 86400), 'day'],
+            $seconds < 730 * 86400 => [intdiv($seconds, 2629800), 'month'],
+            default => [floor($seconds / 3155760) / 10, 'year'],
         };
 
-        $text = $count.' '.$unit.($count === 1 ? '' : 's');
+        $text = $count.' '.$unit.($count == 1 ? '' : 's');
 
         return $to >= $from ? $text.' ago' : 'in '.$text;
     }
