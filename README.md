@@ -113,6 +113,11 @@ one `hampel_admin_api:read` scope for every summary, and an admin permission per
 instead of *Use the Admin API*. On such a forum *All scopes* reaches everything. A refusal
 names the permission for both versions, and `app:validate` accepts either kind of key.
 
+**Upgrading a forum to 1.0.0a11 takes the old access away.** The upgrade removes
+`hampel_admin_api:read` from every key and the old permissions from every administrator, so
+until the new scopes are selected and *Use the Admin API* is granted, every summary is refused.
+Run `xfmcp app:validate` after the upgrade.
+
 `list-forums` contacts no forum and needs nothing. `forum-access` needs nothing of its own: it
 reports which of the above a forum grants.
 
