@@ -242,7 +242,8 @@ class ForumGateway
 
         if ($e->hasCode(self::CODE_WINDOW_TOO_LONG)) {
             return "{$name} rejected the request ({$codes}): ".$this->messages($e)
-                .' For a longer period, ask in consecutive windows and add the counts. Both ends of a window are '
+                .' For a longer period, ask in consecutive windows and add the counts. From Hampel/AdminApi '
+                .'1.0.0a11 a window excludes `until`, so each `until` is the next `since`; before it both ends are '
                 .'counted, so start each window one second after the previous `until`.';
         }
 

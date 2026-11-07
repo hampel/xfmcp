@@ -70,7 +70,7 @@ it('passes on the forum\'s refusal of a window longer than it allows', function 
     fakeForum(['admin-api/activity/' => ['refused-window-too-long', 400]]);
 
     XenForoServer::tool(ForumActivity::class, ['forum' => 'acme', 'since' => '-60 days'])
-        ->assertHasErrors(['The window may be at most 31 days long.', 'ask in consecutive windows', 'one second after the previous `until`']);
+        ->assertHasErrors(['The window may be at most 31 days long.', 'ask in consecutive windows', 'each `until` is the next `since`', 'one second after the previous `until`']);
 });
 
 it('says a key allowed all scopes must have them selected, from 1.0.0a11', function () {
