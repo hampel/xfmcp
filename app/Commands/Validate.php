@@ -148,9 +148,11 @@ class Validate extends Command
         }
 
         $api = $gateway->client($forum, $forum->key)->endpoint(AdminApi::class);
+        $userAdmitted = false;
 
         try {
             $addOns = $api->addOns();
+            $userAdmitted = true;
             $this->checkOk('Summaries', $this->describeForum($addOns));
         } catch (ApiException $e) {
             // a read key may leave add-ons unselected, which the key check reported
@@ -175,9 +177,18 @@ class Validate extends Command
                     'Read key reach',
                     '`key` can read error messages: it holds the detail scope and its user the permission. Use a second key for that'
                 ),
-                $e->hasCode(ForumGateway::CODE_ADMIN_PERMISSION_REQUIRED), $e->hasCode('do_not_have_permission') => $this->checkWarn(
+                // From the add-on's 1.0.0a13 do_not_have_permission is XenForo refusing the user
+                // before any scope is looked at, so it shows the scope only once a summary has
+                // answered, proving the user passes that check; before 1.0.0a13 it always did.
+                $e->hasCode(ForumGateway::CODE_ADMIN_PERMISSION_REQUIRED),
+                $e->hasCode('do_not_have_permission') && $userAdmitted => $this->checkWarn(
                     'Read key reach',
                     '`key` holds the detail scope; only its user\'s admin permissions stop it reading error messages'
+                ),
+                $e->hasCode('do_not_have_permission') => $this->checkSkip(
+                    'Read key reach',
+                    'refused by error entries (do_not_have_permission), and no summary answered to show the key\'s '
+                    .'user passes XenForo\'s own check, so whether `key` holds the detail scope cannot be told'
                 ),
                 default => $this->checkFail('Read key reach', $gateway->explain($forum, 'key', $e)),
             };

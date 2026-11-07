@@ -95,6 +95,21 @@ it('warns about a read key that holds the detail scope, whichever code refuses i
     expect($exit)->toBe(0)->and($output)->toContain('`key` holds the detail scope');
 })->with(['do_not_have_permission', 'hampel_adminapi_admin_permission_required']);
 
+it('does not read the detail scope into a refusal of the key\'s user', function () {
+    $refused = [['errors' => [['code' => 'do_not_have_permission', 'message' => 'You do not have permission.', 'params' => []]]], 403];
+
+    fakeHealthyForum([READ_KEY => [
+        'index' => ['index-read-key', 200],
+        'admin-api/add-ons' => $refused,
+        'admin-api/error-entries' => $refused,
+    ]]);
+
+    [, $output] = runCommand('app:validate');
+
+    expect($output)->toContain('whether `key` holds the detail scope cannot be told')
+        ->not->toContain('`key` holds the detail scope;');
+});
+
 it('warns about a key holding more scopes than it needs', function () {
     $index = captured('index-read-key');
     $index['key']['scopes']['user:read'] = true;
