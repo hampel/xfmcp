@@ -172,6 +172,11 @@ response got something wrong, in trials run against the add-on before this tool 
   and disabled members as valid. Ages past 60 days read in months, and past two years in years,
   because "2377 days ago" was exact and slow to take in.
 
+- **Error entries carry one stack trace, the asked-for entry's, unless `all_traces` is set.**
+  On 2026-11-07 seventeen entries of one signature came to 51,000 characters, which Claude Code
+  would not show inline, and each trace repeated the same frames; the messages were what
+  differed. A client without a shell could not have read the answer at all.
+
 - **`who-is-online` is the one tool not marked idempotent.** It is a snapshot; two calls are
   two answers.
 

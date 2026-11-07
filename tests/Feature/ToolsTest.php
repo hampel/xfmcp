@@ -183,6 +183,31 @@ it('adds no note to entries nothing was removed from', function () {
     expect(structured(ErrorLogEntries::class, ['forum' => 'acme', 'error_id' => 15853]))->not->toHaveKey('notes');
 });
 
+it('keeps the trace of the entry asked for only, unless all are wanted', function () {
+    // three of the captured entry, as one signature's recent entries come back
+    $entries = captured('error-entries');
+    $entry = $entries['entries'][0];
+    $entries['entries'] = [
+        ['error_id' => 15853] + $entry,
+        ['error_id' => 15850] + $entry,
+        ['error_id' => 15849] + $entry,
+    ];
+
+    fakeForum(['admin-api/error-entries/' => Http::response($entries)]);
+
+    $content = structured(ErrorLogEntries::class, ['forum' => 'acme', 'error_id' => 15853]);
+
+    expect($content['entries'][0])->toHaveKey('trace')
+        ->and($content['entries'][1])->not->toHaveKey('trace')->toHaveKey('message')
+        ->and($content['entries'][2])->not->toHaveKey('trace')
+        ->and($content['notes'])->toBe(['Only entry 15853 carries its stack trace; 2 others were left out, as they share its exception type, file and line. Ask with `all_traces` for them.']);
+
+    $all = structured(ErrorLogEntries::class, ['forum' => 'acme', 'error_id' => 15853, 'all_traces' => true]);
+
+    expect(array_column($all['entries'], 'trace'))->toHaveCount(3)
+        ->and($all)->not->toHaveKey('notes');
+});
+
 it('asks for the request only when told to', function () {
     fakeForum(['admin-api/error-entries/' => 'error-entries']);
 

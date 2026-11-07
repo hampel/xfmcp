@@ -33,6 +33,10 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
     Takes an `error_id`: a signature's `last_error_id` from error-log-summary. It returns that entry with the most
     recent others at the same exception type, file and line. There is no way to page through the log.
 
+    Only the entry asked for carries its stack trace, unless `all_traces` is set. The others share its exception
+    type, file and line, so their traces mostly repeat it, and a trace runs to a few thousand characters: twenty
+    in full can be more than a client shows. Their messages are usually what differs.
+
     `include_request` adds the recorded request, the user id and the IP address to each entry. Leave it off unless
     the question is specifically who was affected or what was submitted: why an error happened is nearly always in
     the message and the trace, and the summary's `members` and `by_origin` already say whether anyone was affected.
@@ -71,6 +75,10 @@ class ErrorLogEntries extends ForumTool
             'forum' => $this->forumArgument($schema),
             'error_id' => $schema->integer()->description('The entry to read: a `last_error_id` from error-log-summary.')->required(),
             'limit' => $schema->integer()->description('How many entries to return, counting the one asked for. Default 5, maximum 20.'),
+            'all_traces' => $schema->boolean()->description(
+                'Keep the stack trace of every entry, not only the one asked for. Off by default: each runs to a few '
+                .'thousand characters, so ask for a small `limit` with it.'
+            ),
             'include_request' => $schema->boolean()->description(
                 'Add the recorded request (URL, referrer, submitted data or command line), the user id and the IP '
                 .'address. Personal data, and recorded in the forum\'s admin log; off by default.'
@@ -94,17 +102,59 @@ class ErrorLogEntries extends ForumTool
             static fn (AdminApi $api): array => $api->errorEntries($errorId, $limit, $withRequest),
         );
 
+        $data = $this->traces($data, $errorId, $request->get('all_traces') === true);
+
         $scrubbed = array_sum(array_map(
             static fn (mixed $entry): int => is_array($entry) ? (int) ($entry['scrubbed'] ?? 0) : 0,
             (array) ($data['entries'] ?? []),
         ));
 
         if ($scrubbed > 0) {
-            $data = ['notes' => [sprintf(
+            $data['notes'] = [sprintf(
                 'The forum removed %d %s from the text of these entries. Each `[withheld]` marks one; it is not what was logged.',
                 $scrubbed,
                 $scrubbed === 1 ? 'secret' : 'secrets',
-            )]] + $data;
+            ), ...($data['notes'] ?? [])];
+        }
+
+        if (isset($data['notes'])) {
+            $data = ['notes' => $data['notes']] + $data;
+        }
+
+        return $data;
+    }
+
+    /**
+     * Leave the trace on the entry asked for and take it off the rest, unless all are wanted.
+     * Seventeen traces of one signature ran to 51,000 characters, which a client refused to
+     * show, and each repeated the same frames.
+     *
+     * @param  array<mixed>  $data
+     * @return array<mixed>
+     */
+    private function traces(array $data, int $errorId, bool $all): array
+    {
+        if ($all || ! is_array($data['entries'] ?? null)) {
+            return $data;
+        }
+
+        $removed = 0;
+
+        foreach ($data['entries'] as $i => $entry) {
+            if (is_array($entry) && array_key_exists('trace', $entry) && (int) ($entry['error_id'] ?? 0) !== $errorId) {
+                unset($data['entries'][$i]['trace']);
+                $removed++;
+            }
+        }
+
+        if ($removed > 0) {
+            $data['notes'] = [sprintf(
+                'Only entry %d carries its stack trace; %d %s left out, as they share its exception type, file '
+                .'and line. Ask with `all_traces` for them.',
+                $errorId,
+                $removed,
+                $removed === 1 ? 'other was' : 'others were',
+            )];
         }
 
         return $data;
