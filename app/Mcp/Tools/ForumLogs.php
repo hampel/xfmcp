@@ -20,10 +20,9 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
     Without `log`, one line per log: `total` is how many entries fall in the window, and `log_oldest_date` and
     `log_newest_date` describe the whole log, whatever the window. A row with `total: 0` and a `log_newest_date`
     is a log that holds entries, none of them in the window; both dates null is an empty log. The overview does
-    not count a whole log (a forum on Hampel/AdminApi 1.0.0a9 alone sends `log_total` there). With `log`, that
-    one log in full: `total`, `oldest_date` and `newest_date` describe the window and `log_total`,
-    `log_oldest_date` and `log_newest_date` the whole log, then `members` (how many distinct members acted, never
-    who), its breakdowns, and `by_day`. Read `headline` first.
+    not count a whole log. With `log`, that one log in full: `total`, `oldest_date` and `newest_date` describe
+    the window and `log_total`, `log_oldest_date` and `log_newest_date` the whole log, then `members` (how many
+    distinct members acted, never who), its breakdowns, and `by_day`. Read `headline` first.
 
     `log` is one of: admin, moderator, user_change, username_change, cookie_consent, spam_trigger, spam_cleaner,
     rejected_user, email_bounce, image_proxy, link_proxy, oembed, payment_provider, sitemap, server_error, ip,
@@ -64,8 +63,8 @@ class ForumLogs extends ForumTool
                 .'whole log. A time without a zone is UTC. Defaults to 24 hours before `until`.'
             ),
             'until' => $schema->string()->description(
-                'End of the window, in the same forms. Defaults to now. From Hampel/AdminApi 1.0.0a11 an entry at '
-                .'exactly `until` is not counted, so it can be the next window\'s `since`; before it both ends are.'
+                'End of the window, in the same forms. Defaults to now. An entry at exactly `until` is not '
+                .'counted, so it can be the next window\'s `since`.'
             ),
         ];
     }
@@ -92,7 +91,6 @@ class ForumLogs extends ForumTool
         $data = $gateway->read($forum, static fn (AdminApi $api): array => $api->logs($query));
 
         if (isset($data['logs'])) {
-            $data['logs'] = array_map($this->overviewRow(...), (array) $data['logs']);
             $data['headline'] = $this->overview($data);
         } else {
             $data['headline'] = $this->single($data);
@@ -105,26 +103,6 @@ class ForumLogs extends ForumTool
         }
 
         return Present::lead($data, self::ORDER);
-    }
-
-    /**
-     * One log's line in the overview, with the add-on's whole-log dates named as the detail
-     * view names them: an agent read `total: 0` beside `oldest_date` as an empty log holding
-     * dated entries.
-     */
-    private function overviewRow(mixed $row): mixed
-    {
-        if (! is_array($row)) {
-            return $row;
-        }
-
-        $out = [];
-
-        foreach ($row as $key => $value) {
-            $out[in_array($key, ['oldest_date', 'newest_date'], true) ? 'log_'.$key : $key] = $value;
-        }
-
-        return $out;
     }
 
     /**

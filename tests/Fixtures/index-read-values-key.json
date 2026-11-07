@@ -8,7 +8,17 @@
         "user_id": 2541,
         "allow_all_scopes": false,
         "scopes": {
-            "hampel_admin_api:read": true,
+            "hampel_admin_api:activity": true,
+            "hampel_admin_api:add_ons": true,
+            "hampel_admin_api:approval_queue": true,
+            "hampel_admin_api:config": true,
+            "hampel_admin_api:error_log": true,
+            "hampel_admin_api:jobs": true,
+            "hampel_admin_api:logs": true,
+            "hampel_admin_api:online": true,
+            "hampel_admin_api:options": true,
+            "hampel_admin_api:reports": true,
+            "hampel_admin_api:user_upgrades": true,
             "hampel_admin_api:values": true
         }
     }

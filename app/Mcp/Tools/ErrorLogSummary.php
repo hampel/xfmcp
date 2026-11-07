@@ -60,8 +60,8 @@ class ErrorLogSummary extends ForumTool
                 .'whole log. A time without a zone is UTC. Defaults to 24 hours before `until`.'
             ),
             'until' => $schema->string()->description(
-                'End of the window, in the same forms. Defaults to now. From Hampel/AdminApi 1.0.0a11 an entry at '
-                .'exactly `until` is not counted, so it can be the next window\'s `since`; before it both ends are.'
+                'End of the window, in the same forms. Defaults to now. An entry at exactly `until` is not '
+                .'counted, so it can be the next window\'s `since`.'
             ),
             'limit' => $schema->integer()->description('How many signatures to return, most frequent first. Default 20, maximum 100.'),
         ];

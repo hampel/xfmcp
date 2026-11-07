@@ -12,7 +12,7 @@ shapes the answers for a reader that cannot ask a follow-up question.
 ## Requirements
 
 - PHP 8.3 or later, on the machine the agent runs on
-- Each forum: XenForo 2.2 or later with the Hampel/AdminApi add-on installed
+- Each forum: XenForo 2.2 or later with the Hampel/AdminApi add-on 1.0.0a11 or later
 - An API key per forum, created as described under *Forums*
 
 Nothing is installed on a forum's server beyond the add-on.
@@ -107,16 +107,6 @@ panel.
 
 **Showing values takes `hampel_admin_api:values` on the same key**, beside `options` or
 `config`. Option values also need XenForo's *Manage options* on the administrator.
-
-**A forum on Hampel/AdminApi 1.0.0a10 or earlier works the old way** until it is upgraded:
-one `hampel_admin_api:read` scope for every summary, and an admin permission per endpoint
-instead of *Use the Admin API*. On such a forum *All scopes* reaches everything. A refusal
-names the permission for both versions, and `app:validate` accepts either kind of key.
-
-**Upgrading a forum to 1.0.0a11 takes the old access away.** The upgrade removes
-`hampel_admin_api:read` from every key and the old permissions from every administrator, so
-until the new scopes are selected and *Use the Admin API* is granted, every summary is refused.
-Run `xfmcp app:validate` after the upgrade.
 
 `list-forums` contacts no forum and needs nothing. `forum-access` needs nothing of its own: it
 reports which of the above a forum grants.

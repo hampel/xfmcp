@@ -74,9 +74,8 @@ class ForumAccess extends ForumTool
     /**
      * The summary tools the forum will not answer, beyond add-ons, which has already been asked.
      *
-     * Each endpoint needs its own scope (before 1.0.0a11, its own admin permission), so one
-     * answering says nothing about the next. These are the same counts the tools return; none
-     * is about a member.
+     * Each endpoint needs its own scope, so one answering says nothing about the next. These
+     * are the same counts the tools return; none is about a member.
      *
      * @return array<string, string>
      */

@@ -153,8 +153,8 @@ class Validate extends Command
             $addOns = $api->addOns();
             $this->checkOk('Summaries', $this->describeForum($addOns));
         } catch (ApiException $e) {
-            // from 1.0.0a11 a read key may leave add-ons unselected, which the key check reported
-            $e->hasCode('missing_scope') && ! $this->holdsLegacyRead
+            // a read key may leave add-ons unselected, which the key check reported
+            $e->hasCode('missing_scope')
                 ? $this->checkSkip('Summaries', 'add-ons is not among the read key\'s scopes, so the add-on inventory is not read')
                 : $this->checkFail('Summaries', $gateway->explain($forum, 'key', $e));
         } catch (XenForoException $e) {
@@ -259,9 +259,6 @@ class Validate extends Command
     /** whether the read key last checked by checkKeyKind() holds the values scope */
     protected bool $holdsValues = false;
 
-    /** whether it holds the single read scope of an add-on before 1.0.0a11 */
-    protected bool $holdsLegacyRead = false;
-
     /**
      * What the forum itself says about a key: its type, and the scopes it holds.
      *
@@ -292,35 +289,28 @@ class Validate extends Command
         }
 
         if ($info->allowAllScopes) {
-            if ($which === 'key') {
-                $this->holdsValues = $this->holdsLegacyRead = true;
-            }
+            $this->checkFail($label, 'a user key allowed ALL scopes, which reaches none of the add-on\'s endpoints. '
+                .'Choose "Selected scopes only" and select the scopes it is for');
 
-            $this->checkWarn($label, 'a user key allowed ALL scopes. Before Hampel/AdminApi 1.0.0a11 that reaches every '
-                .'endpoint; from 1.0.0a11 it reaches none. Choose "Selected scopes only" and select the scopes it is for');
-
-            return true;
+            return false;
         }
 
         $values = $which === 'key' && in_array(ForumGateway::SCOPE_VALUES, $info->scopes, true);
         $summaries = array_values(array_unique(ForumGateway::SUMMARY_SCOPES));
         $held = array_values(array_intersect($summaries, $info->scopes));
-        $legacy = in_array(ForumGateway::SCOPE_READ, $info->scopes, true);
 
         if ($which === 'key') {
             $this->holdsValues = $values;
-            $this->holdsLegacyRead = $legacy;
 
-            if (! $legacy && $held === []) {
-                $this->checkFail($label, 'a user key without a summary scope: it needs '.ForumGateway::SCOPE_READ
-                    .' before Hampel/AdminApi 1.0.0a11, or from 1.0.0a11 the scope of each summary it is to answer');
+            if ($held === []) {
+                $this->checkFail($label, 'a user key without a summary scope: select the scope of each summary it is to answer');
 
                 return false;
             }
 
             // the values scope widens what options and configuration show; it is a choice
             // made per forum, not a key holding more than it should
-            $expected = [...$summaries, ForumGateway::SCOPE_READ, ForumGateway::SCOPE_VALUES];
+            $expected = [...$summaries, ForumGateway::SCOPE_VALUES];
         } else {
             if (! $info->hasScope(ForumGateway::SCOPE_DETAIL)) {
                 $this->checkFail($label, 'a user key without the '.ForumGateway::SCOPE_DETAIL.' scope');
@@ -345,10 +335,8 @@ class Validate extends Command
             return true;
         }
 
-        $what = $legacy
-            ? ForumGateway::SCOPE_READ
-            : sprintf('%d of the %d summary scopes', count($held), count($summaries));
-        $missing = $legacy ? [] : array_values(array_diff($summaries, $held));
+        $what = sprintf('%d of the %d summary scopes', count($held), count($summaries));
+        $missing = array_values(array_diff($summaries, $held));
 
         $this->checkOk($label, 'a user key holding '.$what
             .($values ? ' and '.ForumGateway::SCOPE_VALUES : ' only; options and configuration show no values')

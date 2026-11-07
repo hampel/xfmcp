@@ -153,18 +153,18 @@ response got something wrong, in trials run against the add-on before this tool 
 - **`notes` says what an empty answer is worth**, because absence is not health and a
   description alone did not stop an agent overclaiming it.
 
-- **`forum-access` asks every summary endpoint, not one.** Each has its own scope from the
-  add-on's 1.0.0a11, and had its own admin permission before, so add-ons answering says nothing
-  about logs or upgrades; on 2026-10-24 three dev forums answered every older summary and
-  refused all three new ones. A permission refusal names *Use the Admin API* and, for a forum
-  not yet upgraded, the old per-endpoint permission from `AdminApi::PERMISSIONS`. Both, and
-  `ForumGateway::SUMMARY_SCOPES`, are kept in step with the add-on by hand.
+- **`forum-access` asks every summary endpoint, not one.** Each has its own scope, so add-ons
+  answering says nothing about logs or upgrades; on 2026-10-24 three dev forums answered every
+  older summary and refused all three new ones. A permission refusal names *Use the Admin API*,
+  from `AdminApi::PERMISSION`. It and `ForumGateway::SUMMARY_SCOPES` are kept in step with the
+  add-on by hand.
 
 - **A day-by-day breakdown from the new tools lists only busy days, and says when it stops
   short.** The add-on lists every day up to 366, so a year of nothing was 730 rows, and on a
-  longer window an agent read entries missing from `by_day` as pruned. `forum-logs` also renames
-  an overview row's whole-log dates to `log_oldest_date` and `log_newest_date`, as the detail
-  view has them: `total: 0` beside an `oldest_date` read as an empty log holding entries.
+  longer window an agent read entries missing from `by_day` as pruned. The overview's whole-log
+  dates are `log_oldest_date` and `log_newest_date`, as in the detail view: `total: 0` beside an
+  `oldest_date` read as an empty log holding entries. This tool renamed them until the add-on
+  sent them so.
 
 - **The activity headline names every registration state but `valid` that holds anyone.** It
   named two, and on 2026-11-06 an agent noted that a reader stopping there would count bounced
@@ -186,11 +186,11 @@ Changing one of these changes what an agent concludes. Add a test with the chang
 
 ## `app:validate` proves the kind of each key
 
-**A read key may hold either access model, because forums upgrade one at a time.** From the
-add-on's 1.0.0a11 (2026-11-06) each summary has its own scope and *All scopes* reaches nothing;
-before it one `hampel_admin_api:read` covered them all. `app:validate` accepts a key holding
-either, reports which summary scopes a new-model key left unselected without warning, and warns
-on *All scopes*, which is everything on an old forum and nothing on a new one.
+**The tool needs the add-on's 1.0.0a11 or later, and its access model.** Each summary has its
+own scope, and *All scopes* reaches nothing. `app:validate` reports which summary scopes a read
+key left unselected, without warning, and fails a key allowed all scopes. Support for the older
+model, one `hampel_admin_api:read` scope and a permission per endpoint, was removed on
+2026-11-07, once every forum in the inventory had upgraded.
 
 **The values scope on a read key is a choice, not an excess.** `hampel_admin_api:values`
 widens what the read key's options and configuration show, so `app:validate` reports it and

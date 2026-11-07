@@ -33,12 +33,9 @@ use Throwable;
  */
 class ForumGateway
 {
-    /** every summary, on an add-on before 1.0.0a11; gone from 1.0.0a11 */
-    public const SCOPE_READ = 'hampel_admin_api:read';
-
     /**
-     * From the add-on's 1.0.0a11, each summary endpoint has a scope of its own and the read
-     * key holds the ones it is to answer. Endpoint to scope, as the add-on's README has it.
+     * Each summary endpoint has a scope of its own, and the read key holds the ones it is to
+     * answer. Endpoint to scope, as the add-on's README has it.
      */
     public const SUMMARY_SCOPES = [
         'admin-api/error-log/' => 'hampel_admin_api:error_log',
@@ -62,7 +59,7 @@ class ForumGateway
 
     public const CODE_KEY_TYPE = 'hampel_adminapi_user_api_key_required';
 
-    /** from 1.0.0a11: a key allowed all scopes reaches none of the add-on's */
+    /** a key allowed all scopes reaches none of the add-on's */
     public const CODE_SCOPE_MUST_BE_SELECTED = 'hampel_adminapi_scope_must_be_selected';
 
     public const CODE_WINDOW_TOO_LONG = 'hampel_adminapi_window_too_long';
@@ -210,8 +207,8 @@ class ForumGateway
         }
 
         if ($e->hasCode(self::CODE_SCOPE_MUST_BE_SELECTED)) {
-            return "{$name} refused the key ({$codes}): `{$which}` is allowed all scopes, and from Hampel/AdminApi "
-                .'1.0.0a11 that reaches none of the add-on\'s. '.$this->messages($e).' The key\'s scopes are set in '
+            return "{$name} refused the key ({$codes}): `{$which}` is allowed all scopes, which reaches none of the "
+                .'add-on\'s. '.$this->messages($e).' The key\'s scopes are set in '
                 .'the forum\'s admin control panel; the key itself is fine.';
         }
 
@@ -221,11 +218,8 @@ class ForumGateway
         }
 
         if ($e->hasCode('do_not_have_permission')) {
-            $legacy = AdminApi::PERMISSIONS[$path ?? ''] ?? null;
-
             return "{$name} refused the key (do_not_have_permission): the administrator `{$which}` belongs to does "
-                .'not hold the admin permission it needs. From Hampel/AdminApi 1.0.0a11 that is "'.AdminApi::PERMISSION.'"'
-                .($legacy === null ? '' : "; on an older add-on, {$legacy}")
+                .'not hold the admin permission it needs, "'.AdminApi::PERMISSION.'"'
                 .(in_array($path, [null, 'admin-api/error-entries/'], true) ? '. Reading error entries also needs XenForo\'s own "View logs"' : '')
                 .'. It is granted on the administrator in the forum\'s admin control panel; the key is fine.';
         }
@@ -242,9 +236,8 @@ class ForumGateway
 
         if ($e->hasCode(self::CODE_WINDOW_TOO_LONG)) {
             return "{$name} rejected the request ({$codes}): ".$this->messages($e)
-                .' For a longer period, ask in consecutive windows and add the counts. From Hampel/AdminApi '
-                .'1.0.0a11 a window excludes `until`, so each `until` is the next `since`; before it both ends are '
-                .'counted, so start each window one second after the previous `until`.';
+                .' For a longer period, ask in consecutive windows, each `until` the next one\'s `since`, and '
+                .'add the counts: a window excludes its `until`.';
         }
 
         return "{$name} rejected the request (HTTP {$e->statusCode}; {$codes}): ".$this->messages($e);

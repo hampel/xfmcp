@@ -18,31 +18,10 @@ use Hampel\XenForo\Api\Result\ApiResponse;
 final class AdminApi extends Endpoint
 {
     /**
-     * The one admin permission every endpoint needs on the key's administrator from the
-     * add-on's 1.0.0a11, as the control panel names it. Each endpoint has its own scope instead.
+     * The one admin permission every endpoint needs on the key's administrator, as the control
+     * panel names it. Each endpoint has its own scope as well.
      */
     public const PERMISSION = 'Use the Admin API';
-
-    /**
-     * The admin permission each endpoint needed before 1.0.0a11, as the control panel named
-     * it, so a refusal from a forum not yet upgraded can say which one is missing. Delete it
-     * once every forum is on 1.0.0a11. The error entries endpoint also needs "View logs".
-     */
-    public const PERMISSIONS = [
-        'admin-api/error-log/' => 'Admin API: View error log summary',
-        'admin-api/error-entries/' => 'Admin API: View error log entries',
-        'admin-api/add-ons/' => 'Admin API: View add-ons',
-        'admin-api/online/' => 'Admin API: View who is online',
-        'admin-api/cron/' => 'Admin API: View cron and jobs',
-        'admin-api/jobs/' => 'Admin API: View cron and jobs',
-        'admin-api/logs/' => 'Admin API: View log summaries',
-        'admin-api/user-upgrades/' => 'Admin API: View user upgrade summary',
-        'admin-api/approval-queue/' => 'Admin API: View approval queue summary',
-        'admin-api/reports/' => 'Admin API: View report summary',
-        'admin-api/activity/' => 'Admin API: View activity summary',
-        'admin-api/options/' => 'Admin API: View options',
-        'admin-api/config/' => 'Admin API: View config.php',
-    ];
 
     private ?string $path = null;
 

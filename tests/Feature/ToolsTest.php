@@ -505,15 +505,18 @@ it('passes on the remainder of the actions, which names no controller', function
         ->and(array_sum(array_column($content['by_action'], 'count')))->toBe($content['total']);
 });
 
-it('names the logs that recorded something, busiest first', function () {
+it('names the logs that recorded something, busiest first, and those holding older entries', function () {
+    // captured: an overview, which no longer counts a whole log
     fakeForum(['admin-api/logs/' => 'logs']);
 
     $content = structured(ForumLogs::class, ['forum' => 'acme']);
 
-    expect($content['headline'])->toBe('2 of 18 logs recorded something in this window: admin 29, server_error 11.')
+    expect($content['headline'])->toBe('2 of 18 logs recorded something in this window: admin 1, sitemap 1.')
         ->and($content['logs'][1])->toMatchArray(['log' => 'moderator', 'total' => 0, 'log_oldest_date' => 1752127630])
-        ->and($content['logs'][1])->not->toHaveKey('oldest_date')
+        ->and($content['logs'][1])->not->toHaveKey('log_total')
         ->and($content['logs'][0]['log_newest_date_iso'])->toEndWith('Z')
+        ->and(implode(' ', $content['notes']))
+        ->toContain('moderator, user_change, server_error, ip, upgrade: none in this window, but each holds older entries')
         ->and(sentRequests()[0]->url())->not->toContain('log=');
 });
 
@@ -650,26 +653,6 @@ it('says so when every entry in the window is older than by_day reaches', functi
 
     expect(implode(' ', $content['notes']))->toContain('Both entries in this window are older than that and are counted')
         ->and($content['by_day'])->toBe([]);
-});
-
-it('passes on a 1.0.0a9 overview row, which already names the whole log', function () {
-    fakeForum(['admin-api/logs/' => 'logs-a9']);
-
-    expect(structured(ForumLogs::class, ['forum' => 'acme'])['logs'][1])
-        ->toMatchArray(['log' => 'moderator', 'total' => 0, 'log_total' => 2, 'log_oldest_date' => 1752127630])
-        ->not->toHaveKey('oldest_date');
-});
-
-it('reads a 1.0.0a10 overview, which no longer counts a whole log', function () {
-    fakeForum(['admin-api/logs/' => 'logs-a10']);
-
-    $content = structured(ForumLogs::class, ['forum' => 'acme']);
-
-    expect($content['headline'])->toBe('2 of 18 logs recorded something in this window: admin 1, sitemap 1.')
-        ->and($content['logs'][1])->toMatchArray(['log' => 'moderator', 'total' => 0, 'log_oldest_date' => 1752127630])
-        ->and($content['logs'][1])->not->toHaveKey('log_total')
-        ->and(implode(' ', $content['notes']))
-        ->toContain('moderator, user_change, server_error, ip, upgrade: none in this window, but each holds older entries');
 });
 
 it('takes the forum\'s word that by_day was cut, from 1.0.0a9', function () {

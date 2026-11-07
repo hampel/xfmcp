@@ -52,28 +52,28 @@ it('names the two refusals the add-on phrases itself', function (string $code, s
     ['do_not_have_permission', 'does not hold the admin permission'],
 ]);
 
-it('names the admin permission the refused endpoint needs', function (string $tool, string $path, string $permission) {
+it('names the admin permission on every summary refused for it', function (string $tool, string $path) {
     // captured: a forum's refusal of the reports endpoint, whose permission the key's administrator lacked
     fakeForum([$path => ['refused-no-permission', 403]]);
 
-    XenForoServer::tool($tool, ['forum' => 'acme'])->assertHasErrors([$permission.'.', 'the key is fine']);
+    XenForoServer::tool($tool, ['forum' => 'acme'])->assertHasErrors(['"Use the Admin API"', 'the key is fine']);
 })->with([
-    [AddOns::class, 'admin-api/add-ons/', 'Admin API: View add-ons'],
-    [ForumLogs::class, 'admin-api/logs/', 'Admin API: View log summaries'],
-    [ApprovalQueue::class, 'admin-api/approval-queue/', 'Admin API: View approval queue summary'],
-    [UserUpgrades::class, 'admin-api/user-upgrades/', 'Admin API: View user upgrade summary'],
-    [Reports::class, 'admin-api/reports/', 'Admin API: View report summary'],
-    [ForumActivity::class, 'admin-api/activity/', 'Admin API: View activity summary'],
+    [AddOns::class, 'admin-api/add-ons/'],
+    [ForumLogs::class, 'admin-api/logs/'],
+    [ApprovalQueue::class, 'admin-api/approval-queue/'],
+    [UserUpgrades::class, 'admin-api/user-upgrades/'],
+    [Reports::class, 'admin-api/reports/'],
+    [ForumActivity::class, 'admin-api/activity/'],
 ]);
 
 it('passes on the forum\'s refusal of a window longer than it allows', function () {
     fakeForum(['admin-api/activity/' => ['refused-window-too-long', 400]]);
 
     XenForoServer::tool(ForumActivity::class, ['forum' => 'acme', 'since' => '-60 days'])
-        ->assertHasErrors(['The window may be at most 31 days long.', 'ask in consecutive windows', 'each `until` is the next `since`', 'one second after the previous `until`']);
+        ->assertHasErrors(['The window may be at most 31 days long.', 'ask in consecutive windows', 'each `until` the next one\'s `since`', 'a window excludes its `until`']);
 });
 
-it('says a key allowed all scopes must have them selected, from 1.0.0a11', function () {
+it('says a key allowed all scopes must have them selected', function () {
     // not captured: code, params and message as the add-on session quoted them on 2026-11-06
     fakeForum(['admin-api/add-ons/' => Http::response(
         ['errors' => [['code' => 'hampel_adminapi_scope_must_be_selected', 'message' => 'This key allows all scopes, which does not include the Admin API\'s. Choose "Selected scopes only" and select hampel_admin_api:add_ons.', 'params' => ['scope' => 'hampel_admin_api:add_ons']]]],
@@ -84,11 +84,11 @@ it('says a key allowed all scopes must have them selected, from 1.0.0a11', funct
         ->assertHasErrors(['is allowed all scopes', 'select hampel_admin_api:add_ons', 'the key itself is fine']);
 });
 
-it('names the one admin permission of 1.0.0a11 and the older one beside it', function () {
+it('names the one admin permission', function () {
     fakeForum(['admin-api/reports/' => ['refused-no-permission', 403]]);
 
     XenForoServer::tool(Reports::class, ['forum' => 'acme'])
-        ->assertHasErrors(['"Use the Admin API"; on an older add-on, Admin API: View report summary.'])
+        ->assertHasErrors(['does not hold the admin permission it needs, "Use the Admin API". It is granted'])
         ->assertDontSee('View logs');
 });
 

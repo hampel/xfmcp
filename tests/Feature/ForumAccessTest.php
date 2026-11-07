@@ -121,7 +121,7 @@ it('names each summary tool the forum refuses, since each has its own permission
 
     expect($content['headline'])->toStartWith('Summaries can be read, EXCEPT forum-logs, user-upgrades: see `summaries.refused`.')
         ->and(array_keys($content['summaries']['refused']))->toBe(['forum-logs', 'user-upgrades'])
-        ->and($content['summaries']['refused']['forum-logs'])->toContain('Admin API: View log summaries');
+        ->and($content['summaries']['refused']['forum-logs'])->toContain('"Use the Admin API"');
 });
 
 it('says a forum that cannot be read at all cannot be read at all', function () {
