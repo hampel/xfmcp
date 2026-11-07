@@ -159,9 +159,10 @@ response got something wrong, in trials run against the add-on before this tool 
   from `AdminApi::PERMISSION`. It and `ForumGateway::SUMMARY_SCOPES` are kept in step with the
   add-on by hand.
 
-- **A day-by-day breakdown from the new tools lists only busy days, and says when it stops
-  short.** The add-on lists every day up to 366, so a year of nothing was 730 rows, and on a
-  longer window an agent read entries missing from `by_day` as pruned. The overview's whole-log
+- **A day-by-day breakdown lists only busy days, and says when it stops short.** The add-on
+  lists every day up to 366, so a year of nothing was 730 rows, and on a longer window an agent
+  read entries missing from `by_day` as pruned. The error log kept its zero days until
+  2026-11-07, when the test session noticed the two tools differed. The overview's whole-log
   dates are `log_oldest_date` and `log_newest_date`, as in the detail view: `total: 0` beside an
   `oldest_date` read as an empty log holding entries. This tool renamed them until the add-on
   sent them so.

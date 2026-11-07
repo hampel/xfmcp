@@ -786,3 +786,13 @@ it('measures how long ago from the forum\'s clock, not from the end of a window 
     [ForumLogs::class, 'admin-api/logs/', 'logs-admin', '(24 hours ago)'],
     [ErrorLogSummary::class, 'admin-api/error-log/', 'error-log-24h', '24 hours ago'],
 ]);
+
+it('lists only the error log\'s busy days, as forum-logs does, and says so', function () {
+    // captured: the whole log, whose by_day holds five days with no error
+    fakeForum(['admin-api/error-log/' => 'error-log-all']);
+
+    $content = structured(ErrorLogSummary::class, ['forum' => 'acme', 'since' => 'all']);
+
+    expect(array_column($content['by_day'], 'count'))->not->toContain(0)->toHaveCount(9)
+        ->and(implode(' ', $content['notes']))->toContain('`by_day` lists only days with errors');
+});

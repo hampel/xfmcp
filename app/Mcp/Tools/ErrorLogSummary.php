@@ -33,9 +33,10 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
     - `by_origin`: `web` is a request, `job` includes every cron entry, `cli` is someone at a terminal.
     - `members` counts different logged-in members; guests, the command line and jobs count as nobody.
     - `ErrorException` covers PHP warnings, fatals and messages an add-on logged; `severity` tells them apart.
-    - `by_day` reaches back at most 366 days; on a longer window `notes` says from when.
+    - `by_day` lists only days with errors, in UTC, and reaches back at most 366 days; on a longer window `notes`
+      says from when.
     - XenForo prunes the log. `window.precedes_log: true` means part of the window is older than anything kept,
-      and those days read as zero whether or not anything happened.
+      and those days show no errors whether or not anything happened.
 
     An empty result means nothing was logged. It does not mean nothing is broken: a fault that logs no error is
     invisible here.
@@ -89,6 +90,10 @@ class ErrorLogSummary extends ForumTool
 
         $data['headline'] = $this->headline($data);
         $data['notes'] = $this->notes($data);
+
+        if (is_array($data['by_day'] ?? null)) {
+            $data['by_day'] = Present::busyDays($data['by_day']);
+        }
 
         return Present::lead($data, self::ORDER);
     }
@@ -148,12 +153,16 @@ class ErrorLogSummary extends ForumTool
         $notes = [];
 
         if (($data['window']['precedes_log'] ?? false) === true) {
-            $notes[] = 'The window starts before the oldest entry the log still holds, so its earliest days read as '
-                .'zero whether or not anything happened then.';
+            $notes[] = 'The window starts before the oldest entry the log still holds, so its earliest days show no '
+                .'errors whether or not anything happened then.';
         }
 
         if (($cut = Present::byDayCut($data)) !== null) {
             $notes[] = $cut;
+        }
+
+        if (is_array($data['by_day'] ?? null) && $data['by_day'] !== []) {
+            $notes[] = '`by_day` lists only days with errors; a day not listed had none.';
         }
 
         if (($data['examined']['complete'] ?? true) === false) {
