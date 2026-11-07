@@ -101,7 +101,7 @@ class ErrorLogSummary extends ForumTool
         $total = (int) ($data['total'] ?? 0);
         $log = is_array($data['log'] ?? null) ? $data['log'] : [];
         $logTotal = (int) ($log['total'] ?? 0);
-        $now = (int) ($data['window']['until'] ?? time());
+        $now = (int) ($data['now'] ?? time());
 
         if ($logTotal === 0) {
             return 'The server error log is empty.';

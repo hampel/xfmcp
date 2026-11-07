@@ -140,7 +140,7 @@ class ForumLogs extends ForumTool
         $log = (string) ($data['log'] ?? 'this');
         $total = (int) ($data['total'] ?? 0);
         $logTotal = (int) ($data['log_total'] ?? 0);
-        $now = (int) ($data['window']['until'] ?? time());
+        $now = (int) ($data['now'] ?? time());
 
         if ($logTotal === 0) {
             return sprintf('The %s log is empty.', $log);

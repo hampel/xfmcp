@@ -772,3 +772,17 @@ it('sends the window it was given to the activity endpoint', function () {
 
     expect(sentRequests()[0]->url())->toContain('since=1792000000')->toContain('until=1792086400');
 });
+
+it('measures how long ago from the forum\'s clock, not from the end of a window in the past', function (string $tool, string $path, string $fixture, string $expected) {
+    // a window that ended a day before the forum answered: the newest entry is a day older
+    // than the window's end makes it look
+    $data = captured($fixture);
+    $data['now'] = $data['window']['until'] + 86400;
+
+    fakeForum([$path => Http::response($data)]);
+
+    expect(structured($tool, ['forum' => 'acme', 'until' => (string) $data['window']['until']])['headline'])->toContain($expected);
+})->with([
+    [ForumLogs::class, 'admin-api/logs/', 'logs-admin', '(24 hours ago)'],
+    [ErrorLogSummary::class, 'admin-api/error-log/', 'error-log-24h', '24 hours ago'],
+]);
