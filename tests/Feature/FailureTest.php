@@ -9,6 +9,7 @@ use App\Mcp\Tools\ForumActivity;
 use App\Mcp\Tools\ForumLogs;
 use App\Mcp\Tools\Reports;
 use App\Mcp\Tools\UserUpgrades;
+use Carbon\CarbonImmutable;
 use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Psr7\Request as Psr7Request;
 
@@ -75,6 +76,7 @@ it('passes on the forum\'s refusal of a window longer than it allows', function 
 });
 
 it('says how 1.0.0a11 refuses exactly 31 days, only when that is what was asked for', function (array $arguments, bool $hinted) {
+    CarbonImmutable::setTestNow('2026-11-07 04:00:00');
     fakeForum(['admin-api/activity/' => ['refused-window-too-long', 400]]);
 
     $tool = XenForoServer::tool(ForumActivity::class, ['forum' => 'acme'] + $arguments)->assertHasErrors(['at most 31 days']);
@@ -82,7 +84,7 @@ it('says how 1.0.0a11 refuses exactly 31 days, only when that is what was asked 
     $hinted ? $tool->assertSee('If this forum runs Hampel/AdminApi 1.0.0a11') : $tool->assertDontSee('1.0.0a11');
 })->with([
     'exactly 31 days, no until' => [['since' => '-31 days'], true],
-    'a second over, no until' => [['since' => '-31 days -1 minute'], false],
+    'a second over, no until' => [['since' => '-31 days -1 second'], false],
     'exactly 31 days, with until' => [['since' => '-31 days', 'until' => 'now'], false],
 ]);
 

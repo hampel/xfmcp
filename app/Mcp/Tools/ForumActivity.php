@@ -7,6 +7,7 @@ use App\Forum\ForumCallException;
 use App\Forum\ForumGateway;
 use App\Support\Forum;
 use App\Support\Present;
+use Carbon\CarbonImmutable;
 use Hampel\XenForo\Api\Exception\ApiException;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Laravel\Mcp\Request;
@@ -68,10 +69,13 @@ class ForumActivity extends ForumTool
             'until' => $this->instant($request->get('until'), 'until'),
         ], static fn ($value): bool => $value !== null);
 
+        // measured now, not after the forum answers, so a second over is not taken for exactly 31 days
+        $span = isset($query['since']) && ! isset($query['until']) ? CarbonImmutable::now()->getTimestamp() - $query['since'] : null;
+
         try {
             $data = $gateway->read($forum, static fn (AdminApi $api): array => $api->activity($query));
         } catch (ForumCallException $e) {
-            throw $this->onOlderAddOn($e, $query);
+            throw $this->onOlderAddOn($e, $span);
         }
 
         $data['headline'] = $this->headline($data);
@@ -86,15 +90,14 @@ class ForumActivity extends ForumTool
      * that case: a hint on every refusal told an agent over the limit on 1.0.0a12 to retry a
      * request that would be refused again. Delete once every forum is on 1.0.0a12.
      *
-     * @param  array<string, int>  $query
+     * @param  int|null  $span  how far back `since` was asked for, when `until` was not
      */
-    private function onOlderAddOn(ForumCallException $e, array $query): ForumCallException
+    private function onOlderAddOn(ForumCallException $e, ?int $span): ForumCallException
     {
         $cause = $e->getPrevious();
-        $span = isset($query['since']) && ! isset($query['until']) ? time() - $query['since'] : null;
 
         if (! $cause instanceof ApiException || ! $cause->hasCode(ForumGateway::CODE_WINDOW_TOO_LONG)
-            || $span === null || abs($span - 31 * 86400) > 5) {
+            || $span !== 31 * 86400) {
             return $e;
         }
 
