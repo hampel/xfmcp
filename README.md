@@ -114,7 +114,8 @@ reports which of the above a forum grants.
 **What happens when one is missing:**
 
 - **A scope or permission for a tool:** the tool returns an error naming it — `missing_scope`
-  for the key, `do_not_have_permission` and the permission's name for the administrator.
+  for the key, and for the administrator the permission's name (`do_not_have_permission` before
+  the add-on's 1.0.0a13, `hampel_adminapi_admin_permission_required` from it).
 - **Anything needed for values:** no error. The forum answers without values, and the answer's
   `headline` says which scope or permission was missing.
 - **Either way,** `forum-access` reports it, tool by tool, without reading an error entry.

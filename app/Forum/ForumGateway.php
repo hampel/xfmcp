@@ -62,6 +62,9 @@ class ForumGateway
     /** a key allowed all scopes reaches none of the add-on's */
     public const CODE_SCOPE_MUST_BE_SELECTED = 'hampel_adminapi_scope_must_be_selected';
 
+    /** from the add-on's 1.0.0a13: the key's user lacks an admin permission, which the message names */
+    public const CODE_ADMIN_PERMISSION_REQUIRED = 'hampel_adminapi_admin_permission_required';
+
     public const CODE_WINDOW_TOO_LONG = 'hampel_adminapi_window_too_long';
 
     public const CODE_ERROR_ID_REQUIRED = 'hampel_adminapi_error_id_required';
@@ -217,11 +220,21 @@ class ForumGateway
                 .'needs. '.$this->messages($e).' The scope is set on the key in the forum\'s admin control panel.';
         }
 
+        if ($e->hasCode(self::CODE_ADMIN_PERMISSION_REQUIRED)) {
+            return "{$name} refused the key ({$codes}): the administrator `{$which}` belongs to does not hold an "
+                .'admin permission this endpoint needs. '.$this->messages($e).' It is granted on the administrator '
+                .'in the forum\'s admin control panel; the key is fine.';
+        }
+
+        // Until the add-on's 1.0.0a13 this was also its answer for a missing admin permission;
+        // from it, only XenForo's own refusal of the user, before any add-on code runs.
         if ($e->hasCode('do_not_have_permission')) {
-            return "{$name} refused the key (do_not_have_permission): the administrator `{$which}` belongs to does "
-                .'not hold the admin permission it needs, "'.AdminApi::PERMISSION.'"'
-                .(in_array($path, [null, 'admin-api/error-entries/'], true) ? '. Reading error entries also needs XenForo\'s own "View logs"' : '')
-                .'. It is granted on the administrator in the forum\'s admin control panel; the key is fine.';
+            return "{$name} refused the key (do_not_have_permission): the user `{$which}` belongs to is refused. "
+                .'Either it is an administrator without the admin permission it needs, "'.AdminApi::PERMISSION.'"'
+                .(in_array($path, [null, 'admin-api/error-entries/'], true) ? ' (reading error entries also needs XenForo\'s own "View logs")' : '')
+                .', which is the only cause before the add-on\'s 1.0.0a13; or XenForo refused the user before the '
+                .'add-on ran: it lacks General permissions > View, or its state is not Valid on a forum guests '
+                .'cannot view. Either way it is fixed on that user in the forum\'s admin control panel; the key is fine.';
         }
 
         if ($e instanceof NotAuthenticatedException || $e instanceof NotPermittedException) {

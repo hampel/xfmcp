@@ -71,7 +71,7 @@ it('says a configured detail key is refused, with the forum\'s reason, before an
 
     expect($content['headline'])->toEndWith('Individual error log entries CANNOT be read: a detail key is configured but the forum refuses it.')
         ->and($content['error_entries'])->toMatchArray(['configured' => true, 'available' => false])
-        ->and($content['error_entries']['problem'])->toContain('does not hold the admin permission');
+        ->and($content['error_entries']['problem'])->toContain('without the admin permission it needs');
 });
 
 it('never names an entry, and never sends anything but a GET', function () {

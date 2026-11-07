@@ -49,7 +49,8 @@ it('names the two refusals the add-on phrases itself', function (string $code, s
     XenForoServer::tool(AddOns::class, ['forum' => 'acme'])->assertHasErrors([$expected]);
 })->with([
     ['hampel_adminapi_user_api_key_required', 'only accepts a User key'],
-    ['do_not_have_permission', 'does not hold the admin permission'],
+    ['do_not_have_permission', 'without the admin permission it needs'],
+    ['hampel_adminapi_admin_permission_required', 'does not hold an admin permission'],
 ]);
 
 it('names the admin permission on every summary refused for it', function (string $tool, string $path) {
@@ -85,12 +86,24 @@ it('says a key allowed all scopes must have them selected', function () {
         ->assertHasErrors(['is allowed all scopes', 'select hampel_admin_api:add_ons', 'the key itself is fine']);
 });
 
-it('names the one admin permission', function () {
+it('names the one admin permission, and XenForo\'s own refusal it shares a code with', function () {
     fakeForum(['admin-api/reports/' => ['refused-no-permission', 403]]);
 
     XenForoServer::tool(Reports::class, ['forum' => 'acme'])
-        ->assertHasErrors(['does not hold the admin permission it needs, "Use the Admin API". It is granted'])
+        ->assertHasErrors(['"Use the Admin API", which is the only cause before', 'General permissions > View', 'the key is fine'])
         ->assertDontSee('View logs');
+});
+
+it('passes on the permission the forum names, from Hampel/AdminApi 1.0.0a13', function () {
+    // not captured: code and message as the add-on session quoted them on 2026-11-07
+    fakeForum(['admin-api/error-entries/' => Http::response(
+        ['errors' => [['code' => 'hampel_adminapi_admin_permission_required', 'message' => 'The key\'s user does not hold the administrator permission "View logs", which this endpoint needs.', 'params' => []]]],
+        403,
+    )]);
+
+    XenForoServer::tool(ErrorLogEntries::class, ['forum' => 'acme', 'error_id' => 1])
+        ->assertHasErrors(['(hampel_adminapi_admin_permission_required)', 'permission "View logs", which this endpoint needs.', 'the key is fine'])
+        ->assertDontSee('General permissions');
 });
 
 it('says which scope the forum asked for', function () {

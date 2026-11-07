@@ -83,6 +83,18 @@ it('warns about a read key that can read error messages, and still exits 0', fun
     expect($exit)->toBe(0)->and($output)->toContain('[warn]')->toContain('`key` can read error messages');
 });
 
+it('warns about a read key that holds the detail scope, whichever code refuses its user', function (string $code) {
+    fakeHealthyForum([READ_KEY => [
+        'index' => ['index-read-key', 200],
+        'admin-api/add-ons' => ['add-ons', 200],
+        'admin-api/error-entries' => [['errors' => [['code' => $code, 'message' => 'Refused.', 'params' => []]]], 403],
+    ]]);
+
+    [$exit, $output] = runCommand('app:validate');
+
+    expect($exit)->toBe(0)->and($output)->toContain('`key` holds the detail scope');
+})->with(['do_not_have_permission', 'hampel_adminapi_admin_permission_required']);
+
 it('warns about a key holding more scopes than it needs', function () {
     $index = captured('index-read-key');
     $index['key']['scopes']['user:read'] = true;

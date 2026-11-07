@@ -175,7 +175,7 @@ class Validate extends Command
                     'Read key reach',
                     '`key` can read error messages: it holds the detail scope and its user the permission. Use a second key for that'
                 ),
-                $e->hasCode('do_not_have_permission') => $this->checkWarn(
+                $e->hasCode(ForumGateway::CODE_ADMIN_PERMISSION_REQUIRED), $e->hasCode('do_not_have_permission') => $this->checkWarn(
                     'Read key reach',
                     '`key` holds the detail scope; only its user\'s admin permissions stop it reading error messages'
                 ),

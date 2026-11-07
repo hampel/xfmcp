@@ -76,7 +76,8 @@ reads XenForo's error code and names whose problem it is:
 | `endpoint_not_found` | the add-on is not installed there |
 | `hampel_adminapi_user_api_key_required` | a super user or guest key |
 | `missing_scope` | the key lacks the scope for that endpoint |
-| `do_not_have_permission` | the key's administrator lacks the admin permission |
+| `hampel_adminapi_admin_permission_required` | the key's administrator lacks an admin permission, which the message names (1.0.0a13+) |
+| `do_not_have_permission` | before 1.0.0a13, the same; from it, XenForo refused the key's user before the add-on ran |
 | a 4xx with no `errors[]` | something in front of the forum answered, not XenForo |
 
 **A tool returns `Response::error()`, never an exception and never an empty result.** An
