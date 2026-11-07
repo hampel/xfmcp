@@ -3,9 +3,11 @@
 namespace App\Mcp\Tools;
 
 use App\Forum\AdminApi;
+use App\Forum\ForumCallException;
 use App\Forum\ForumGateway;
 use App\Support\Forum;
 use App\Support\Present;
+use Hampel\XenForo\Api\Exception\ApiException;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Server\Attributes\Description;
@@ -66,12 +68,38 @@ class ForumActivity extends ForumTool
             'until' => $this->instant($request->get('until'), 'until'),
         ], static fn ($value): bool => $value !== null);
 
-        $data = $gateway->read($forum, static fn (AdminApi $api): array => $api->activity($query));
+        try {
+            $data = $gateway->read($forum, static fn (AdminApi $api): array => $api->activity($query));
+        } catch (ForumCallException $e) {
+            throw $this->onOlderAddOn($e, $query);
+        }
 
         $data['headline'] = $this->headline($data);
         $data['notes'] = $this->notes($data);
 
         return Present::lead($data, ['headline', 'notes', 'window', 'registrations', 'threads', 'posts']);
+    }
+
+    /**
+     * Hampel/AdminApi 1.0.0a11 measured the 31-day cap to its default `until` of now + 1, so it
+     * refused exactly 31 days asked for with no `until`. Said only when the request could be
+     * that case: a hint on every refusal told an agent over the limit on 1.0.0a12 to retry a
+     * request that would be refused again. Delete once every forum is on 1.0.0a12.
+     *
+     * @param  array<string, int>  $query
+     */
+    private function onOlderAddOn(ForumCallException $e, array $query): ForumCallException
+    {
+        $cause = $e->getPrevious();
+        $span = isset($query['since']) && ! isset($query['until']) ? time() - $query['since'] : null;
+
+        if (! $cause instanceof ApiException || ! $cause->hasCode(ForumGateway::CODE_WINDOW_TOO_LONG)
+            || $span === null || abs($span - 31 * 86400) > 5) {
+            return $e;
+        }
+
+        return new ForumCallException($e->getMessage().' If this forum runs Hampel/AdminApi 1.0.0a11, it refuses '
+            .'exactly 31 days with no `until`, counting one second past now; give `until: "now"`.', 0, $cause);
     }
 
     /**
