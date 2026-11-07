@@ -237,7 +237,8 @@ class ForumGateway
         if ($e->hasCode(self::CODE_WINDOW_TOO_LONG)) {
             return "{$name} rejected the request ({$codes}): ".$this->messages($e)
                 .' For a longer period, ask in consecutive windows, each `until` the next one\'s `since`, and '
-                .'add the counts: a window excludes its `until`.';
+                .'add the counts: a window excludes its `until`. A window of exactly the maximum with no `until` '
+                .'is refused by Hampel/AdminApi 1.0.0a11, which counts one second past now; give `until: "now"`.';
         }
 
         return "{$name} rejected the request (HTTP {$e->statusCode}; {$codes}): ".$this->messages($e);
