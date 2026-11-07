@@ -192,7 +192,7 @@ Changing one of these changes what an agent concludes. Add a test with the chang
 
 ## `app:validate` proves the kind of each key
 
-**The tool needs the add-on's 1.0.0a11 or later, and its access model.** Each summary has its
+**The tool needs the add-on's 1.0.0a12 or later, and its access model.** Each summary has its
 own scope, and *All scopes* reaches nothing. `app:validate` reports which summary scopes a read
 key left unselected, without warning, and fails a key allowed all scopes. Support for the older
 model, one `hampel_admin_api:read` scope and a permission per endpoint, was removed on

@@ -9,7 +9,6 @@ use App\Mcp\Tools\ForumActivity;
 use App\Mcp\Tools\ForumLogs;
 use App\Mcp\Tools\Reports;
 use App\Mcp\Tools\UserUpgrades;
-use Carbon\CarbonImmutable;
 use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Psr7\Request as Psr7Request;
 
@@ -74,19 +73,6 @@ it('passes on the forum\'s refusal of a window longer than it allows', function 
         ->assertHasErrors(['The window may be at most 31 days long.', 'ask in consecutive windows', 'each `until` the next one\'s `since`', 'a window excludes its `until`'])
         ->assertDontSee('1.0.0a11');
 });
-
-it('says how 1.0.0a11 refuses exactly 31 days, only when that is what was asked for', function (array $arguments, bool $hinted) {
-    CarbonImmutable::setTestNow('2026-11-07 04:00:00');
-    fakeForum(['admin-api/activity/' => ['refused-window-too-long', 400]]);
-
-    $tool = XenForoServer::tool(ForumActivity::class, ['forum' => 'acme'] + $arguments)->assertHasErrors(['at most 31 days']);
-
-    $hinted ? $tool->assertSee('If this forum runs Hampel/AdminApi 1.0.0a11') : $tool->assertDontSee('1.0.0a11');
-})->with([
-    'exactly 31 days, no until' => [['since' => '-31 days'], true],
-    'a second over, no until' => [['since' => '-31 days -1 second'], false],
-    'exactly 31 days, with until' => [['since' => '-31 days', 'until' => 'now'], false],
-]);
 
 it('says a key allowed all scopes must have them selected', function () {
     // not captured: code, params and message as the add-on session quoted them on 2026-11-06

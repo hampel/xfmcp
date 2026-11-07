@@ -12,7 +12,7 @@ shapes the answers for a reader that cannot ask a follow-up question.
 ## Requirements
 
 - PHP 8.3 or later, on the machine the agent runs on
-- Each forum: XenForo 2.2 or later with the Hampel/AdminApi add-on 1.0.0a11 or later
+- Each forum: XenForo 2.2 or later with the Hampel/AdminApi add-on 1.0.0a12 or later
 - An API key per forum, created as described under *Forums*
 
 Nothing is installed on a forum's server beyond the add-on.
