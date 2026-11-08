@@ -1,22 +1,211 @@
-name: CI
+# Actions are pinned to full-length commit SHAs - a version tag is a moving
+# target that the action's owner can repoint at any commit, and a workflow that
+# can write to this repository is a bad place for that. The comment beside each
+# SHA is the release it was taken from; to update one, resolve the tag again
+# rather than replacing the SHA with the tag.
+#
+#   git ls-remote --tags https://github.com/actions/checkout | grep 'v7.0.1$'
+#
+# An annotated tag needs the dereferenced line - refs/tags/x^{} - which is the
+# commit; the bare line is the tag object and will not be accepted.
+
+name: ci
 
 on:
   push:
+    branches: [master]
+    tags: ['*']
   pull_request:
+  workflow_dispatch:
+
+# One run per branch or PR. A push that lands while an earlier one is still
+# going makes the earlier one irrelevant.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+# Read-only by default; the release job widens this for itself alone.
+permissions:
+  contents: read
 
 jobs:
-  check:
+  tests:
+    name: tests (PHP ${{ matrix.php }})
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
 
-      # One PHP version, not a matrix: the floor is the oldest machine the tool is
-      # installed on, and composer.json declares exactly that.
-      - uses: shivammathur/setup-php@v2
+    strategy:
+      fail-fast: false
+      matrix:
+        # The corners of composer.json's ^8.3.0: the floor, and the newest PHP it
+        # admits. Move the top leg up as each PHP ships. A green newer leg means
+        # the tool works there, not that it is free of deprecations: Laravel
+        # routes those to a null log channel before the suite can see them.
+        php: ['8.3', '8.5']
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+
+      - run: composer install --no-interaction --prefer-dist --no-progress
+
+      # analyse then test, which is what `composer check` runs locally. Not
+      # `composer check` itself, so that a failure names which of the two.
+      - run: php vendor/bin/phpstan analyse --no-progress
+
+      - run: php vendor/bin/pest
+
+  build:
+    name: compiled binary
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # app:build takes its version from `git describe`, so the tags have to
+          # be here or the artefact announces itself as "unreleased"
+          fetch-depth: 0
+
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
         with:
           php-version: '8.3'
           coverage: none
+          # box writes a phar, which php refuses to do by default
+          ini-values: phar.readonly=0
 
-      - run: composer install --no-interaction --prefer-dist
+      - run: composer install --no-interaction --prefer-dist --no-progress
 
-      - run: composer check
+      - name: Compile
+        # composer build installs --no-dev, compiles, restores, and then fails if
+        # laravel/pint is still findable in the artefact. app:build never runs
+        # composer and box.json takes vendor/ wholesale, so building from a dev
+        # checkout would compile the dev dependencies in.
+        run: composer build
+
+      - name: It runs, and reports itself
+        # About the ARTEFACT rather than the source: app:build evaluates
+        # config/app.php on the build machine and compiles the result in as a
+        # literal, and box rewrites what ships.
+        run: |
+          ./builds/xfmcp --version
+          ./builds/xfmcp list > /dev/null
+          ./builds/xfmcp app:config > /dev/null
+
+      - name: A mistyped command still exits non-zero
+        # App\Kernel overrides the framework's fallback to the default command.
+        # Repeated on the binary because that is where it could differ, and
+        # because app:validate is meant to gate on its exit code.
+        run: |
+          if ./builds/xfmcp app:validte > /dev/null 2>&1; then
+            echo 'A mistyped command exited 0'
+            exit 1
+          fi
+
+      - name: Nothing but JSON-RPC reaches stdout
+        # The property the server depends on: an MCP client parses every stdout
+        # line as a message. App\Exceptions\Handler sends a rendered exception to
+        # stderr, rebound in bootstrap/app.php over the framework's binding, so it
+        # is exactly what could survive the suite and not the build. An inventory
+        # that does not exist is the case most likely to print something.
+        run: ./.github/mcp-smoke.sh ./builds/xfmcp
+
+  release:
+    name: publish the release
+    runs-on: ubuntu-latest
+
+    # Only a tag publishes, and only after everything else has passed.
+    needs: [tests, build]
+    if: startsWith(github.ref, 'refs/tags/')
+
+    # The only job that may write to the repository, and it says so here rather
+    # than at the top of the file.
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
+        with:
+          php-version: '8.3'
+          coverage: none
+          ini-values: phar.readonly=0
+
+      - run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Compile
+        # Compiled again rather than carried over from the build job. Box stamps
+        # the phar, so the same commit does not compile to the same bytes, and
+        # the checks below are repeated on the artefact that actually ships.
+        run: composer build
+
+      - name: It announces the tag it was built from
+        # config/app.php holds app('git.version'), compiled in as a literal.
+        # Building before tagging would ship a binary announcing the previous
+        # release; a tag-triggered build cannot, and this asserts it anyway.
+        run: |
+          built=$(./builds/xfmcp --version | awk '{print $NF}')
+
+          if [ "$built" != "$GITHUB_REF_NAME" ]; then
+            echo "The binary says [$built] but the tag is [$GITHUB_REF_NAME]."
+            exit 1
+          fi
+
+          echo "$built"
+
+      - name: A mistyped command still exits non-zero
+        run: |
+          if ./builds/xfmcp app:validte > /dev/null 2>&1; then
+            echo 'A mistyped command exited 0'
+            exit 1
+          fi
+
+      - name: Nothing but JSON-RPC reaches stdout, and the server names the tag
+        run: ./.github/mcp-smoke.sh ./builds/xfmcp "$GITHUB_REF_NAME"
+
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # These two asset names are load-bearing and must not be tidied. The
+          # checksum only matches because the name INSIDE the sums file is the
+          # downloaded filename, and whatever installs this builds the same URL.
+          cd builds
+          mv xfmcp "xfmcp-$GITHUB_REF_NAME"
+          sha256sum "xfmcp-$GITHUB_REF_NAME" > SHA256SUMS
+          cat SHA256SUMS
+          cd ..
+
+          # The hand-written entry for this version. Stops at the next heading,
+          # or at a link-reference footer if the changelog ever grows one.
+          awk -v tag="$GITHUB_REF_NAME" '
+            $0 ~ "^## \\[" tag "\\]" { found = 1; next }
+            found && /^## / { exit }
+            found && /^\[.*\]: http/ { exit }
+            found { print }
+          ' CHANGELOG.md > body.md
+
+          {
+            echo "Needs PHP 8.3 or newer. Download both assets, keep the binary"
+            echo "named \`xfmcp-$GITHUB_REF_NAME\` so the checksum matches, and verify"
+            echo "with \`sha256sum --ignore-missing -c SHA256SUMS\` before installing it."
+            echo "See the README for the forum inventory and registering the server."
+            echo
+          } | cat - body.md > notes.md
+
+          # Falls back to generated notes rather than failing the release if the
+          # changelog section is missing.
+          if [ ! -s body.md ]; then
+            gh release create "$GITHUB_REF_NAME" \
+              "builds/xfmcp-$GITHUB_REF_NAME" builds/SHA256SUMS \
+              --title "$GITHUB_REF_NAME" --verify-tag --generate-notes
+          else
+            gh release create "$GITHUB_REF_NAME" \
+              "builds/xfmcp-$GITHUB_REF_NAME" builds/SHA256SUMS \
+              --title "$GITHUB_REF_NAME" --verify-tag --notes-file notes.md
+          fi

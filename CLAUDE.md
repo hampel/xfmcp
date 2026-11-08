@@ -257,6 +257,22 @@ details replaced by hand. So is `reports.json`, the add-on README's example with
 forum captured on 2026-11-06 had no reports, and `reports-empty.json` is that capture. Replace it
 when a forum has reports waiting.
 
+## Releasing
+
+CI tests on the floor and the newest PHP the constraint admits, compiles on every push, and
+publishes a release only on a tag.
+
+1. **Move `## [Unreleased]` in the CHANGELOG to `## [<tag>]` first.** The release job takes that
+   section as the notes; a mismatch falls back to generated notes silently.
+2. **Tag, then build.** `app:build` compiles the version in as a literal, and the release job
+   fails if `--version` or the server's `serverInfo.version` differs from the tag.
+3. **The maintainer pushes the tag**; CI publishes `xfmcp-<version>` and `SHA256SUMS`.
+4. **Pin an install to the published `SHA256SUMS`, never to a local build**: box stamps the
+   phar, so the same commit does not compile to the same bytes.
+
+`.github/mcp-smoke.sh` is the binary check both jobs run: one `initialize` over stdio, and every
+stdout line must be a JSON-RPC message.
+
 ## Known gaps
 
 - **The MCP component's `make:mcp-*` and `mcp:inspector` commands are still listed**, in the
@@ -265,4 +281,3 @@ when a forum has reports waiting.
   take. They are harmless and useless there.
 - **A compiled binary run from `/` prints its default inventory path as `//forums.toml`.**
   Cosmetic; `app:validate` warns about that path regardless.
-- **No release workflow.** CI runs `composer check` and nothing publishes a binary.
