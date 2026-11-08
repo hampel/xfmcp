@@ -502,6 +502,16 @@ it('says how concentrated the guests are once there are enough to say', function
     )->and($content['newest_date_iso'])->toBe('2026-10-08T09:59:39Z');
 });
 
+it('says how many sessions met an error page, as part of the total', function () {
+    $online = ['total' => 769, 'guests' => 577, 'robots' => 192, 'errors' => 153] + captured('online');
+
+    fakeForum(['admin-api/online/' => Http::response($online)]);
+
+    expect(structured(WhoIsOnline::class, ['forum' => 'acme'])['headline'])
+        ->toBe('769 online in the last 15 minutes: 0 members, 577 guests, 192 recognised robots. '
+            .'153 of these sessions\' last request ended in an error page, of whatever kind of visitor.');
+});
+
 it('does not call one guest a swarm', function () {
     $online = ['total' => 3, 'guests' => 3, 'guest_networks' => ['sessions' => 3, 'ipv4' => 3, 'largest_24' => 1, 'distinct_24' => 3, 'largest_16' => 1, 'distinct_16' => 3]]
         + captured('online');

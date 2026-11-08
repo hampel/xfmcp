@@ -30,7 +30,11 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
       lists the busiest; a last entry with a null `controller` and `action` is everything else added together,
       not an unknown action. Without that entry the list may be complete, or may be an older forum leaving
       the rest out: compare its counts with `total`.
-    - `errors` is how many sessions' last request ended in an error.
+    - `errors` is how many sessions' last request ended in an error page, whether not found, no permission or
+      any other. It counts members, guests and robots alike, and is part of `total`, never added to it. Nothing
+      splits it by kind or action: `XF\Pub\Controller\ErrorController` in `by_action` is only the requests XenForo
+      could not route to a page, and an error page from another controller (no permission, say) is listed under
+      that one.
     - `window_minutes` is the forum's own online timeout: a session counts if it was active in that long.
 
     This is a snapshot, and each call gives a different one. It reports the figures; whether they are too many
@@ -81,6 +85,16 @@ class WhoIsOnline extends ForumTool
             $robots = (int) ($data['robots'] ?? 0),
             $robots === 1 ? 'robot' : 'robots',
         );
+
+        $errors = (int) ($data['errors'] ?? 0);
+
+        if ($errors > 0) {
+            $headline .= sprintf(
+                ' %d of these %s last request ended in an error page, of whatever kind of visitor.',
+                $errors,
+                $errors === 1 ? 'session\'s' : 'sessions\'',
+            );
+        }
 
         $ipv4 = (int) ($data['guest_networks']['ipv4'] ?? 0);
         $largest = (int) ($data['guest_networks']['largest_24'] ?? 0);
