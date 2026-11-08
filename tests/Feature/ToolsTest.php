@@ -509,7 +509,7 @@ it('says how many sessions met an error page, as part of the total', function ()
 
     expect(structured(WhoIsOnline::class, ['forum' => 'acme'])['headline'])
         ->toBe('769 online in the last 15 minutes: 0 members, 577 guests, 192 recognised robots. '
-            .'153 of these sessions\' last request ended in an error page, of whatever kind of visitor.');
+            .'153 of these sessions\' last recorded page was an error, of whatever kind of visitor.');
 });
 
 it('does not call one guest a swarm', function () {
