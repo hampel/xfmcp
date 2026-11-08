@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-11-09
+
 ### Fixed
 
 - `app:validate` on Windows: an inventory path with a drive letter or a UNC share is absolute,
