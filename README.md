@@ -280,6 +280,7 @@ answer at all. Further limits:
 xfmcp app:config             # the resolved configuration; never prints a key
 xfmcp app:validate           # check the inventory, each forum and each key
 xfmcp app:validate --offline # the same without contacting any forum
+xfmcp app:validate --strict  # exit 2 when there are warnings but no failures
 ```
 
 **`app:validate` proves each key is the kind it is meant to be.** For every forum it asks the
@@ -293,6 +294,15 @@ the error entries endpoint name no entry, so nothing is read from the log.
 | `[warn]` | worth knowing; the tool works — a key holding more than it needs is one | 0 |
 | `[fail]` | the tool will not work for this forum | 1 |
 | `[    ]` | not checked. A skip is not a pass | 0 |
+
+| | all fine | warnings only | any failure |
+|---|---|---|---|
+| `app:validate` | 0 | 0 | 1 |
+| `app:validate --strict` | 0 | 2 | 1 |
+
+**1 always means a failure**, with the flag or without it. This is not the monitoring-plugin
+numbering, where 1 is a warning. A deploy gate leaves `--strict` off; a monitor that should hear
+of a key holding more than it needs passes it.
 
 ## Development
 

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "b9d6f1cb148b279f6ad4f6f2af951371",
+    "content-hash": "fce81427a94a098db46cdb4630ed5250",
     "packages": [
         {
             "name": "brick/math",
@@ -1059,16 +1059,16 @@
         },
         {
             "name": "hampel/console-report",
-            "version": "2.1.0",
+            "version": "2.2.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/hampel/console-report.git",
-                "reference": "7d2a54ed5906aa495adb1d6e768650222f0ee39d"
+                "reference": "002f20ec517d794516d2d74b9f16982d386da76b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/hampel/console-report/zipball/7d2a54ed5906aa495adb1d6e768650222f0ee39d",
-                "reference": "7d2a54ed5906aa495adb1d6e768650222f0ee39d",
+                "url": "https://api.github.com/repos/hampel/console-report/zipball/002f20ec517d794516d2d74b9f16982d386da76b",
+                "reference": "002f20ec517d794516d2d74b9f16982d386da76b",
                 "shasum": ""
             },
             "require": {
@@ -1114,7 +1114,8 @@
                 "issues": "https://github.com/hampel/console-report/issues",
                 "source": "https://github.com/hampel/console-report"
             },
-            "time": "2026-08-27T15:11:48+00:00"
+            "time": "2026-10-08T10:37:16+00:00",
+            "published-time": "2026-10-08T13:03:25+00:00"
         },
         {
             "name": "hampel/xenforo-api",
@@ -10391,5 +10392,5 @@
         "php": "^8.3.0"
     },
     "platform-dev": {},
-    "plugin-api-version": "2.9.0"
+    "plugin-api-version": "2.11.0"
 }

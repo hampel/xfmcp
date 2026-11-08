@@ -110,6 +110,19 @@ it('does not read the detail scope into a refusal of the key\'s user', function 
         ->not->toContain('`key` holds the detail scope;');
 });
 
+it('exits 2 for warnings only under --strict, and 1 for a failure either way', function (array $override, bool $strict, int $expected) {
+    fakeHealthyForum($override);
+
+    [$exit] = runCommand('app:validate', $strict ? ['--strict' => true] : []);
+
+    expect($exit)->toBe($expected);
+})->with([
+    'warnings only, no flag' => [[READ_KEY => ['index' => ['index-read-key', 200], 'admin-api/add-ons' => ['add-ons', 200], 'admin-api/error-entries' => ['refused-error-id-required', 400]]], false, 0],
+    'warnings only, --strict' => [[READ_KEY => ['index' => ['index-read-key', 200], 'admin-api/add-ons' => ['add-ons', 200], 'admin-api/error-entries' => ['refused-error-id-required', 400]]], true, 2],
+    'a failure, --strict' => [[READ_KEY => ['index' => ['bad-key', 401]]], true, 1],
+    'all fine, --strict' => [[], true, 0],
+]);
+
 it('warns about a key holding more scopes than it needs', function () {
     $index = captured('index-read-key');
     $index['key']['scopes']['user:read'] = true;

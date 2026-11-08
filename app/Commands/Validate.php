@@ -31,7 +31,9 @@ class Validate extends Command
 {
     use RendersChecks;
 
-    protected $signature = 'app:validate {--offline : Skip the checks that contact a forum}';
+    protected $signature = 'app:validate
+        {--offline : Skip the checks that contact a forum}
+        {--strict : Exit 2 when there are warnings but no failures}';
 
     protected $description = 'Check the configuration, the inventory and each forum\'s keys';
 
@@ -57,7 +59,7 @@ class Validate extends Command
             $this->checkForum($gateway, $forum);
         }
 
-        return $this->checkExitCode();
+        return $this->checkExitCode((bool) $this->option('strict'));
     }
 
     protected function checkRuntime(): void

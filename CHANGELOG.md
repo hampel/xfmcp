@@ -20,4 +20,4 @@
 - An ISO 8601 time beside every Unix timestamp, in UTC and optionally in a second zone.
 - `app:config`, which prints the resolved configuration without printing a key.
 - `app:validate`, which checks the inventory and proves each forum's keys are the kind
-  they are meant to be.
+  they are meant to be. `--strict` exits 2 when there are warnings but no failures.

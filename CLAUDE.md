@@ -229,7 +229,8 @@ fixed upstream the same day; do not lower the constraint.
 
 **It is the command to extend when a new dependency on the environment appears.** Four
 markers, the same as the sibling tools: `[ ok ]`, `[warn]`, `[fail]`, and blank for a check
-that did not apply. A skip is not a pass. Warnings exit 0.
+that did not apply. A skip is not a pass. Warnings exit 0, or 2 under
+`--strict`, which needs `hampel/console-report` ^2.2: on 2.1 the argument is ignored.
 
 ## Conventions
 
