@@ -14,8 +14,9 @@ user upgrades, options and configuration.
 repository does not restate it. `README.md` here is the operator's document; this file is why
 the code is the way it is.
 
-**It has not been released.** `CLAUDE.local.md`, gitignored, records where it runs, which
-forum it was proved against and what is still undecided.
+**Released from 0.1.0**, published by the CI release job; see *Releasing*. `CLAUDE.local.md`,
+gitignored, records where it runs, which forums it was proved against and what is still
+undecided.
 
 ## Commands
 
