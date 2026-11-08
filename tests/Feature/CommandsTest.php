@@ -1,5 +1,6 @@
 <?php
 
+use App\Commands\Validate;
 use App\Kernel;
 use App\Support\ForumInventory;
 use App\Support\ForumInventoryException;
@@ -305,6 +306,18 @@ it('warns when the inventory is readable beyond its owner', function (int $mode,
 })->with([
     [0644, '0644 - readable beyond its owner'],
     [0600, '[ ok ] File mode'],
+]);
+
+it('tells an absolute inventory path from a relative one, Windows forms included', function (string $path, bool $absolute) {
+    expect(Validate::isAbsolute($path))->toBe($absolute);
+})->with([
+    ['/etc/xfmcp/forums.toml', true],
+    ['C:\\Users\\acme\\xfmcp\\forums.toml', true],
+    ['C:/Users/acme/xfmcp/forums.toml', true],
+    ['\\\\server\\share\\forums.toml', true],
+    ['storage/forums.toml', false],
+    ['forums.toml', false],
+    ['C:forums.toml', false],
 ]);
 
 it('warns when a compiled binary is left to find its inventory by working directory', function () {

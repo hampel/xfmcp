@@ -13,7 +13,8 @@ shapes the answers for a reader that cannot ask a follow-up question.
 
 ## Requirements
 
-- PHP 8.3 or later, on the machine the agent runs on
+- PHP 8.3 or later, on the machine the agent runs on — Linux, macOS or Windows — with the
+  `curl`, `mbstring` and `openssl` extensions
 - Each forum: XenForo 2.2 or later with the Hampel/AdminApi add-on 1.0.0a12 or later
 - An API key per forum, created as described under *Forums*
 
@@ -22,7 +23,11 @@ Nothing is installed on a forum's server beyond the add-on.
 ## Installation
 
 **From a release.** Each release publishes the binary, `xfmcp-<version>`, and `SHA256SUMS`.
-Download both into one directory, keeping the binary's name so the checksum matches, then:
+The binary is a PHP archive, the same file on every platform. Download both into one
+directory, keeping the binary's name so the checksum matches, then follow the section for your
+platform.
+
+### Linux
 
 ```bash
 sha256sum --ignore-missing -c SHA256SUMS
@@ -35,7 +40,48 @@ matter of moving the link. **Keep that directory free of a `.env`**: an environm
 the binary, the real file after the link is followed, outranks every other. Put the settings in
 `/etc/xfmcp/.env`, readable by whoever runs the MCP client — see *Configuration*.
 
-**From a checkout:**
+### macOS
+
+PHP from Homebrew has the extensions it needs:
+
+```bash
+brew install php
+shasum -a 256 -c SHA256SUMS
+mkdir -p ~/.local/lib/xfmcp ~/.local/bin
+install -m 0755 xfmcp-<version> ~/.local/lib/xfmcp/
+ln -sfn ~/.local/lib/xfmcp/xfmcp-<version> ~/.local/bin/xfmcp
+```
+
+`~/.local/bin` must be on your `PATH` for `xfmcp` to work in a terminal. **An MCP client
+started from the Dock or Finder does not read your shell's `PATH`**, so register the server
+with full paths: `$(brew --prefix)/bin/php` and the binary. *Usage* shows how.
+
+### Windows
+
+1. **Install PHP 8.3 or later** from [windows.php.net](https://windows.php.net/download/): the
+   *x64 Non Thread Safe* zip, unpacked to a directory such as `C:\php`.
+2. **Enable the extensions.** Copy `php.ini-production` to `php.ini` in that directory, and in
+   it uncomment `extension_dir = "ext"` and the lines for `curl`, `mbstring` and `openssl`.
+   `C:\php\php.exe -m` should then list all three.
+3. **Check the download and put it somewhere of its own**, in PowerShell:
+
+   ```powershell
+   Get-FileHash .\xfmcp-<version> -Algorithm SHA256
+   Get-Content .\SHA256SUMS
+   New-Item -ItemType Directory -Force "$env:LOCALAPPDATA\xfmcp"
+   Move-Item .\xfmcp-<version> "$env:LOCALAPPDATA\xfmcp\"
+   ```
+
+   The two hashes must be the same; PowerShell prints its own in upper case.
+
+**Windows does not run the archive by itself**: every command is `php` followed by the path
+to the binary, as in `C:\php\php.exe "$env:LOCALAPPDATA\xfmcp\xfmcp-<version>" app:config`.
+Where this README says `xfmcp`, read that. There is no `/etc` either, so pass the inventory's
+path in the MCP client's configuration — see *Usage*.
+
+### From a checkout
+
+
 
 ```bash
 composer install
@@ -169,6 +215,13 @@ Every setting has a default, so a checkout needs no `.env`. `.env.example` docum
 
 The environment file is looked for beside the binary, then at the path in `XFMCP_ENV`, then in
 the project directory, then at `/etc/xfmcp/.env`. `xfmcp app:config` prints the one it read.
+On macOS and Windows the simplest course is no environment file at all: set
+`XFMCP_FORUMS_PATH` in the MCP client's configuration, as *Usage* shows.
+
+**The inventory holds a live API key per forum, so only you should be able to read it.** On
+Linux and macOS, `chmod 600` it; `app:validate` warns otherwise. On Windows, PHP cannot see who
+may read a file, so `app:validate` skips the check: keep it in your own profile, such as
+`%LOCALAPPDATA%\xfmcp\forums.toml`, and check its *Security* properties.
 
 **An installed binary must be told where the inventory is.** A compiled binary resolves its
 default against the working directory, and an MCP client starts the server from a directory
@@ -199,6 +252,35 @@ For a client configured with JSON:
             "command": "xfmcp",
             "args": ["mcp:start", "xenforo"],
             "env": {"XFMCP_FORUMS_PATH": "/path/to/forums.toml"}
+        }
+    }
+}
+```
+
+**Give an MCP client absolute paths, and on Windows, the interpreter.** A desktop client does
+not start from your shell, so it may not find `xfmcp` or `php` on a `PATH`. On macOS:
+
+```bash
+claude mcp add xenforo --env XFMCP_FORUMS_PATH="$HOME/.config/xfmcp/forums.toml" \
+    -- "$(brew --prefix)/bin/php" "$HOME/.local/lib/xfmcp/xfmcp-<version>" mcp:start xenforo
+```
+
+On Windows, in PowerShell:
+
+```powershell
+claude mcp add xenforo --env XFMCP_FORUMS_PATH="$env:LOCALAPPDATA/xfmcp/forums.toml" `
+    -- C:/php/php.exe "$env:LOCALAPPDATA/xfmcp/xfmcp-<version>" mcp:start xenforo
+```
+
+And in JSON, where forward slashes save escaping each backslash:
+
+```json
+{
+    "mcpServers": {
+        "xenforo": {
+            "command": "C:/php/php.exe",
+            "args": ["C:/Users/you/AppData/Local/xfmcp/xfmcp-<version>", "mcp:start", "xenforo"],
+            "env": {"XFMCP_FORUMS_PATH": "C:/Users/you/AppData/Local/xfmcp/forums.toml"}
         }
     }
 }

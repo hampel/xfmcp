@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- `app:validate` on Windows: an inventory path with a drive letter or a UNC share is absolute,
+  not relative, and the file mode check is skipped there rather than warning on every file.
+
+### Changed
+
+- The README covers installing and registering the server on macOS and Windows.
+
 ## [0.1.0] - 2026-11-09
 
 The first release.

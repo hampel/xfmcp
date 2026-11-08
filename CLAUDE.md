@@ -228,7 +228,11 @@ promises a list, and before 1.2.2 the package read only the list, so `hasScope()
 for every scoped key and this command failed a correct one. Found here on 2026-10-08 and
 fixed upstream the same day; do not lower the constraint.
 
-**It is the command to extend when a new dependency on the environment appears.** Four
+****It runs on Windows and macOS too, and so must its checks.** `Validate::isAbsolute()` accepts a
+drive letter or a UNC share, and the file mode check is a skip on Windows, where PHP reports
+every writable file as 0666. Written 2026-11-09 and not yet run on either platform.
+
+It is the command to extend when a new dependency on the environment appears.** Four
 markers, the same as the sibling tools: `[ ok ]`, `[warn]`, `[fail]`, and blank for a check
 that did not apply. A skip is not a pass. Warnings exit 0, or 2 under
 `--strict`, which needs `hampel/console-report` ^2.2: on 2.1 the argument is ignored.

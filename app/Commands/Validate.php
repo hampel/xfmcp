@@ -90,7 +90,7 @@ class Validate extends Command
     {
         $path = $inventory->path();
 
-        if (! str_starts_with($path, '/')) {
+        if (! self::isAbsolute($path)) {
             $this->checkFail('Path', $path.' is relative; it resolves against whatever directory the MCP client starts in');
         } elseif ($this->followsWorkingDirectory()) {
             $this->checkWarn('Path', $path.' follows the working directory; set XFMCP_FORUMS_PATH absolutely');
@@ -111,7 +111,10 @@ class Validate extends Command
         // the file is a set of live keys; anyone who can read it can read every forum
         $mode = @fileperms($path);
 
-        if ($mode === false) {
+        if (PHP_OS_FAMILY === 'Windows') {
+            // PHP reports every writable file as 0666 there; who can read it is the file's ACL
+            $this->checkSkip('File mode', 'not a Unix file mode on Windows; limit who can read the file in its Security properties');
+        } elseif ($mode === false) {
             $this->checkSkip('File mode', 'could not be read');
         } elseif (($mode & 0077) !== 0) {
             $this->checkWarn('File mode', sprintf('%04o - readable beyond its owner; it holds API keys, make it 0600', $mode & 0777));
@@ -383,6 +386,18 @@ class Validate extends Command
      * Asked of the container, never inferred from the path: run from `/`, every absolute
      * path starts with the storage path.
      */
+    /**
+     * A path that does not depend on the working directory: /etc/..., or on Windows a drive
+     * letter with a separator (C:\..., C:/...) or a UNC share (\\server\share). "C:file" is
+     * relative to that drive's current directory, so it is not.
+     */
+    public static function isAbsolute(string $path): bool
+    {
+        return str_starts_with($path, '/')
+            || str_starts_with($path, '\\\\')
+            || preg_match('#^[A-Za-z]:[\\\\/]#', $path) === 1;
+    }
+
     protected function followsWorkingDirectory(): bool
     {
         return config('xfmcp.forums_path_set') !== true
