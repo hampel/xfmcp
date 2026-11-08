@@ -2,7 +2,9 @@
 
 An [MCP](https://modelcontextprotocol.io) server that lets an agent ask a XenForo forum about
 its operational state: what is in the server error log, which add-ons are installed, whether
-cron and the job queue are running, and which options and `config.php` settings are set. It
+cron and the job queue are running, who is online, what the other logs and the moderation
+queues hold, registrations and posting, user upgrades, and which options and `config.php`
+settings are set. It
 is read-only, and it talks over stdio, so nothing listens on a port.
 
 It is a client of the Hampel/AdminApi XenForo add-on, which adds
@@ -19,13 +21,30 @@ Nothing is installed on a forum's server beyond the add-on.
 
 ## Installation
 
-Build the binary from a checkout, and put it on your path:
+**From a release.** Each release publishes the binary, `xfmcp-<version>`, and `SHA256SUMS`.
+Download both into one directory, keeping the binary's name so the checksum matches, then:
+
+```bash
+sha256sum --ignore-missing -c SHA256SUMS
+sudo install -D -m 0755 xfmcp-<version> /usr/local/lib/xfmcp/xfmcp-<version>
+sudo ln -sfn /usr/local/lib/xfmcp/xfmcp-<version> /usr/local/bin/xfmcp
+```
+
+Keeping each version in `/usr/local/lib/xfmcp/` and linking the one in use makes going back a
+matter of moving the link. **Keep that directory free of a `.env`**: an environment file beside
+the binary, the real file after the link is followed, outranks every other. Put the settings in
+`/etc/xfmcp/.env`, readable by whoever runs the MCP client — see *Configuration*.
+
+**From a checkout:**
 
 ```bash
 composer install
 composer build
 sudo install -m 0755 builds/xfmcp /usr/local/bin/xfmcp
 ```
+
+`composer build` installs without development dependencies, compiles, and restores them, and
+refuses an artefact that still contains them.
 
 Or run it in place, without building:
 
