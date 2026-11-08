@@ -178,6 +178,11 @@ response got something wrong, in trials run against the add-on before this tool 
   would not show inline, and each trace repeated the same frames; the messages were what
   differed. A client without a shell could not have read the answer at all.
 
+- **`who-is-online` says what `errors` counts, and the headline gives it.** On 2026-11-08 an
+  agent on a production forum could not tell what 153 errors were when the error controller
+  accounted for 140: an error is recorded under the action that answered, and only
+  `DispatchError` is a request XenForo could not route.
+
 - **`who-is-online` is the one tool not marked idempotent.** It is a snapshot; two calls are
   two answers.
 
