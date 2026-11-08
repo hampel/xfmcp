@@ -181,7 +181,9 @@ response got something wrong, in trials run against the add-on before this tool 
 - **`who-is-online` says what `errors` counts, and the headline gives it.** On 2026-11-08 an
   agent on a production forum could not tell what 153 errors were when the error controller
   accounted for 140: an error is recorded under the action that answered, and only
-  `DispatchError` is a request XenForo could not route.
+  `DispatchError` is a request XenForo could not route. From the add-on's 1.0.0a14 the headline
+  splits errors by kind and says whether any /24 holds both guests and robots; from an older
+  forum those fields are absent, and the headline says nothing rather than zero.
 
 - **`who-is-online` is the one tool not marked idempotent.** It is a snapshot; two calls are
   two answers.

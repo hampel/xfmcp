@@ -1,11 +1,16 @@
 {
-    "now": 1791454001,
+    "now": 1794137080,
     "window_minutes": 15,
     "total": 0,
     "members": 0,
     "guests": 0,
     "robots": 0,
     "errors": 0,
+    "errors_by_kind": {
+        "members": 0,
+        "guests": 0,
+        "robots": 0
+    },
     "newest_date": null,
     "guest_networks": {
         "sessions": 0,
@@ -22,6 +27,14 @@
         "distinct_24": 0,
         "largest_16": 0,
         "distinct_16": 0
+    },
+    "shared_networks": {
+        "distinct_24": 0,
+        "guests_24": 0,
+        "robots_24": 0,
+        "distinct_16": 0,
+        "guests_16": 0,
+        "robots_16": 0
     },
     "by_robot": [],
     "by_action": []

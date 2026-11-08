@@ -498,12 +498,14 @@ it('says how concentrated the guests are once there are enough to say', function
 
     expect($content['headline'])->toBe(
         '1840 online in the last 15 minutes: 37 members, 1512 guests, 291 recognised robots. '
-        .'The busiest /24 network holds 640 of the 1490 IPv4 guests (43%), across 212 networks.'
+        .'The busiest /24 network holds 640 of the 1490 IPv4 guests (43%), across 212 networks. '
+        .'No /24 network holds both guests and recognised robots.'
     )->and($content['newest_date_iso'])->toBe('2026-10-08T09:59:39Z');
 });
 
 it('says how many sessions met an error page, as part of the total', function () {
-    $online = ['total' => 769, 'guests' => 577, 'robots' => 192, 'errors' => 153] + captured('online');
+    // built on the 1.0.0a13 capture, which has no split by kind
+    $online = ['total' => 769, 'guests' => 577, 'robots' => 192, 'errors' => 153] + captured('online-a13');
 
     fakeForum(['admin-api/online/' => Http::response($online)]);
 
@@ -511,6 +513,40 @@ it('says how many sessions met an error page, as part of the total', function ()
         ->toBe('769 online in the last 15 minutes: 0 members, 577 guests, 192 recognised robots. '
             .'153 of these sessions\' last recorded page was an error, of whatever kind of visitor.');
 });
+
+it('splits the errors by kind and says which networks guests and robots share', function () {
+    // the 1.0.0a14 capture was idle, so the figures are set here
+    $online = [
+        'total' => 755, 'guests' => 548, 'robots' => 207, 'errors' => 159,
+        'errors_by_kind' => ['members' => 0, 'guests' => 159, 'robots' => 0],
+        'guest_networks' => ['sessions' => 548, 'ipv4' => 513, 'largest_24' => 61, 'distinct_24' => 333, 'largest_16' => 70, 'distinct_16' => 200],
+        'shared_networks' => ['distinct_24' => 1, 'guests_24' => 61, 'robots_24' => 61, 'distinct_16' => 2, 'guests_16' => 63, 'robots_16' => 70],
+    ] + captured('online');
+
+    fakeForum(['admin-api/online/' => Http::response($online)]);
+
+    $content = structured(WhoIsOnline::class, ['forum' => 'acme']);
+
+    expect($content['headline'])->toBe('755 online in the last 15 minutes: 0 members, 548 guests, 207 recognised robots. '
+        .'159 of these sessions\' last recorded page was an error: 0 from members, 159 from guests, 0 from robots. '
+        .'The busiest /24 network holds 61 of the 513 IPv4 guests (12%), across 333 networks. '
+        .'1 /24 network holds both guests and recognised robots: 61 guests and 61 robots.')
+        ->and(array_search('shared_networks', array_keys($content)))->toBe(array_search('robot_networks', array_keys($content)) + 1);
+});
+
+it('says no network is shared only when the forum says so', function (string $fixture, bool $said) {
+    $online = [
+        'total' => 40, 'guests' => 30, 'robots' => 10,
+        'guest_networks' => ['sessions' => 30, 'ipv4' => 30, 'largest_24' => 2, 'distinct_24' => 25, 'largest_16' => 3, 'distinct_16' => 20],
+    ] + captured($fixture);
+
+    fakeForum(['admin-api/online/' => Http::response($online)]);
+
+    expect(str_contains(structured(WhoIsOnline::class, ['forum' => 'acme'])['headline'], 'No /24 network holds both'))->toBe($said);
+})->with([
+    'from 1.0.0a14' => ['online', true],
+    'before it, unknown' => ['online-a13', false],
+]);
 
 it('does not call one guest a swarm', function () {
     $online = ['total' => 3, 'guests' => 3, 'guest_networks' => ['sessions' => 3, 'ipv4' => 3, 'largest_24' => 1, 'distinct_24' => 3, 'largest_16' => 1, 'distinct_16' => 3]]

@@ -25,6 +25,10 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
     - `robot_networks` is the same six figures for the robots the forum recognised. A recognised robot
       concentrated in one network is usually one crawler's address range, which is ordinary; it matters when
       a robot the forum trusts by name is arriving from far more networks than that operator has.
+    - `shared_networks` says whether one source is behind guests and robots both, without saying which network.
+      `distinct_24` is how many /24 networks hold guest and robot sessions at once, and `guests_24` and
+      `robots_24` how many of each sit in them; the same for /16. One shared /24 holding most of the busiest
+      network's guests is a swarm that identifies itself on some requests and not others.
     - `by_robot` names the recognised robots, most numerous first; a null `robot_key` is the rest.
     - `by_action` is what sessions were last doing - controller and action, never which thread or page. It
       lists the busiest; a last entry with a null `controller` and `action` is everything else added together,
@@ -32,10 +36,12 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
       the rest out: compare its counts with `total`.
     - `errors` is how many sessions' last recorded page was an error reply or had a 4xx or 5xx status: not found,
       no permission, login required, a server exception. A redirect or a background (XHR) request is not
-      recorded, so it is not a session's last page. It counts members, guests and robots alike, and is part of
-      `total`, never added to it. Nothing splits it by kind or action: `ErrorController` / `DispatchError` in
-      `by_action` is only the requests XenForo could not route, and an error under any other action is listed
-      under that action - a thread not found under the thread's.
+      recorded, so it is not a session's last page. It is part of `total`, never added to it.
+      `errors_by_kind` splits it into members, guests and robots, and each `by_action` entry has its own
+      `errors`. An error is listed under the action that answered it - a thread not found under the thread's;
+      only `ErrorController` / `DispatchError` is a request XenForo could not route.
+    - `errors_by_kind`, `shared_networks` and each entry's `errors` come from Hampel/AdminApi 1.0.0a14. From an
+      older forum they are absent, which means unknown, not zero.
     - `window_minutes` is the forum's own online timeout: a session counts if it was active in that long.
 
     This is a snapshot, and each call gives a different one. It reports the figures; whether they are too many
@@ -58,8 +64,8 @@ class WhoIsOnline extends ForumTool
         $data['headline'] = $this->headline($data);
 
         return Present::lead($data, [
-            'headline', 'now', 'window_minutes', 'total', 'members', 'guests', 'robots', 'errors', 'newest_date',
-            'guest_networks', 'robot_networks',
+            'headline', 'now', 'window_minutes', 'total', 'members', 'guests', 'robots', 'errors', 'errors_by_kind',
+            'newest_date', 'guest_networks', 'robot_networks', 'shared_networks',
         ]);
     }
 
@@ -88,12 +94,21 @@ class WhoIsOnline extends ForumTool
         );
 
         $errors = (int) ($data['errors'] ?? 0);
+        $kinds = is_array($data['errors_by_kind'] ?? null) ? $data['errors_by_kind'] : null;
 
         if ($errors > 0) {
             $headline .= sprintf(
-                ' %d of these %s last recorded page was an error, of whatever kind of visitor.',
+                ' %d of these %s last recorded page was an error%s.',
                 $errors,
                 $errors === 1 ? 'session\'s' : 'sessions\'',
+                $kinds === null
+                    ? ', of whatever kind of visitor'
+                    : sprintf(
+                        ': %d from members, %d from guests, %d from robots',
+                        (int) ($kinds['members'] ?? 0),
+                        (int) ($kinds['guests'] ?? 0),
+                        (int) ($kinds['robots'] ?? 0),
+                    ),
             );
         }
 
@@ -109,6 +124,22 @@ class WhoIsOnline extends ForumTool
                 (int) round($largest / $ipv4 * 100),
                 (int) ($data['guest_networks']['distinct_24'] ?? 0),
             );
+
+            $shared = is_array($data['shared_networks'] ?? null) ? $data['shared_networks'] : null;
+
+            if ($shared !== null && $robots > 0) {
+                $networks = (int) ($shared['distinct_24'] ?? 0);
+
+                $headline .= $networks === 0
+                    ? ' No /24 network holds both guests and recognised robots.'
+                    : sprintf(
+                        ' %d /24 %s both guests and recognised robots: %d guests and %d robots.',
+                        $networks,
+                        $networks === 1 ? 'network holds' : 'networks hold',
+                        (int) ($shared['guests_24'] ?? 0),
+                        (int) ($shared['robots_24'] ?? 0),
+                    );
+            }
         }
 
         return $headline;
