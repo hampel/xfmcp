@@ -534,6 +534,19 @@ it('splits the errors by kind and says which networks guests and robots share', 
         ->and(array_search('shared_networks', array_keys($content)))->toBe(array_search('robot_networks', array_keys($content)) + 1);
 });
 
+it('reads a busy forum\'s answer as it came', function () {
+    // captured: a production forum on 1.0.0a14, 2026-11-08; only XenForo's own controllers and public robots appear
+    fakeForum(['admin-api/online/' => 'online-busy']);
+
+    $content = structured(WhoIsOnline::class, ['forum' => 'acme']);
+
+    expect($content['headline'])->toBe('840 online in the last 15 minutes: 0 members, 624 guests, 216 recognised robots. '
+        .'190 of these sessions\' last recorded page was an error: 0 from members, 165 from guests, 25 from robots. '
+        .'The busiest /24 network holds 110 of the 582 IPv4 guests (19%), across 309 networks. '
+        .'No /24 network holds both guests and recognised robots.')
+        ->and(array_sum(array_column($content['by_action'], 'errors')))->toBe($content['errors']);
+});
+
 it('says no network is shared only when the forum says so', function (string $fixture, bool $said) {
     $online = [
         'total' => 40, 'guests' => 30, 'robots' => 10,

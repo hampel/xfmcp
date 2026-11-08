@@ -1,0 +1,241 @@
+{
+    "now": 1794137706,
+    "window_minutes": 15,
+    "total": 840,
+    "members": 0,
+    "guests": 624,
+    "robots": 216,
+    "errors": 190,
+    "errors_by_kind": {
+        "members": 0,
+        "guests": 165,
+        "robots": 25
+    },
+    "newest_date": 1794137706,
+    "guest_networks": {
+        "sessions": 624,
+        "ipv4": 582,
+        "largest_24": 110,
+        "distinct_24": 309,
+        "largest_16": 118,
+        "distinct_16": 245
+    },
+    "robot_networks": {
+        "sessions": 216,
+        "ipv4": 216,
+        "largest_24": 59,
+        "distinct_24": 28,
+        "largest_16": 59,
+        "distinct_16": 16
+    },
+    "shared_networks": {
+        "distinct_24": 0,
+        "guests_24": 0,
+        "robots_24": 0,
+        "distinct_16": 1,
+        "guests_16": 1,
+        "robots_16": 1
+    },
+    "by_robot": [
+        {
+            "robot_key": "sogou",
+            "count": 151
+        },
+        {
+            "robot_key": "semrushbot",
+            "count": 34
+        },
+        {
+            "robot_key": "oai-searchbot",
+            "count": 8
+        },
+        {
+            "robot_key": "ahrefs",
+            "count": 7
+        },
+        {
+            "robot_key": "applebot",
+            "count": 6
+        },
+        {
+            "robot_key": "bing",
+            "count": 5
+        },
+        {
+            "robot_key": "googlebot",
+            "count": 3
+        },
+        {
+            "robot_key": "curl",
+            "count": 1
+        },
+        {
+            "robot_key": "pinterest",
+            "count": 1
+        }
+    ],
+    "by_action": [
+        {
+            "controller": "XF\\Pub\\Controller\\ThreadController",
+            "action": "Index",
+            "count": 394,
+            "members": 0,
+            "guests": 310,
+            "robots": 84,
+            "errors": 0
+        },
+        {
+            "controller": "XF\\Pub\\Controller\\ErrorController",
+            "action": "DispatchError",
+            "count": 163,
+            "members": 0,
+            "guests": 163,
+            "robots": 0,
+            "errors": 163
+        },
+        {
+            "controller": "XFMG\\Pub\\Controller\\Media",
+            "action": "FilmStripJump",
+            "count": 86,
+            "members": 0,
+            "guests": 1,
+            "robots": 85,
+            "errors": 14
+        },
+        {
+            "controller": "XF\\Pub\\Controller\\MemberController",
+            "action": "View",
+            "count": 57,
+            "members": 0,
+            "guests": 52,
+            "robots": 5,
+            "errors": 0
+        },
+        {
+            "controller": "XF\\Pub\\Controller\\SearchController",
+            "action": "Results",
+            "count": 48,
+            "members": 0,
+            "guests": 37,
+            "robots": 11,
+            "errors": 9
+        },
+        {
+            "controller": "XF\\Pub\\Controller\\ThreadController",
+            "action": "Whoreplied",
+            "count": 42,
+            "members": 0,
+            "guests": 30,
+            "robots": 12,
+            "errors": 0
+        },
+        {
+            "controller": "XF\\Pub\\Controller\\ForumController",
+            "action": "Forum",
+            "count": 14,
+            "members": 0,
+            "guests": 4,
+            "robots": 10,
+            "errors": 0
+        },
+        {
+            "controller": "XF\\Pub\\Controller\\PostController",
+            "action": "Share",
+            "count": 11,
+            "members": 0,
+            "guests": 11,
+            "robots": 0,
+            "errors": 0
+        },
+        {
+            "controller": "XFMG\\Pub\\Controller\\Media",
+            "action": "View",
+            "count": 9,
+            "members": 0,
+            "guests": 8,
+            "robots": 1,
+            "errors": 0
+        },
+        {
+            "controller": "XF\\Pub\\Controller\\MemberController",
+            "action": "About",
+            "count": 3,
+            "members": 0,
+            "guests": 0,
+            "robots": 3,
+            "errors": 0
+        },
+        {
+            "controller": "XF\\Pub\\Controller\\MemberController",
+            "action": "Index",
+            "count": 3,
+            "members": 0,
+            "guests": 2,
+            "robots": 1,
+            "errors": 0
+        },
+        {
+            "controller": "XF\\Pub\\Controller\\MemberController",
+            "action": "RecentContent",
+            "count": 3,
+            "members": 0,
+            "guests": 0,
+            "robots": 3,
+            "errors": 3
+        },
+        {
+            "controller": "XF\\Pub\\Controller\\PostController",
+            "action": "Reactions",
+            "count": 2,
+            "members": 0,
+            "guests": 2,
+            "robots": 0,
+            "errors": 0
+        },
+        {
+            "controller": "XFMG\\Pub\\Controller\\Media",
+            "action": "Index",
+            "count": 1,
+            "members": 0,
+            "guests": 1,
+            "robots": 0,
+            "errors": 0
+        },
+        {
+            "controller": "XF\\Pub\\Controller\\ForumController",
+            "action": "List",
+            "count": 1,
+            "members": 0,
+            "guests": 1,
+            "robots": 0,
+            "errors": 0
+        },
+        {
+            "controller": "XF\\Pub\\Controller\\RegisterController",
+            "action": "Index",
+            "count": 1,
+            "members": 0,
+            "guests": 1,
+            "robots": 0,
+            "errors": 1
+        },
+        {
+            "controller": "XF\\Pub\\Controller\\SearchController",
+            "action": "Member",
+            "count": 1,
+            "members": 0,
+            "guests": 0,
+            "robots": 1,
+            "errors": 0
+        },
+        {
+            "controller": "XF\\Pub\\Controller\\TagController",
+            "action": "Tag",
+            "count": 1,
+            "members": 0,
+            "guests": 1,
+            "robots": 0,
+            "errors": 0
+        }
+    ]
+}
