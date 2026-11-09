@@ -40,6 +40,11 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
     - `set` means the option holds something, not that it is switched on: a boolean `false` is `set: true`.
     - `is_default: true` means the option still holds what XenForo or the add-on shipped.
     - Numbers are decimal: a file mode of `436` is octal 0664.
+    - `volatile` lists the parts of a value XenForo rewrites itself, as a side effect of something else, with
+      `""` for the whole value: `jsLastUpdate` on every add-on install or upgrade and cache rebuild,
+      `iconSpriteLastUpdate` when the icon sprite is rebuilt, `collectServerStats.last_sent` on each stats
+      send, and `xfesConfig.maxClauseCountChecked` when Enhanced Search rechecks its limit, at most six-hourly.
+      A change there is not an administrator's. Leave those parts out when comparing options over time.
 
     The mail transport is the `emailTransport` option: `value.emailTransport`, with the host and port beside
     it, in values mode; `members.emailTransport` in shape mode. `changed` also counts a few values XenForo keeps for
@@ -57,6 +62,18 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 #[IsIdempotent]
 class ForumOptions extends ForumTool
 {
+    /**
+     * Parts of an option XenForo writes itself, by path within the value, '' for the whole.
+     * Each checked in XenForo 2.3's source on 2026-11-09, where it is updated; a tracker on
+     * production had to discover them and asked for them to be marked.
+     */
+    public const VOLATILE = [
+        'jsLastUpdate' => [''],                         // XF\AddOn\AddOn, XF\Job\CoreCacheRebuild
+        'iconSpriteLastUpdate' => [''],                 // XF\Service\Icon\SpriteGeneratorService
+        'collectServerStats' => ['last_sent'],          // XF\Job\CollectStats
+        'xfesConfig' => ['maxClauseCountChecked'],      // XFES\Search\Source\Elasticsearch, six-hourly
+    ];
+
     public function schema(JsonSchema $schema): array
     {
         return [
@@ -92,7 +109,7 @@ class ForumOptions extends ForumTool
 
         $data = $gateway->read($forum, static fn (AdminApi $api): array => $api->options($addOnId, $changedOnly));
 
-        $data['options'] = Present::disclosures((array) ($data['options'] ?? []));
+        $data['options'] = self::markVolatile(Present::disclosures((array) ($data['options'] ?? [])));
         $data = Present::withReasons($data, $data['options']);
 
         return [
@@ -130,12 +147,25 @@ class ForumOptions extends ForumTool
             unset($data['total'], $data['changed'], $data['by_add_on']);
         }
 
-        $data['options'] = Present::disclosures((array) ($data['options'] ?? []));
+        $data['options'] = self::markVolatile(Present::disclosures((array) ($data['options'] ?? [])));
         $data = Present::withReasons($data, $data['options']);
 
         return [
             'headline' => Present::modeHeadline($data, $data['options'], 'options').$this->notFound($data['not_found'], 'option'),
             'listed' => 'the options asked for by id, changed or not',
         ] + $data;
+    }
+
+    /**
+     * @param  list<array<mixed>>  $options
+     * @return list<array<mixed>>
+     */
+    public static function markVolatile(array $options): array
+    {
+        return array_map(static function (array $option): array {
+            $paths = self::VOLATILE[(string) ($option['option_id'] ?? '')] ?? null;
+
+            return $paths === null ? $option : $option + ['volatile' => $paths];
+        }, $options);
     }
 }

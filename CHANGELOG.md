@@ -8,6 +8,12 @@
   `redaction_reasons` ahead of the list, instead of on every redaction, and no longer pass on
   the add-on's `segments`. A 47-option answer is about a quarter smaller.
 
+### Added
+
+- `forum-options` marks the options XenForo rewrites itself with `volatile`, the paths within the
+  value that change as a side effect: `jsLastUpdate`, `iconSpriteLastUpdate`,
+  `collectServerStats.last_sent` and `xfesConfig.maxClauseCountChecked`.
+
 ### Fixed
 
 - `job-queue` no longer calls a failed-jobs list empty when it holds jobs recorded while debug

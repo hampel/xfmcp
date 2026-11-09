@@ -191,6 +191,12 @@ response got something wrong, in trials run against the add-on before this tool 
   splits errors by kind and says whether any /24 holds both guests and robots; from an older
   forum those fields are absent, and the headline says nothing rather than zero.
 
+- **Options XenForo rewrites itself carry `volatile`**, a list of paths in the value with `""`
+  for the whole, from `ForumOptions::VOLATILE`. A drift tracker on production had to find
+  them by hand on 2026-11-09. Each entry names where XenForo 2.3 writes it; add one only from
+  the source, not from having seen a value change, which is how `emojiStyleLastUpdate` was
+  proposed and found to have no writer.
+
 - **`who-is-online` is the one tool not marked idempotent.** It is a snapshot; two calls are
   two answers.
 

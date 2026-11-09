@@ -359,6 +359,22 @@ it('shows option values with each withheld part marked and explained', function 
         ->and($options['acmeExampleFlag'])->toMatchArray(['disclosure' => 'shown', 'value' => true]);
 });
 
+it('marks the parts of an option XenForo rewrites itself', function () {
+    // not captured: the dev forum's changed list has neither, so they are built on a real entry
+    $options = captured('options-values');
+    $base = $options['options'][0];
+    $options['options'][] = ['option_id' => 'jsLastUpdate', 'value' => 1794000000, 'redactions' => []] + $base;
+    $options['options'][] = ['option_id' => 'collectServerStats', 'value' => ['enabled' => true, 'last_sent' => 1794000000], 'redactions' => []] + $base;
+
+    fakeForum(['admin-api/options/' => Http::response($options)]);
+
+    $listed = collect(structured(ForumOptions::class, ['forum' => 'acme'])['options'])->keyBy('option_id');
+
+    expect($listed['jsLastUpdate']['volatile'])->toBe([''])
+        ->and($listed['collectServerStats']['volatile'])->toBe(['last_sent'])
+        ->and($listed['boardTitle'])->not->toHaveKey('volatile');
+});
+
 it('leaves a number inside an option value alone', function () {
     fakeForum(['admin-api/options/' => 'options-values']);
 
