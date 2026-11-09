@@ -31,6 +31,13 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
     - A window longer than 31 days is refused. For a longer period, ask in consecutive windows, each `until` the
       next one's `since`, and add the counts: a window excludes its `until`, so nothing is counted twice.
     - Every thread's first post is a post as well, so `posts` includes the opening post of each thread.
+    - `by_day` and `by_hour` (UTC) list only the days and hours with something in them: a missing one had none.
+      `by_hour` is given for a window of two days or less, and is null for a longer one.
+    - `registrations.by_source` tells a sign-up from an account made for a member. `register_form` is a sign-up,
+      through the form or a connected account; `other` is an account made in the admin control panel or through
+      the API - and also a sign-up whose IP log row XenForo's clean-up has since deleted.
+      `by_source_complete: false` means the window starts earlier than that log keeps, so some sign-ups are
+      probably counted as `other`. Absent on a forum whose add-on is older than 1.0.0a15.
     TEXT)]
 #[IsReadOnly]
 #[IsIdempotent]
@@ -68,6 +75,14 @@ class ForumActivity extends ForumTool
 
         $data = $gateway->read($forum, static fn (AdminApi $api): array => $api->activity($query));
 
+        foreach (['registrations', 'threads', 'posts'] as $part) {
+            foreach (['by_day', 'by_hour'] as $series) {
+                if (is_array($data[$part][$series] ?? null)) {
+                    $data[$part][$series] = Present::busyDays($data[$part][$series]);
+                }
+            }
+        }
+
         $data['headline'] = $this->headline($data);
         $data['notes'] = $this->notes($data);
 
@@ -92,7 +107,7 @@ class ForumActivity extends ForumTool
         $deleted = (int) ($data['threads']['by_state']['deleted'] ?? 0) + (int) ($data['posts']['by_state']['deleted'] ?? 0);
 
         return sprintf(
-            '%s; %d %s and %d %s, %s.',
+            '%s; %d %s and %d %s, %s.%s',
             $this->registrations($registrations, $states),
             $threads,
             $threads === 1 ? 'thread' : 'threads',
@@ -101,7 +116,30 @@ class ForumActivity extends ForumTool
             $held + $deleted === 0
                 ? 'none awaiting approval or deleted'
                 : sprintf('of which %d %s awaiting approval and %d deleted', $held, $held === 1 ? 'is' : 'are', $deleted),
+            $this->sources($registrations, $data['registrations'] ?? []),
         );
+    }
+
+    /**
+     * How many registrations did not come through the register form: on a monitored forum,
+     * accounts made for monitoring through the API, which counted as sign-ups until the
+     * add-on's 1.0.0a15 and sent two investigations after a registration trigger (2026-11-09).
+     */
+    private function sources(int $registrations, mixed $part): string
+    {
+        $other = is_array($part) && is_array($part['by_source'] ?? null) ? (int) ($part['by_source']['other'] ?? 0) : 0;
+
+        if ($registrations === 0 || $other === 0) {
+            return '';
+        }
+
+        return $other === $registrations
+            ? match ($registrations) {
+                1 => ' The registration did not come through the register form.',
+                2 => ' Neither registration came through the register form.',
+                default => " None of the {$registrations} registrations came through the register form.",
+            }
+        : sprintf(' %d of the %d registrations did not come through the register form.', $other, $registrations);
     }
 
     /**
@@ -160,6 +198,27 @@ class ForumActivity extends ForumTool
             static fn (string $part): int => (int) ($data[$part]['by_state']['other'] ?? 0),
             ['registrations', 'threads', 'posts'],
         ));
+
+        $registrations = $data['registrations'] ?? [];
+
+        if (is_array($registrations) && (int) ($registrations['by_source']['other'] ?? 0) > 0) {
+            $notes[] = 'A registration not through the register form (`by_source.other`) is an account made in the admin '
+                .'control panel or through the API, or a sign-up whose IP log row has since been cleaned up.';
+
+            if (($registrations['by_source_complete'] ?? true) === false) {
+                $notes[] = 'This window starts earlier than this forum keeps its IP log, so some of those are probably sign-ups.';
+            }
+        }
+
+        $series = false;
+
+        foreach (['registrations', 'threads', 'posts'] as $part) {
+            $series = $series || is_array($data[$part]['by_day'] ?? null);
+        }
+
+        if ($series) {
+            $notes[] = '`by_day` and `by_hour` list only days and hours with something in them; a missing one had none.';
+        }
 
         if ($other > 0) {
             $notes[] = sprintf(

@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+### Added
+
+- `forum-activity` takes the add-on 1.0.0a15's breakdowns: its headline says how many
+  registrations did not come through the register form, the notes say what such an account can
+  be and when sign-ups may be among them, and the description explains `by_day`, `by_hour` and
+  `by_source`.
+
+### Changed
+
+- `forum-activity` lists only the days and hours with something in them, as the other
+  breakdowns do.
+
 ## [0.1.3] - 2026-11-09
 
 ### Changed

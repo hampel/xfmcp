@@ -830,6 +830,69 @@ it('counts registrations and posting by the state each is in now', function () {
         ->not->toContain('`other`');
 });
 
+it('says how many registrations did not come through the register form', function () {
+    // captured from add-on 1.0.0a15: a 30-day window, every account made by an administrator
+    fakeForum(['admin-api/activity/' => 'activity-sources']);
+
+    $content = structured(ForumActivity::class, ['forum' => 'acme']);
+
+    expect($content['headline'])->toEndWith('None of the 5 registrations came through the register form.')
+        ->and(implode(' ', $content['notes']))->toContain('made in the admin control panel or through the API')
+        ->not->toContain('probably sign-ups');
+});
+
+it('says how many of the registrations were not sign-ups, and when some may be', function (int $other, bool $complete, string $expected, bool $warned) {
+    $activity = captured('activity-sources');
+    $activity['registrations']['by_source'] = ['register_form' => 5 - $other, 'other' => $other];
+    $activity['registrations']['by_source_complete'] = $complete;
+
+    fakeForum(['admin-api/activity/' => Http::response($activity)]);
+
+    $content = structured(ForumActivity::class, ['forum' => 'acme']);
+
+    expect($content['headline'])->toContain($expected)
+        ->and(str_contains(implode(' ', $content['notes']), 'probably sign-ups'))->toBe($warned);
+})->with([
+    'one of five' => [1, true, ' 1 of the 5 registrations did not come through the register form.', false],
+    'clean-up reaches into the window' => [2, false, ' 2 of the 5 registrations did not', true],
+]);
+
+it('says nothing of sources when every registration was a sign-up, or the forum does not say', function (string $fixture) {
+    $activity = captured($fixture);
+    if (isset($activity['registrations']['by_source'])) {
+        $activity['registrations']['by_source'] = ['register_form' => 5, 'other' => 0];
+    }
+
+    fakeForum(['admin-api/activity/' => Http::response($activity)]);
+
+    $content = structured(ForumActivity::class, ['forum' => 'acme']);
+
+    expect($content['headline'])->not->toContain('register form')
+        ->and(implode(' ', $content['notes']))->not->toContain('by_source');
+})->with(['activity-sources', 'activity']);
+
+it('lists only the days and hours with something in them', function () {
+    // captured from add-on 1.0.0a15: a quiet 24 hours, 2 days and 25 hours of zeros per part
+    fakeForum(['admin-api/activity/' => 'activity-quiet']);
+
+    $content = structured(ForumActivity::class, ['forum' => 'acme']);
+
+    expect($content['registrations']['by_day'])->toBe([])
+        ->and($content['posts']['by_hour'])->toBe([])
+        ->and(implode(' ', $content['notes']))->toContain('a missing one had none');
+});
+
+it('keeps the busy days, which still add up, and leaves a by_hour of null as null', function () {
+    // captured: 31 days listed, 3 with registrations, and no by_hour for a window over two days
+    fakeForum(['admin-api/activity/' => 'activity-sources']);
+
+    $registrations = structured(ForumActivity::class, ['forum' => 'acme'])['registrations'];
+
+    expect($registrations['by_day'])->toHaveCount(3)
+        ->and(array_sum(array_column($registrations['by_day'], 'count')))->toBe($registrations['total'])
+        ->and($registrations['by_hour'])->toBeNull();
+});
+
 it('says when every registration is valid', function () {
     $activity = captured('activity');
     $activity['registrations']['by_state'] = ['valid' => 187] + array_map(fn () => 0, $activity['registrations']['by_state']);

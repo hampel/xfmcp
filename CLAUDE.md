@@ -179,6 +179,13 @@ response got something wrong, in trials run against the add-on before this tool 
   and disabled members as valid. Ages past 60 days read in months, and past two years in years,
   because "2377 days ago" was exact and slow to take in.
 
+- **The activity headline says how many registrations did not come through the register form.**
+  From the add-on's 1.0.0a15, `by_source` tells a sign-up from an account an administrator or
+  the API made. On 2026-11-09 the monitoring accounts made through the API on production were
+  counted as sign-ups and sent two investigations after a registration trigger. Activity's
+  `by_day` and `by_hour` list only busy entries, like every other breakdown: a quiet day was 75
+  rows of zeros.
+
 - **Error entries carry one stack trace, the asked-for entry's, unless `all_traces` is set.**
   On 2026-11-07 seventeen entries of one signature came to 51,000 characters, which Claude Code
   would not show inline, and each trace repeated the same frames; the messages were what
