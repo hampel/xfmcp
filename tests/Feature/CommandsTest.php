@@ -304,8 +304,23 @@ it('warns when the inventory is readable beyond its owner', function (int $mode,
 
     expect(runCommand('app:validate', ['--offline' => true])[1])->toContain($expected);
 })->with([
-    [0644, '0644 - readable beyond its owner'],
+    [0644, '0644 - readable by any user'],
     [0600, '[ ok ] File mode'],
+]);
+
+it('accepts a root-owned inventory its group can read, and nothing wider', function (int $mode, int $owner, bool $ok, string $expected) {
+    [$verdict, $text] = Validate::fileModeVerdict($mode, $owner, 'acme');
+
+    expect($verdict)->toBe($ok)->and($text)->toContain($expected);
+})->with([
+    'own 0600' => [0100600, 1000, true, '0600'],
+    'own 0400' => [0100400, 1000, true, '0400'],
+    'own 0640' => [0100640, 1000, false, 'readable beyond its owner'],
+    'root 0640' => [0100640, 0, true, 'readable by group acme and no one else'],
+    'root 0440' => [0100440, 0, true, 'owned by root'],
+    'root 0660' => [0100660, 0, false, 'readable beyond its owner'],
+    'root 0644' => [0100644, 0, false, 'readable by any user'],
+    'own 0604' => [0100604, 1000, false, 'readable by any user'],
 ]);
 
 it('tells an absolute inventory path from a relative one, Windows forms included', function (string $path, bool $absolute) {

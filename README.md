@@ -219,7 +219,9 @@ On macOS and Windows the simplest course is no environment file at all: set
 `XFMCP_FORUMS_PATH` in the MCP client's configuration, as *Usage* shows.
 
 **The inventory holds a live API key per forum, so only you should be able to read it.** On
-Linux and macOS, `chmod 600` it; `app:validate` warns otherwise. On Windows, PHP cannot see who
+Linux and macOS, `chmod 600` it. A deployment that renders it as root may instead make it
+`0640` with the group of the user who runs the server, which keeps the tool from rewriting its
+own configuration. `app:validate` accepts either and warns at anything wider. On Windows, PHP cannot see who
 may read a file, so `app:validate` skips the check: keep it in your own profile, such as
 `%LOCALAPPDATA%\xfmcp\forums.toml`, and check its *Security* properties.
 

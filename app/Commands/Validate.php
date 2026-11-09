@@ -116,10 +116,10 @@ class Validate extends Command
             $this->checkSkip('File mode', 'not a Unix file mode on Windows; limit who can read the file in its Security properties');
         } elseif ($mode === false) {
             $this->checkSkip('File mode', 'could not be read');
-        } elseif (($mode & 0077) !== 0) {
-            $this->checkWarn('File mode', sprintf('%04o - readable beyond its owner; it holds API keys, make it 0600', $mode & 0777));
         } else {
-            $this->checkOk('File mode', sprintf('%04o', $mode & 0777));
+            [$ok, $text] = self::fileModeVerdict($mode, (int) @fileowner($path), self::groupName((int) @filegroup($path)));
+
+            $ok ? $this->checkOk('File mode', $text) : $this->checkWarn('File mode', $text);
         }
 
         if ($raw === []) {
@@ -386,6 +386,47 @@ class Validate extends Command
      * Asked of the container, never inferred from the path: run from `/`, every absolute
      * path starts with the storage path.
      */
+    /**
+     * Whether the inventory's mode keeps its keys to whoever runs the tool.
+     *
+     * 0600 owned by that user is the plain case. A root-owned file its group may read and not
+     * write (0640, 0440) is the other: a deployment that renders the file as root, so the tool
+     * can never rewrite its own configuration, and lets the user who runs it read it through
+     * the group. Anything readable by others, or group-readable on a file the user owns, warns.
+     *
+     * @return array{0: bool, 1: string}
+     */
+    public static function fileModeVerdict(int $mode, int $owner, ?string $group = null): array
+    {
+        $perms = $mode & 0777;
+        $shown = sprintf('%04o', $perms);
+
+        if (($perms & 0007) !== 0) {
+            return [false, $shown.' - readable by any user on this machine; it holds API keys, make it 0600'];
+        }
+
+        if (($perms & 0070) === 0) {
+            return [true, $shown];
+        }
+
+        if ($owner === 0 && ($perms & 0070) === 0040) {
+            return [true, $shown.' - owned by root, readable by group '.($group ?? 'of the file').' and no one else'];
+        }
+
+        return [false, $shown.' - readable beyond its owner; it holds API keys, make it 0600, or root-owned and 0640 for a group of the user who runs it'];
+    }
+
+    protected static function groupName(int $gid): ?string
+    {
+        if (! function_exists('posix_getgrgid')) {
+            return null;
+        }
+
+        $group = @posix_getgrgid($gid);
+
+        return is_array($group) ? $group['name'] : null;
+    }
+
     /**
      * A path that does not depend on the working directory: /etc/..., or on Windows a drive
      * letter with a separator (C:\..., C:/...) or a UNC share (\\server\share). "C:file" is

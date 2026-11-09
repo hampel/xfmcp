@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Changed
+
+- `app:validate` accepts a root-owned inventory that its group may read and nothing else may,
+  such as `0640`, as a deployment renders it; a file the user owns still needs `0600`.
+
 ## [0.1.1] - 2026-11-09
 
 ### Fixed

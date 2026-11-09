@@ -228,7 +228,13 @@ promises a list, and before 1.2.2 the package read only the list, so `hasScope()
 for every scoped key and this command failed a correct one. Found here on 2026-10-08 and
 fixed upstream the same day; do not lower the constraint.
 
-****It runs on Windows and macOS too, and so must its checks.** `Validate::isAbsolute()` accepts a
+****The inventory's mode passes at 0600, or root-owned with group read only.** The second is
+how a deployment renders it: root owns it so the tool cannot rewrite its configuration, and
+the user who runs the server reads it through the group. Found on 2026-11-09, when the first
+such install drew a `[warn]` it could not act on: at 0600 that user could not read the file.
+`Validate::fileModeVerdict()` holds the rule and its tests the cases.
+
+**It runs on Windows and macOS too, and so must its checks.** `Validate::isAbsolute()` accepts a
 drive letter or a UNC share, and the file mode check is a skip on Windows, where PHP reports
 every writable file as 0666. Written 2026-11-09 and not yet run on either platform.
 
