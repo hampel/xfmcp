@@ -32,7 +32,7 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
     - `[withheld]` and `[withheld: not set]` are this tool's markers, never the stored value. Do not report
       one as what the setting holds.
     - `redactions` lists each removed part: its `path` (empty for the whole value), whether the secret was
-      `set`, the `reason` and `because`. `inherited_from` names a key above this one that the rule was for. "Its add-on has not declared its
+      `set`, and the `reason`, which `redaction_reasons` explains once for the answer. `inherited_from` names a key above this one that the rule was for, and the reason applies to everything under it. "Its add-on has not declared its
       secrets" means a key XenForo does not define, whose text is hidden as a precaution.
     - `has_default: false` is a key XenForo does not define, which config.php or an add-on introduced. Every such
       key counts as changed, including the `db.*` settings every forum has, so `changed` is never zero.
@@ -81,6 +81,7 @@ class ForumConfiguration extends ForumTool
         $data = $gateway->read($forum, static fn (AdminApi $api): array => $api->config($changedOnly));
 
         $data['settings'] = Present::disclosures((array) ($data['settings'] ?? []));
+        $data = Present::withReasons($data, $data['settings']);
 
         return [
             'headline' => Present::modeHeadline($data, $data['settings'], 'settings'),
@@ -132,6 +133,7 @@ class ForumConfiguration extends ForumTool
         }
 
         $data['settings'] = Present::disclosures((array) ($data['settings'] ?? []));
+        $data = Present::withReasons($data, $data['settings']);
 
         return [
             'headline' => Present::modeHeadline($data, $data['settings'], 'settings').$this->notFound($data['not_found'], 'setting'),

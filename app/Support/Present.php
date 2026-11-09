@@ -159,6 +159,70 @@ class Present
     ];
 
     /**
+     * What each redaction reason in these entries means, once per answer rather than on every
+     * redaction: 27 of 35 redactions on one forum carried the same sentence, and an answer of
+     * 47 options was a third explanation (2026-11-09).
+     *
+     * @param  array<mixed>  $entries  entries already through disclosures()
+     * @return array<string, string> reason => a clause finishing "withheld because ..."
+     */
+    public static function reasonLegend(array $entries): array
+    {
+        $legend = [];
+
+        $walk = static function (array $entries) use (&$walk, &$legend): void {
+            foreach ($entries as $entry) {
+                if (! is_array($entry)) {
+                    continue;
+                }
+
+                foreach ((array) ($entry['redactions'] ?? []) as $redaction) {
+                    $reason = is_array($redaction) ? (string) ($redaction['reason'] ?? '') : '';
+                    $legend[$reason] = self::REASONS[$reason] ?? 'the forum gave a reason this tool does not know';
+                }
+
+                if (is_array($entry['members'] ?? null)) {
+                    $walk($entry['members']);
+                }
+            }
+        };
+
+        $walk($entries);
+        ksort($legend);
+
+        return $legend;
+    }
+
+    /**
+     * Add `redaction_reasons` to an answer when anything in it was withheld, just before the
+     * list it explains so a reader meets the legend first.
+     *
+     * @param  array<mixed>  $data
+     * @param  array<mixed>  $entries  the list in $data, already through disclosures()
+     * @return array<mixed>
+     */
+    public static function withReasons(array $data, array $entries): array
+    {
+        $legend = self::reasonLegend($entries);
+
+        if ($legend === []) {
+            return $data;
+        }
+
+        $out = [];
+
+        foreach ($data as $key => $value) {
+            if ($value === $entries && ! array_key_exists('redaction_reasons', $out)) {
+                $out['redaction_reasons'] = $legend;
+            }
+
+            $out[$key] = $value;
+        }
+
+        return $out + ['redaction_reasons' => $legend];
+    }
+
+    /**
      * Every option or setting in a list, through disclosure().
      *
      * @param  array<mixed>  $entries
@@ -183,7 +247,8 @@ class Present
      * Here an entry gains `disclosure` - `shown`, `partly_withheld` or `withheld` - in
      * place of `disclosed`. A value withheld whole loses its `value` key; a part withheld
      * from inside a value becomes a marker, which also says when the secret held nothing;
-     * and each redaction gains `because`. So a null that survives is a null.
+     * and each redaction's `reason` is explained in the answer's `redaction_reasons`, built by
+     * reasonLegend(). So a null that survives is a null.
      *
      * @param  array<mixed>  $entry
      * @return array<mixed>
@@ -202,14 +267,10 @@ class Present
                 $reason = (string) ($redaction['reason'] ?? '');
                 $segments = self::segments($redaction);
 
-                $because = self::REASONS[$reason] ?? 'the forum gave a reason this tool does not know';
-
-                // configuration only: the rule was written for a key above this one
-                if (is_string($redaction['inherited_from'] ?? null) && $redaction['inherited_from'] !== '') {
-                    $because .= ', applied to everything under `'.$redaction['inherited_from'].'`';
-                }
-
-                $entry['redactions'][$index]['because'] = $because;
+                // the reason is explained once per answer, in reasonLegend(); `segments` is only
+                // for placing the marker below, and repeated on every redaction it was most of
+                // a large answer
+                unset($entry['redactions'][$index]['segments']);
 
                 // a URL is cut down, not removed: what is left is the value to show
                 if ($reason !== 'url' && $segments === []) {

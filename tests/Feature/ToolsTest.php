@@ -343,16 +343,19 @@ it('shows option values with each withheld part marked and explained', function 
         // a secret that IS set gets the plain marker
         ->and($options['emailDkim']['value'])->toMatchArray(['enabled' => false, 'privateKey' => '[withheld]'])
         ->and($options['emailDkim']['redactions'][0])->toBe([
-            'path' => 'privateKey', 'segments' => ['privateKey'], 'reason' => 'known_secret', 'set' => true,
-            'because' => 'it is on the list of known secrets',
+            'path' => 'privateKey', 'reason' => 'known_secret', 'set' => true,
         ])
+        // each reason explained once, ahead of the list
+        ->and($content['redaction_reasons']['known_secret'])->toBe('it is on the list of known secrets')
+        ->and(array_search('redaction_reasons', array_keys($content)))->toBeLessThan(array_search('options', array_keys($content)))
         // withheld whole: no value key to misread
         ->and($options['extraCaptchaKeys']['disclosure'])->toBe('withheld')
         ->and($options['extraCaptchaKeys'])->not->toHaveKey('value')
         ->and($options['extraCaptchaKeys'])->toMatchArray(['set' => true, 'count' => 2])
         // an add-on that has not declared its secrets: its text is hidden, its switches are not
         ->and($options['acmeEndpoint'])->not->toHaveKey('value')
-        ->and($options['acmeEndpoint']['redactions'][0]['because'])->toContain('has not declared which of its settings are secrets')
+        ->and($options['acmeEndpoint']['redactions'][0]['reason'])->toBe('untrusted_add_on')
+        ->and($content['redaction_reasons']['untrusted_add_on'])->toContain('has not declared which of its settings are secrets')
         ->and($options['acmeExampleFlag'])->toMatchArray(['disclosure' => 'shown', 'value' => true]);
 });
 
@@ -376,7 +379,8 @@ it('says a real null is a null, and why an undeclared add-on\'s text is hidden',
         ->and($settings['db.password'])->toMatchArray(['disclosure' => 'withheld', 'set' => true])
         ->and($settings['db.password'])->not->toHaveKey('value')
         ->and($settings['acmeService.endpoint']['disclosure'])->toBe('withheld')
-        ->and($settings['acmeService.endpoint']['redactions'][0]['because'])->toContain('has not declared which of its settings are secrets');
+        ->and($settings['acmeService.endpoint']['redactions'][0]['reason'])->toBe('untrusted_add_on')
+        ->and($content['redaction_reasons']['untrusted_add_on'])->toContain('has not declared which of its settings are secrets');
 });
 
 it('keeps what is left of a URL, and says the rest was cut', function () {
@@ -388,10 +392,11 @@ it('keeps what is left of a URL, and says the rest was cut', function () {
 
     fakeForum(['admin-api/options/' => Http::response($options)]);
 
-    $option = structured(ForumOptions::class, ['forum' => 'acme'])['options'][0];
+    $content = structured(ForumOptions::class, ['forum' => 'acme']);
+    $option = $content['options'][0];
 
     expect($option)->toMatchArray(['disclosure' => 'partly_withheld', 'value' => 'https://hooks.example.test'])
-        ->and($option['redactions'][0]['because'])->toContain('only its scheme and host are shown');
+        ->and($content['redaction_reasons']['url'])->toContain('only its scheme and host are shown');
 });
 
 it('says so when the key is given no values, with the forum\'s own reason', function () {

@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+### Changed
+
+- `forum-options` and `forum-configuration` explain each redaction reason once, in
+  `redaction_reasons` ahead of the list, instead of on every redaction, and no longer pass on
+  the add-on's `segments`. A 47-option answer is about a quarter smaller.
+
+### Fixed
+
+- `job-queue` no longer calls a failed-jobs list empty when it holds jobs recorded while debug
+  mode was on; it says those were recorded then and later failures are missing.
+
 ## [0.1.2] - 2026-11-09
 
 ### Changed

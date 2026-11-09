@@ -35,7 +35,7 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
     - A value can be withheld because it merely looks like a credential - a long random id, a public key. That
       is the forum being cautious, not evidence the value is secret.
     - `redactions` lists each removed part: its `path` within the value (empty for the whole value), whether
-      the secret was `set`, the `reason` and `because`. A `url` redaction keeps the scheme and host. "Its add-on has not declared its secrets" means the text of that add-on's settings is hidden
+      the secret was `set`, and the `reason`, which `redaction_reasons` explains once for the answer. A `url` redaction keeps the scheme and host. "Its add-on has not declared its secrets" means the text of that add-on's settings is hidden
       as a precaution, not that the setting is a secret or is empty.
     - `set` means the option holds something, not that it is switched on: a boolean `false` is `set: true`.
     - `is_default: true` means the option still holds what XenForo or the add-on shipped.
@@ -93,6 +93,7 @@ class ForumOptions extends ForumTool
         $data = $gateway->read($forum, static fn (AdminApi $api): array => $api->options($addOnId, $changedOnly));
 
         $data['options'] = Present::disclosures((array) ($data['options'] ?? []));
+        $data = Present::withReasons($data, $data['options']);
 
         return [
             'headline' => Present::modeHeadline($data, $data['options'], 'options'),
@@ -130,6 +131,7 @@ class ForumOptions extends ForumTool
         }
 
         $data['options'] = Present::disclosures((array) ($data['options'] ?? []));
+        $data = Present::withReasons($data, $data['options']);
 
         return [
             'headline' => Present::modeHeadline($data, $data['options'], 'options').$this->notFound($data['not_found'], 'option'),

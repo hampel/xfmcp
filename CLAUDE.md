@@ -138,8 +138,13 @@ response got something wrong, in trials run against the add-on before this tool 
   A null was ambiguous twice over. Without the values scope, `value: null` meant both
   withheld and null; with it, a withheld part is a null *inside* the value, told from a real
   one only by `redactions` naming its path. So a value withheld whole loses its `value` key,
-  a part withheld from inside one becomes `[withheld]`, and each redaction gains `because`.
+  a part withheld from inside one becomes `[withheld]`, and each redaction keeps its `reason`.
   `Present::disclosure()` handles both modes; a null that survives it is a null.
+- **Each redaction reason is explained once per answer, in `redaction_reasons`, ahead of the
+  list.** Until 2026-11-09 every redaction carried its own `because` and the add-on's
+  `segments`; on the dev forum that was a third of a 47-option answer, 27 of 35 redactions
+  repeating one sentence, and the ops session on production found options 40-60 KB a forum.
+  `segments` is used here to place a marker and then dropped.
 - **A secret that holds nothing reads `[withheld: not set]`.** The add-on withholds a secret
   whether or not it is set, and each redaction says which. A blank SMTP password is an
   answer - there is no login - and must not look like a hidden one, or like an empty string.

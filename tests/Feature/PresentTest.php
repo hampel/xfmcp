@@ -48,7 +48,7 @@ it('tells a withheld value from a real null, in either mode', function (array $e
         [
             'disclosure' => 'partly_withheld',
             'value' => ['a' => ['key' => '[withheld]'], 'b' => null],
-            'redactions' => [['path' => 'a.key', 'segments' => ['a', 'key'], 'reason' => 'name', 'because' => 'its name reads like a credential']],
+            'redactions' => [['path' => 'a.key', 'reason' => 'name']],
         ],
     ],
     'values mode, a key with a dot in it and a list index' => [
@@ -64,35 +64,59 @@ it('tells a withheld value from a real null, in either mode', function (array $e
             'disclosure' => 'partly_withheld',
             'value' => ['mail.example.test' => ['password' => '[withheld]'], 'list' => ['a', '[withheld]']],
             'redactions' => [
-                ['path' => 'mail.example.test.password', 'segments' => ['mail.example.test', 'password'], 'reason' => 'name', 'because' => 'its name reads like a credential'],
-                ['path' => 'list.1', 'segments' => ['list', '1'], 'reason' => 'value', 'because' => 'the value looks like a credential'],
+                ['path' => 'mail.example.test.password', 'reason' => 'name'],
+                ['path' => 'list.1', 'reason' => 'value'],
             ],
         ],
     ],
     'a configuration setting withheld because a key above it was' => [
         ['disclosed' => false, 'value' => null, 'redactions' => [['path' => '', 'segments' => [], 'inherited_from' => 'acmeService', 'reason' => 'untrusted_add_on']]],
         ['disclosure' => 'withheld', 'redactions' => [[
-            'path' => '', 'segments' => [], 'inherited_from' => 'acmeService', 'reason' => 'untrusted_add_on',
-            'because' => 'its add-on has not declared which of its settings are secrets, so none of its text is shown, applied to everything under `acmeService`',
+            'path' => '', 'inherited_from' => 'acmeService', 'reason' => 'untrusted_add_on',
         ]]],
     ],
     'a path that is not in the value creates nothing' => [
         ['disclosed' => false, 'value' => ['a' => 1], 'redactions' => [['path' => 'b.c', 'segments' => ['b', 'c'], 'reason' => 'name']]],
-        ['disclosure' => 'partly_withheld', 'value' => ['a' => 1], 'redactions' => [['path' => 'b.c', 'segments' => ['b', 'c'], 'reason' => 'name', 'because' => 'its name reads like a credential']]],
+        ['disclosure' => 'partly_withheld', 'value' => ['a' => 1], 'redactions' => [['path' => 'b.c', 'reason' => 'name']]],
     ],
     'a secret that holds nothing is withheld all the same, and says so' => [
         ['disclosed' => false, 'value' => ['password' => null], 'redactions' => [['path' => 'password', 'segments' => ['password'], 'reason' => 'name', 'set' => false]]],
         [
             'disclosure' => 'partly_withheld',
             'value' => ['password' => '[withheld: not set]'],
-            'redactions' => [['path' => 'password', 'segments' => ['password'], 'reason' => 'name', 'set' => false, 'because' => 'its name reads like a credential']],
+            'redactions' => [['path' => 'password', 'reason' => 'name', 'set' => false]],
         ],
     ],
     'values mode, a reason this tool has not heard of' => [
         ['disclosed' => false, 'value' => null, 'redactions' => [['path' => '', 'reason' => 'novel']]],
-        ['disclosure' => 'withheld', 'redactions' => [['path' => '', 'reason' => 'novel', 'because' => 'the forum gave a reason this tool does not know']]],
+        ['disclosure' => 'withheld', 'redactions' => [['path' => '', 'reason' => 'novel']]],
     ],
 ]);
+
+it('explains each redaction reason once, members included, and an unknown one as unknown', function () {
+    $entries = Present::disclosures([
+        ['value' => null, 'disclosed' => false, 'redactions' => [['path' => '', 'reason' => 'known_secret']]],
+        ['value' => null, 'disclosed' => false, 'redactions' => [['path' => '', 'reason' => 'known_secret']]],
+        ['value' => ['a' => 1], 'members' => [
+            ['value' => null, 'disclosed' => false, 'redactions' => [['path' => '', 'reason' => 'novel']]],
+        ]],
+        ['value' => 'shown', 'redactions' => []],
+    ]);
+
+    expect(Present::reasonLegend($entries))->toBe([
+        'known_secret' => 'it is on the list of known secrets',
+        'novel' => 'the forum gave a reason this tool does not know',
+    ])
+        ->and(Present::reasonLegend([['disclosure' => 'shown', 'value' => 1]]))->toBe([]);
+});
+
+it('puts the legend just before the list it explains, and only when something was withheld', function () {
+    $entries = Present::disclosures([['value' => null, 'disclosed' => false, 'redactions' => [['path' => '', 'reason' => 'name']]]]);
+
+    expect(array_keys(Present::withReasons(['mode' => 'values', 'options' => $entries], $entries)))
+        ->toBe(['mode', 'redaction_reasons', 'options'])
+        ->and(Present::withReasons(['options' => []], []))->toBe(['options' => []]);
+});
 
 it('measures a distance in one unit, in either direction', function (int $from, int $to, string $expected) {
     expect(Present::distance($from, $to))->toBe($expected);
