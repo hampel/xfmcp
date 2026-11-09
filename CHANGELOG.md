@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-11-09
+
 ### Changed
 
 - `app:validate` accepts a root-owned inventory that its group may read and nothing else may,
