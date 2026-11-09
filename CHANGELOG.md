@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.1.4] - 2026-11-09
+
 ### Added
 
 - `forum-activity` takes the add-on 1.0.0a15's breakdowns: its headline says how many
