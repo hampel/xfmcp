@@ -269,17 +269,28 @@ it('says so loudly when the cron runner is not queued', function () {
     expect(structured(CronEntries::class, ['forum' => 'acme'])['headline'])->toContain('NOT queued');
 });
 
-it('says what an empty failed-jobs list is worth', function (bool $recorded, string $expected) {
+it('says what the failed-jobs list is worth', function (bool $recorded, int $total, string $expected) {
     $jobs = captured('jobs');
     $jobs['failed']['recorded'] = $recorded;
+    $jobs['failed']['total'] = $total;
 
     fakeForum(['admin-api/jobs/' => Http::response($jobs)]);
 
     expect(implode(' ', structured(JobQueue::class, ['forum' => 'acme'])['notes']))->toContain($expected);
 })->with([
-    'recorded' => [true, 'records failed jobs now'],
-    'not recorded, as on production' => [false, '`failed` being empty says nothing'],
+    'recorded' => [true, 19, 'records failed jobs now'],
+    'not recorded, as on production' => [false, 0, '`failed` being empty says nothing'],
+    'not recorded now, rows from when it was' => [false, 2, 'the 2 listed were recorded while it did'],
 ]);
+
+it('does not call a failed-jobs list empty when it holds rows recorded earlier', function () {
+    $jobs = captured('jobs');
+    $jobs['failed']['recorded'] = false;
+
+    fakeForum(['admin-api/jobs/' => Http::response($jobs)]);
+
+    expect(implode(' ', structured(JobQueue::class, ['forum' => 'acme'])['notes']))->not->toContain('being empty');
+});
 
 it('says a null attempt count is not recorded, as on XenForo 2.2', function () {
     // not captured: built from the add-on's description of its answer on a 2.2 forum

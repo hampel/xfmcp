@@ -22,7 +22,8 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
       XenForo (2.2) keeps no count of attempts - not that none were retried.
 
     `failed` needs care. XenForo records a failed job only when the forum is in debug mode, which a production
-    forum is not: `failed.recorded: false` with `total: 0` means nothing was recorded, not that nothing failed.
+    forum is not: `failed.recorded: false` with `total: 0` means nothing was recorded, not that nothing failed,
+    and with a `total` above 0 those were recorded while debug mode was on, and later failures are missing.
     XenForo 2.2 has no record of failed jobs at all, with the same result. On such a forum a job failure
     shows up in error-log-summary with a `job` origin instead. `notes` says which
     case this is. `failed.signatures` gives the exception class, file and line a failed job stopped at.
@@ -54,10 +55,19 @@ class JobQueue extends ForumTool
                 .'null: not recorded, which is not the same as none.';
         }
 
-        $notes[] = ($data['failed']['recorded'] ?? false) === true
-            ? 'This forum records failed jobs now; that does not say it was recording when earlier ones failed.'
-            : 'This forum does not record failed jobs, so `failed` being empty says nothing. Look for `job` origin '
-                .'in error-log-summary.';
+        $failed = (int) ($data['failed']['total'] ?? 0);
+
+        // `recorded` is the setting now; the rows are whatever was written while it was on
+        $notes[] = match (true) {
+            ($data['failed']['recorded'] ?? false) === true => 'This forum records failed jobs now; that does not say it was recording when earlier ones failed.',
+            $failed > 0 => sprintf(
+                'This forum does not record failed jobs now: the %d listed were recorded while it did (with debug mode on), '
+                .'and any failure since is missing from `failed`. Look for `job` origin in error-log-summary.',
+                $failed,
+            ),
+            default => 'This forum does not record failed jobs, so `failed` being empty says nothing. Look for `job` origin '
+                .'in error-log-summary.',
+        };
 
         $data['notes'] = $notes;
 
