@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.1.5] - 2026-11-09
+
 ### Changed
 
 - The inventory is read with `php-collective/toml` in place of `yosymfony/toml`, which has had no
