@@ -2,8 +2,8 @@
 
 namespace App\Support;
 
+use PhpCollective\Toml\Toml;
 use Throwable;
-use Yosymfony\Toml\Toml;
 
 /**
  * The TOML file listing the forums this server can ask.
@@ -61,7 +61,7 @@ class ForumInventory
         }
 
         try {
-            $parsed = Toml::parseFile($path);
+            $parsed = Toml::decodeFile($path);
         } catch (Throwable $e) {
             // never the parser's message, nor the exception chained: either can quote the token it
             // stopped on, and any value in this file may be an API key
@@ -70,7 +70,7 @@ class ForumInventory
 
         $this->parsedAt = $stamp;
 
-        return $this->raw = is_array($parsed) ? $parsed : [];
+        return $this->raw = $parsed;
     }
 
     /**

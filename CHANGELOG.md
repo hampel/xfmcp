@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### Changed
+
+- The inventory is read with `php-collective/toml` in place of `yosymfony/toml`, which has had no
+  release since 2018 and raises a deprecation on PHP 8.4 and later. The same files decode to the
+  same tables; a parse error still names nothing from the file.
+
 ## [0.1.4] - 2026-11-09
 
 ### Added
