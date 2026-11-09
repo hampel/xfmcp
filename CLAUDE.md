@@ -101,6 +101,10 @@ for the life of the process hid a newly added forum until the client reconnected
 **A changed inventory reaches the tools at once, but not the tool list.** Whether
 `error-log-entries` is offered is decided when the client asks for the list, and a client asks
 once. Adding the first `detail_key` to an inventory that had none still needs a reconnect.
+**A changed tool description reaches Claude Code only in a fresh session.** On 2026-11-09 a
+`/mcp` reconnect gave the test session 0.1.4's answers but kept forum-activity's description from
+when the session started. So a release that changes what a description says is proved from a
+new session, and the same may hold for the tool list.
 
 **A parse error never quotes the parser.** The TOML parser names the token it stopped on, which
 in this file can be part of a key, so `ForumInventory` reports a fixed sentence and chains
