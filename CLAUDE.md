@@ -8,7 +8,7 @@ Guidance for a session working in this repository.
 the read-only endpoints of the Hampel/AdminApi XenForo add-on, reached through
 `hampel/xenforo-api`, so an agent can ask a forum about its error log, add-ons, cron, job
 queue, who is online, its other logs, the approval queue, reports, registrations and posting,
-user upgrades, options and configuration.
+user upgrades, options and configuration, and how an add-on's own checks came out.
 
 **The add-on's `README.md` is the contract**: every endpoint, parameter and field. This
 repository does not restate it. `README.md` here is the operator's document; this file is why
@@ -207,6 +207,14 @@ response got something wrong, in trials run against the add-on before this tool 
   them by hand on 2026-11-09. Each entry names where XenForo 2.3 writes it; add one only from
   the source, not from having seen a value change, which is how `emojiStyleLastUpdate` was
   proposed and found to have no writer.
+
+- **`addon-validate` returns outcomes and never says why, and says so in every answer.** The
+  add-on sends each check's outcome and no message (Simon, 2026-11-10: a message is free text
+  another add-on wrote). So the headline names the checks that failed and warned, a run where
+  every check was skipped says that nothing ran rather than that nothing failed, and a check that
+  passed with skipped rows is noted neutrally - in Hampel/AdminApi those rows are "nothing to
+  check" lines, not work left undone. Proposed by this tool after an add-on upgrade on a
+  production forum could be confirmed only as far as its version and an empty error log.
 
 - **`who-is-online` is the one tool not marked idempotent.** It is a snapshot; two calls are
   two answers.

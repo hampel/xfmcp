@@ -149,6 +149,27 @@ final class AdminApi extends Endpoint
     }
 
     /**
+     * The add-ons that declare checks to the Admin API, with how many run over the API.
+     * An empty list is a forum where none does.
+     *
+     * @return array<mixed>
+     */
+    public function validators(): array
+    {
+        return $this->ask('admin-api/validate/')->data;
+    }
+
+    /**
+     * One add-on's declared checks, run on the forum: the outcome of each, never what it said.
+     *
+     * @return array<mixed>
+     */
+    public function validate(string $addOnId): array
+    {
+        return $this->ask('admin-api/validate/', ['addon_id' => $addOnId])->data;
+    }
+
+    /**
      * `$optionIds` asks for exactly those options, changed or not, and overrides the other
      * two. An add-on older than 1.0.0a6 ignores it and returns the list: the reply then has
      * no `not_found`, which is how to tell.

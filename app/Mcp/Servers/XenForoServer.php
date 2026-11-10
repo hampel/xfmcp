@@ -3,6 +3,7 @@
 namespace App\Mcp\Servers;
 
 use App\Mcp\Tools\AddOns;
+use App\Mcp\Tools\AddOnValidate;
 use App\Mcp\Tools\ApprovalQueue;
 use App\Mcp\Tools\CronEntries;
 use App\Mcp\Tools\ErrorLogEntries;
@@ -32,7 +33,7 @@ use Laravel\Mcp\Server\Attributes\Name;
 #[Instructions(<<<'TEXT'
     Read-only operational state of XenForo forums: the server error log, installed add-ons, cron, the job queue,
     who is online, the forum's other logs, the approval queue, reports, registrations and posting, user upgrades,
-    and the forum's options and config.php settings. Every answer is counts or settings, never a member. Nothing here changes a forum.
+    add-ons' own checks, and the forum's options and config.php settings. Every answer is counts or settings, never a member. Nothing here changes a forum.
 
     Start with list-forums; every other tool takes a forum id from it. list-forums says what is configured;
     forum-access says what a forum will actually answer, and is the way to find out before relying on it.
@@ -41,6 +42,8 @@ use Laravel\Mcp\Server\Attributes\Name;
     secrets removed where the forum's key allows it, and say so when it does not.
 
     For "is anything wrong with this forum?", ask error-log-summary, cron-entries, job-queue and add-ons; for
+    "did that add-on install or upgrade cleanly?", add-ons and then addon-validate, which runs the add-on's own
+    checks where it declares them; for
     "is it being looked after?", forum-logs, approval-queue, reports, forum-activity and user-upgrades. Each reports what the forum
     recorded, so a clean answer means nothing was recorded, which is weaker than nothing being wrong - say so
     when reporting one. A forum that is down cannot answer at all, and a tool will say that
@@ -59,6 +62,7 @@ class XenForoServer extends Server
         ErrorLogSummary::class,
         ErrorLogEntries::class,
         AddOns::class,
+        AddOnValidate::class,
         CronEntries::class,
         JobQueue::class,
         WhoIsOnline::class,

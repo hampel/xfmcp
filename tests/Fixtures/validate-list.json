@@ -1,0 +1,13 @@
+{
+    "now": 1794287454,
+    "validators": [
+        {
+            "addon_id": "Hampel/AdminApi",
+            "title": "Admin API: read-only operational endpoints",
+            "version_id": 1000026,
+            "version_string": "1.0.0a16",
+            "checks": 8,
+            "api_checks": 7
+        }
+    ]
+}

@@ -90,6 +90,7 @@ class ForumAccess extends ForumTool
             'reports' => static fn (AdminApi $api): array => $api->reports(),
             'forum-activity' => static fn (AdminApi $api): array => $api->activity(),
             'user-upgrades' => static fn (AdminApi $api): array => $api->userUpgrades(),
+            'addon-validate' => static fn (AdminApi $api): array => $api->validators(),
         ];
 
         $refused = [];

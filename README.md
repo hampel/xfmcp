@@ -166,6 +166,7 @@ panel.
 | `reports` | `key` | `hampel_admin_api:reports` |
 | `forum-activity` | `key` | `hampel_admin_api:activity` |
 | `user-upgrades` | `key` | `hampel_admin_api:user_upgrades` |
+| `addon-validate` | `key` | `hampel_admin_api:validate`, from the add-on's 1.0.0a16 |
 | `forum-options` | `key` | `hampel_admin_api:options` |
 | `forum-configuration` | `key` | `hampel_admin_api:config` |
 | `error-log-entries` | `detail_key` | `hampel_admin_api:error_detail`, **and** XenForo's *View logs* on the administrator |
@@ -313,6 +314,7 @@ Every tool but the first takes `forum`, an id from `list-forums`.
 | `reports` | how many reports wait for a moderator, for how long and since anyone touched one, and whether moderators are shown the right count |
 | `forum-activity` | how many members registered and how many threads and posts were made in a window, by the state each is in now |
 | `user-upgrades` | how many members hold each upgrade, what ends soon or expired, and what payments were reported |
+| `addon-validate` | which add-ons declare their own checks, or how one add-on's checks came out: ok, warn, fail or skipped |
 | `forum-options` | the forum's options: what is set, what was changed, and their values with secrets removed |
 | `forum-configuration` | the `config.php` settings in force, and their values with secrets removed |
 
@@ -368,6 +370,10 @@ answer at all. Further limits:
   forum `job-queue` reports those as not recorded, never as zero. Nor does it record a cancelled
   subscription, so `user-upgrades` reports `cancelled` as null there.
 - `user-upgrades` payment amounts are each upgrade's list price, not what the provider took.
+- `addon-validate` returns each check's outcome, never what it said, so it cannot say why one
+  warned or failed: that is the add-on's validate command, on the server. It runs only the checks
+  an add-on marks safe to run remotely, and only for add-ons that declare them; a check it did not
+  run is `skipped`, never a pass.
 - `forum-activity` counts each registration, thread and post in the state it is in now, and
   cannot count what was deleted outright. Its window is at most 31 days.
 - `forum-logs` over a long window on a large log is slow, because the forum reads every row in

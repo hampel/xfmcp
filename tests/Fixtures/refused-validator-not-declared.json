@@ -1,0 +1,11 @@
+{
+    "errors": [
+        {
+            "code": "hampel_adminapi_validator_not_declared",
+            "message": "The add-on Acme/AddOnA does not declare its checks to the Admin API.",
+            "params": {
+                "addon_id": "Acme/AddOnA"
+            }
+        }
+    ]
+}

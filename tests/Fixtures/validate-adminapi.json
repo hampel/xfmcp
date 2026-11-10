@@ -1,0 +1,102 @@
+{
+    "now": 1794287454,
+    "add_on": {
+        "addon_id": "Hampel/AdminApi",
+        "title": "Admin API: read-only operational endpoints",
+        "version_id": 1000026,
+        "version_string": "1.0.0a16"
+    },
+    "checks": [
+        {
+            "id": "api",
+            "label": "REST API",
+            "outcome": "ok",
+            "rows": {
+                "ok": 1,
+                "warn": 0,
+                "fail": 0,
+                "skipped": 0
+            }
+        },
+        {
+            "id": "scopes",
+            "label": "Scopes",
+            "outcome": "ok",
+            "rows": {
+                "ok": 18,
+                "warn": 0,
+                "fail": 0,
+                "skipped": 0
+            }
+        },
+        {
+            "id": "permissions",
+            "label": "Admin permissions",
+            "outcome": "ok",
+            "rows": {
+                "ok": 1,
+                "warn": 0,
+                "fail": 0,
+                "skipped": 0
+            }
+        },
+        {
+            "id": "routes",
+            "label": "Routes",
+            "outcome": "ok",
+            "rows": {
+                "ok": 1,
+                "warn": 0,
+                "fail": 0,
+                "skipped": 0
+            }
+        },
+        {
+            "id": "access",
+            "label": "API keys",
+            "outcome": "ok",
+            "rows": {
+                "ok": 3,
+                "warn": 0,
+                "fail": 0,
+                "skipped": 4
+            }
+        },
+        {
+            "id": "readers",
+            "label": "Endpoint readers",
+            "outcome": "ok",
+            "rows": {
+                "ok": 15,
+                "warn": 0,
+                "fail": 0,
+                "skipped": 0
+            }
+        },
+        {
+            "id": "faults",
+            "label": "Fault commands",
+            "outcome": "ok",
+            "rows": {
+                "ok": 2,
+                "warn": 0,
+                "fail": 0,
+                "skipped": 0
+            }
+        },
+        {
+            "id": "probe",
+            "label": "Probe error",
+            "outcome": "skipped",
+            "rows": {
+                "ok": 0,
+                "warn": 0,
+                "fail": 0,
+                "skipped": 0
+            }
+        }
+    ],
+    "invalid_checks": 0,
+    "exit_code": 0,
+    "exit_code_strict": 0
+}

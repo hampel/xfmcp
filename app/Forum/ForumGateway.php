@@ -50,6 +50,7 @@ class ForumGateway
         'admin-api/approval-queue/' => 'hampel_admin_api:approval_queue',
         'admin-api/reports/' => 'hampel_admin_api:reports',
         'admin-api/activity/' => 'hampel_admin_api:activity',
+        'admin-api/validate/' => 'hampel_admin_api:validate',
     ];
 
     public const SCOPE_DETAIL = 'hampel_admin_api:error_detail';
@@ -68,6 +69,13 @@ class ForumGateway
     public const CODE_WINDOW_TOO_LONG = 'hampel_adminapi_window_too_long';
 
     public const CODE_ERROR_ID_REQUIRED = 'hampel_adminapi_error_id_required';
+
+    /** from the add-on's 1.0.0a16, asking for one add-on's checks */
+    public const CODE_ADDON_NOT_FOUND = 'hampel_adminapi_addon_not_found';
+
+    public const CODE_ADDON_INACTIVE = 'hampel_adminapi_addon_inactive';
+
+    public const CODE_VALIDATOR_NOT_DECLARED = 'hampel_adminapi_validator_not_declared';
 
     public function __construct(
         private readonly ForumInventory $inventory,
@@ -224,6 +232,24 @@ class ForumGateway
             return "{$name} refused the key ({$codes}): the administrator `{$which}` belongs to does not hold an "
                 .'admin permission this endpoint needs. '.$this->messages($e).' It is granted on the administrator '
                 .'in the forum\'s admin control panel; the key is fine.';
+        }
+
+        // a 404 and a 409 about the add-on asked for, not about the key or the endpoint
+        if ($e->hasCode(self::CODE_ADDON_NOT_FOUND)) {
+            return "{$name} has no such add-on installed ({$codes}): ".$this->messages($e)
+                .' Ids are as the add-ons tool lists them. XenForo itself (`XF`) is not one, and declares no checks.';
+        }
+
+        if ($e->hasCode(self::CODE_ADDON_INACTIVE)) {
+            return "{$name} cannot run that add-on's checks ({$codes}): ".$this->messages($e)
+                .' Whether an add-on is active is set in the forum\'s admin control panel. No check ran, so '
+                .'this says nothing about whether they would pass.';
+        }
+
+        if ($e->hasCode(self::CODE_VALIDATOR_NOT_DECLARED)) {
+            return "{$name} has no checks to run for that add-on ({$codes}): ".$this->messages($e)
+                .' That is how the add-on is written, not a failure. Ask with no `addon_id` for the add-ons that '
+                .'declare checks.';
         }
 
         // Until the add-on's 1.0.0a13 this was also its answer for a missing admin permission;

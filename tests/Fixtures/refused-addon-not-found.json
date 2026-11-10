@@ -1,0 +1,11 @@
+{
+    "errors": [
+        {
+            "code": "hampel_adminapi_addon_not_found",
+            "message": "No add-on with the id Nobody/Here is installed.",
+            "params": {
+                "addon_id": "Nobody/Here"
+            }
+        }
+    ]
+}

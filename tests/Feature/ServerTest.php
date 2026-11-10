@@ -2,6 +2,7 @@
 
 use App\Mcp\Servers\XenForoServer;
 use App\Mcp\Tools\AddOns;
+use App\Mcp\Tools\AddOnValidate;
 use App\Mcp\Tools\ApprovalQueue;
 use App\Mcp\Tools\CronEntries;
 use App\Mcp\Tools\ErrorLogEntries;
@@ -23,7 +24,7 @@ use Laravel\Mcp\Server\Tool;
 const TOOLS = [
     ListForums::class, ForumAccess::class, ErrorLogSummary::class, ErrorLogEntries::class, AddOns::class,
     CronEntries::class, JobQueue::class, WhoIsOnline::class, ForumLogs::class, ApprovalQueue::class, Reports::class,
-    ForumActivity::class, UserUpgrades::class,
+    ForumActivity::class, UserUpgrades::class, AddOnValidate::class,
     ForumOptions::class, ForumConfiguration::class,
 ];
 

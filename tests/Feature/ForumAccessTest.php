@@ -44,6 +44,7 @@ const SUMMARIES_OK = [
     'admin-api/reports' => ['reports', 200],
     'admin-api/activity' => ['activity', 200],
     'admin-api/user-upgrades' => ['user-upgrades', 200],
+    'admin-api/validate' => ['validate-list', 200],
 ];
 
 const READ_OK = SUMMARIES_OK + [

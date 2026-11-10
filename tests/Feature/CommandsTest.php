@@ -52,7 +52,7 @@ it('passes a forum whose keys are each the right kind', function () {
 
     expect($exit)->toBe(0)
         ->and($output)->not->toContain('[fail]')->not->toContain('[warn]')
-        ->toContain('a user key holding 11 of the 11 summary scopes only')
+        ->toContain('a user key holding 12 of the 12 summary scopes only')
         ->toContain('XenForo 2.3.12')
         ->toContain('refused by error entries (missing_scope)')
         ->toContain('a user key holding hampel_admin_api:error_detail only')
@@ -152,7 +152,7 @@ it('treats the values scope on a read key as a choice, not an excess', function 
 
     expect($exit)->toBe(0)
         ->and($output)->not->toContain('[warn]')
-        ->toContain('a user key holding 11 of the 11 summary scopes and hampel_admin_api:values');
+        ->toContain('a user key holding 12 of the 12 summary scopes and hampel_admin_api:values');
 });
 
 it('proves a key with the values scope is given values, and warns with the forum\'s reason when it is not', function () {
@@ -228,7 +228,24 @@ it('reads scopes sent as a list as well as a map', function () {
         'admin-api/error-entries' => ['refused-missing-scope', 403],
     ]]);
 
-    expect(runCommand('app:validate')[1])->toContain('a user key holding 11 of the 11 summary scopes only');
+    expect(runCommand('app:validate')[1])->toContain('a user key holding 12 of the 12 summary scopes only');
+});
+
+it('passes a read key minted before the validate scope, and names it as not selected', function () {
+    // every read key before the add-on's 1.0.0a16, the production ones among them
+    $index = captured('index-read-key');
+    unset($index['key']['scopes']['hampel_admin_api:validate']);
+
+    fakeHealthyForum([READ_KEY => [
+        'index' => [$index, 200],
+        'admin-api/add-ons' => ['add-ons', 200],
+        'admin-api/error-entries' => ['refused-missing-scope', 403],
+    ]]);
+
+    [$exit, $output] = runCommand('app:validate');
+
+    expect($exit)->toBe(0)->and($output)->not->toContain('[warn]')
+        ->toContain('a user key holding 11 of the 12 summary scopes only; options and configuration show no values. Not selected, so refused: hampel_admin_api:validate');
 });
 
 it('passes a read key holding some of the summary scopes, and names the rest', function () {
@@ -244,7 +261,7 @@ it('passes a read key holding some of the summary scopes, and names the rest', f
     [$exit, $output] = runCommand('app:validate');
 
     expect($exit)->toBe(0)->and($output)->not->toContain('[warn]')
-        ->toContain('a user key holding 3 of the 11 summary scopes only; options and configuration show no values. Not selected, so refused: hampel_admin_api:logs');
+        ->toContain('a user key holding 3 of the 12 summary scopes only; options and configuration show no values. Not selected, so refused: hampel_admin_api:logs');
 });
 
 it('does not fail a read key for leaving add-ons unselected', function () {

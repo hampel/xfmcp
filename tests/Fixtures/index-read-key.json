@@ -1,5 +1,5 @@
 {
-    "version_id": 2031270,
+    "version_id": 2031370,
     "site_title": "Example Forum",
     "base_url": "https://forum.example.test",
     "api_url": "https://forum.example.test/index.php?api/",
@@ -18,7 +18,8 @@
             "hampel_admin_api:online": true,
             "hampel_admin_api:options": true,
             "hampel_admin_api:reports": true,
-            "hampel_admin_api:user_upgrades": true
+            "hampel_admin_api:user_upgrades": true,
+            "hampel_admin_api:validate": true
         }
     }
 }

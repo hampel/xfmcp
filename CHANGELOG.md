@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+### Added
+
+- `addon-validate`, which runs an add-on's own checks on a forum, the ones its validate command
+  runs on the server, and says how each came out: `ok`, `warn`, `fail`, or `skipped` for one the
+  add-on does not let run remotely. Without `addon_id` it lists the add-ons that declare checks.
+  Only outcomes come back, never what a check said. Needs the Hampel/AdminApi add-on 1.0.0a16
+  and its `hampel_admin_api:validate` scope on the read key; a forum on an older add-on refuses
+  it as an endpoint it does not have.
+- `forum-access` asks the new endpoint too, and `app:validate` counts its scope among the
+  summary scopes: a read key without it is reported as not selected, not warned about.
+
 ## [0.1.5] - 2026-11-09
 
 ### Changed
