@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.1.6] - 2026-11-10
+
 ### Added
 
 - `addon-validate`, which runs an add-on's own checks on a forum, the ones its validate command
