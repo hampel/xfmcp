@@ -8,6 +8,10 @@
   `laravel/mcp` 1.2 and later, which validates each call through a service Laravel Zero does not
   register. The validation and translation providers are now registered; `laravel/mcp` is 1.2.1.
 
+### Changed
+
+- Dependencies updated within their constraints, with the lock resolved for the PHP 8.3 floor.
+
 ## [0.1.6] - 2026-11-10
 
 ### Added

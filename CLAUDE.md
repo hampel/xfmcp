@@ -286,6 +286,9 @@ that did not apply. A skip is not a pass. Warnings exit 0, or 2 under
   not register; without them every tool call answers "Something went wrong while processing the
   request." with nothing on stderr, while `initialize` and `tools/list` still work. Found on
   2026-11-21 by a sibling tool before this one took 1.2; the suite fails 149 tests without them.
+- **`config.platform.php` is the floor, 8.3.0**, so `composer update` on a newer PHP cannot lock
+  a package the floor cannot install. On 2026-11-21 an update on PHP 8.5 took Symfony 8.1, which
+  needs 8.4.1, and would have failed the 8.3 CI leg and the build. Move it with the floor.
 - Assert on command output with `runCommand()` in `tests/Pest.php`, not
   `expectsOutputToContain()`.
 - No committed file names a real forum, host or path. Fixtures use `forum.example.test` and
