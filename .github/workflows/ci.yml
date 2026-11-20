@@ -109,7 +109,8 @@ jobs:
         # line as a message. App\Exceptions\Handler sends a rendered exception to
         # stderr, rebound in bootstrap/app.php over the framework's binding, so it
         # is exactly what could survive the suite and not the build. An inventory
-        # that does not exist is the case most likely to print something.
+        # that does not exist is the case most likely to print something. It also
+        # calls one tool, since initialize succeeds even when every tool call fails.
         run: ./.github/mcp-smoke.sh ./builds/xfmcp
 
   release:

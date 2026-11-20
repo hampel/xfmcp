@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Every tool call failed with "Something went wrong while processing the request." on
+  `laravel/mcp` 1.2 and later, which validates each call through a service Laravel Zero does not
+  register. The validation and translation providers are now registered; `laravel/mcp` is 1.2.1.
+
 ## [0.1.6] - 2026-11-10
 
 ### Added

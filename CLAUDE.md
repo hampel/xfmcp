@@ -281,6 +281,11 @@ that did not apply. A skip is not a pass. Warnings exit 0, or 2 under
 - `Hampel\XenForo\Api\Laravel\XenForoServiceProvider` is listed by hand in `config/app.php`.
   Laravel Zero ignores package discovery; without the line `Http::fake()` misses and a test
   reaches a real forum. `tests/Feature/NoNetworkTest.php` fakes nothing to prove it holds.
+- **`ValidationServiceProvider` and `TranslationServiceProvider` are listed by hand too.** From
+  laravel/mcp 1.2 every `tools/call` is validated through the `Validator`, which Laravel Zero does
+  not register; without them every tool call answers "Something went wrong while processing the
+  request." with nothing on stderr, while `initialize` and `tools/list` still work. Found on
+  2026-11-21 by a sibling tool before this one took 1.2; the suite fails 149 tests without them.
 - Assert on command output with `runCommand()` in `tests/Pest.php`, not
   `expectsOutputToContain()`.
 - No committed file names a real forum, host or path. Fixtures use `forum.example.test` and
@@ -311,8 +316,10 @@ publishes a release only on a tag.
 4. **Pin an install to the published `SHA256SUMS`, never to a local build**: box stamps the
    phar, so the same commit does not compile to the same bytes.
 
-`.github/mcp-smoke.sh` is the binary check both jobs run: one `initialize` over stdio, and every
-stdout line must be a JSON-RPC message.
+`.github/mcp-smoke.sh` is the binary check both jobs run: `initialize` and one `tools/call`
+(`list-forums`, which contacts no forum) over stdio. Every stdout line must be a JSON-RPC message
+and the call must be answered with a result, not a JSON-RPC error: `initialize` alone still
+succeeds when every tool call fails.
 
 ## Known gaps
 

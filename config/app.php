@@ -2,6 +2,8 @@
 
 use App\Providers\AppServiceProvider;
 use Hampel\XenForo\Api\Laravel\XenForoServiceProvider;
+use Illuminate\Translation\TranslationServiceProvider;
+use Illuminate\Validation\ValidationServiceProvider;
 
 return [
 
@@ -62,6 +64,13 @@ return [
         // Listed by hand: Laravel Zero ignores package auto-discovery. Without this line
         // XenForoManager is unbound, and Http::fake() would miss the client's requests.
         XenForoServiceProvider::class,
+
+        // laravel/mcp 1.2 validates every tools/call through the Validator, which Laravel Zero
+        // does not register. Without these every tool call answers a generic error, with nothing
+        // on stderr, while initialize and tools/list still work. The validator needs translation
+        // for its messages.
+        ValidationServiceProvider::class,
+        TranslationServiceProvider::class,
     ],
 
 ];
