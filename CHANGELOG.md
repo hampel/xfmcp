@@ -11,6 +11,9 @@
 ### Changed
 
 - Dependencies updated within their constraints, with the lock resolved for the PHP 8.3 floor.
+- A variable already set, exported or passed by the MCP client with `--env`, now wins over the
+  same key in the environment file. The file replaced it before, silently, including a `.env`
+  beside the binary, which the framework loaded a second time.
 - A build from a commit after a release reports how far past it is, such as `0.1.6-2-g802f737`,
   and `-dirty` for a modified tree, where it reported the last release's version. A release
   reports its tag, as before.

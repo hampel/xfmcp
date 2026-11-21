@@ -216,6 +216,8 @@ Every setting has a default, so a checkout needs no `.env`. `.env.example` docum
 
 The environment file is looked for beside the binary, then at the path in `XFMCP_ENV`, then in
 the project directory, then at `/etc/xfmcp/.env`. `xfmcp app:config` prints the one it read.
+**A variable already set wins over the same key in the file**, whether exported or passed by the
+MCP client with `--env`, so a file and a client registration can both be in place.
 On macOS and Windows the simplest course is no environment file at all: set
 `XFMCP_FORUMS_PATH` in the MCP client's configuration, as *Usage* shows.
 
