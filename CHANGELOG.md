@@ -2,15 +2,14 @@
 
 ## [Unreleased]
 
-### Fixed
-
-- Every tool call failed with "Something went wrong while processing the request." on
-  `laravel/mcp` 1.2 and later, which validates each call through a service Laravel Zero does not
-  register. The validation and translation providers are now registered; `laravel/mcp` is 1.2.1.
+## [0.1.7] - 2026-11-21
 
 ### Changed
 
 - Dependencies updated within their constraints, with the lock resolved for the PHP 8.3 floor.
+  `laravel/mcp` is 1.2.1, which validates each tool call through a service Laravel Zero does not
+  register, so the validation and translation providers are now registered; without them every
+  tool call would fail with "Something went wrong while processing the request."
 - A variable already set, exported or passed by the MCP client with `--env`, now wins over the
   same key in the environment file. The file replaced it before, silently, including a `.env`
   beside the binary, which the framework loaded a second time.
