@@ -314,7 +314,10 @@ publishes a release only on a tag.
 1. **Move `## [Unreleased]` in the CHANGELOG to `## [<tag>]` first.** The release job takes that
    section as the notes; a mismatch falls back to generated notes silently.
 2. **Tag, then build.** `app:build` compiles the version in as a literal, and the release job
-   fails if `--version` or the server's `serverInfo.version` differs from the tag.
+   fails if `--version` or the server's `serverInfo.version` differs from the tag. The version
+   is `git describe --tags --dirty` (`App\Support\Version`), not Laravel Zero's nearest tag: a
+   checkout past a release says so (`0.1.6-2-g802f737`), and a modified tree adds `-dirty`,
+   which the release job would refuse.
 3. **The maintainer pushes the tag**; CI publishes `xfmcp-<version>` and `SHA256SUMS`.
 4. **Pin an install to the published `SHA256SUMS`, never to a local build**: box stamps the
    phar, so the same commit does not compile to the same bytes.

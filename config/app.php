@@ -1,6 +1,7 @@
 <?php
 
 use App\Providers\AppServiceProvider;
+use App\Support\Version;
 use Hampel\XenForo\Api\Laravel\XenForoServiceProvider;
 use Illuminate\Translation\TranslationServiceProvider;
 use Illuminate\Validation\ValidationServiceProvider;
@@ -31,7 +32,8 @@ return [
     |
     */
 
-    'version' => app('git.version'),
+    // `git describe`, so a checkout past a tag says so; a tagged commit is exactly the tag
+    'version' => Version::describe(dirname(__DIR__)),
 
     /*
     |--------------------------------------------------------------------------

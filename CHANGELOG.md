@@ -11,6 +11,9 @@
 ### Changed
 
 - Dependencies updated within their constraints, with the lock resolved for the PHP 8.3 floor.
+- A build from a commit after a release reports how far past it is, such as `0.1.6-2-g802f737`,
+  and `-dirty` for a modified tree, where it reported the last release's version. A release
+  reports its tag, as before.
 
 ## [0.1.6] - 2026-11-10
 

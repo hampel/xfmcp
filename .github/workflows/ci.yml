@@ -146,7 +146,8 @@ jobs:
         run: composer build
 
       - name: It announces the tag it was built from
-        # config/app.php holds app('git.version'), compiled in as a literal.
+        # config/app.php holds `git describe --tags --dirty`, compiled in as a
+        # literal; on the tagged commit of a clean tree that is the tag alone.
         # Building before tagging would ship a binary announcing the previous
         # release; a tag-triggered build cannot, and this asserts it anyway.
         run: |
