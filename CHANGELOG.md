@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.1.8] - 2026-11-27
+
 ### Changed
 
 - Dependencies updated within their constraints, among them Symfony 7.4.24, which fixes
