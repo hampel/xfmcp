@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Dependencies updated within their constraints, among them Symfony 7.4.24, which fixes
+  CVE-2026-133743, CVE-2026-133746 and CVE-2026-133754 (none reachable from a stdio server), and
+  `laravel/mcp` 1.3.0, which fixes the server ending by itself on Windows after a long idle.
+
 ## [0.1.7] - 2026-11-21
 
 ### Changed
